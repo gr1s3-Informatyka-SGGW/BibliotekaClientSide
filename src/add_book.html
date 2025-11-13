@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dodaj książkę</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="input.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <link rel="stylesheet" href="add_book.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <script src="sidebar.js"></script>
+  <script defer src="mode_switcher.js"></script>
+  <script src="popup.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      const authorSelect = document.getElementById('author-select');
+      const genreSelect = document.getElementById('genre-select');
+      authorSelect.addEventListener('change', function () {
+        const selectedValue = this.value;
+        if (selectedValue === 'Wpisz nowego autora') {
+          showPopup('add_new_author');
+          this.value = ''; // Resetuj wybór w select
+        }
+      });
+      genreSelect.addEventListener('change', function () {
+        const selectedValue = this.value;
+        if (selectedValue === 'Dodaj nowy gatunek') {
+          showPopup('add_new_genre');
+          this.value = ''; // Resetuj wybór w select
+        }
+      });
+    });
+  </script>
+
+  <div class="content">
+    <h1><img src="assets/add_box.svg"></img> Dodaj książkę</h1>
+
+    <div class="add-container">
+      <div class="panel book-info" style="overflow-x: hidden;">
+        <h3 class="header"><img src="assets/book.svg"> Informacje o książce</h3>
+        <label for="title">Tytuł:</label>
+        <input type="text" id="title">
+
+        <label for="author-select">Autorzy:</label>
+        <div class="multi-select-container">
+          <div class="chip">
+            J.R.R. Tolkien
+            <span class="chip-close">x</span>
+          </div>
+          <div class="chip">
+            C.S. Lewis
+            <span class="chip-close">x</span>
+          </div>
+          <select id="author-select">
+            <option disabled selected value="">Wybierz lub wpisz nowego autora</option>
+            <option>Wpisz nowego autora</option>
+            <option>Adam Mickiewicz</option>
+            <option>Henryk Sienkiewicz</option>
+          </select>
+          <div class="chip add">Dodaj</div>
+        </div>
+        <label for="isbn">ISBN:</label>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="isbn" style="flex:1;">
+          <button title="Skanuj kod QR"><img src="assets/qr_code_scanner.svg"></img></button>
+        </div>
+
+        <label for="genre-select">Gatunki:</label>
+        <div class="multi-select-container">
+          <div class="chip">
+            Fantasy
+            <span class="chip-close">x</span>
+          </div>
+          <div class="chip">
+            Przygodowy
+            <span class="chip-close">x</span>
+          </div>
+          <select id="genre-select">
+            <option disabled selected value="">Wybierz lub wpisz nowy gatunek</option>
+            <option>Dodaj nowy gatunek</option>
+            <option>Science Fiction</option>
+            <option>Kryminał</option>
+            <option>Horror</option>
+          </select>
+          <div class="chip add">Dodaj</div>
+        </div>
+        <label for="year">Rok wydania:</label>
+        <input type="number" id="year" min="1000" max="2100">
+
+        <label for="publisher">Wydawca:</label>
+        <input type="text" id="publisher">
+
+        <label for="copies">Liczba egzemplarzy:</label>
+        <input type="number" id="copies" min="1" value="1">
+        <button style="width: 20em; margin-left: auto;" onclick="showPopup('book_copies_added')"><img
+            src="assets/save.svg"></img>&nbspDodaj książkę</button>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>

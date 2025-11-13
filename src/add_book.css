@@ -1,0 +1,55 @@
+.multi-select-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 0.5em;
+    background-color: #f9f9f9;
+    align-items: center;
+}
+
+.multi-select-container select,
+.multi-select-container input[type="text"] {
+    flex: 1;
+    min-width: 150px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: #FFE8EF;
+    color: #6B1737;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 0.9em;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.add {
+    background-color: #891E49;
+    color: white;
+    cursor: pointer;
+}
+
+.chip-close {
+    cursor: pointer;
+    font-weight: bold;
+    color: #891E49;
+    padding: 0 3px;
+    margin-left: 3px;
+    transition: color 0.2s;
+}
+
+.chip-close:hover {
+    color: #C73867;
+}
+
+#copies {
+    max-width: 10em;
+}
+
+.panel.book-info {
+    padding: 1.5em;
+}
