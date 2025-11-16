@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { validators, luhnCheck, isCardExpiryValid, isbnValidate, passwordMeetsPolicy } from './regex';
+import { validators, luhnCheck, isCardExpiryValid, isbnValidate, passwordMeetsPolicy } from '../public/validators.js';
 
 const sqliPayloads = [
   "' OR '1'='1' --",
@@ -36,6 +36,7 @@ describe('Registration validators - normal and edge cases', () => {
     expect(validators.email('a@b.co').ok).toBe(true);
     expect(validators.email('user+label@sub.domain.pl').ok).toBe(true);
     expect(validators.email('user@@example.com').ok).toBe(false);
+    expect(validators.email('us..er@@example.com').ok).toBe(false);
   });
 
   test('phone formats', () => {
@@ -52,6 +53,7 @@ describe('Registration validators - normal and edge cases', () => {
 
     expect(validators.houseNo('12').ok).toBe(true);
     expect(validators.houseNo('12A').ok).toBe(true);
+    expect(validators.houseNo('12a').ok).toBe(true);
     expect(validators.houseNo('12/3').ok).toBe(true);
     expect(validators.houseNo('../../etc/passwd').ok).toBe(false);
 
@@ -79,6 +81,8 @@ describe('Registration validators - normal and edge cases', () => {
     // format invalid
     expect(validators.cardExp('1/25').ok).toBe(false);
 
+    expect(validators.cardExp('1/26').ok).toBe(true); // thats a problem
+
     // test edge: current month -> valid
     const now = new Date();
     const currentMM = String(now.getMonth() + 1).padStart(2, '0');
@@ -90,6 +94,7 @@ describe('Registration validators - normal and edge cases', () => {
     expect(validators.cvv('123').ok).toBe(true);
     expect(validators.cvv('1234').ok).toBe(true);
     expect(validators.cvv('12').ok).toBe(false);
+    expect(validators.cvv('12a').ok).toBe(false);
 
     expect(validators.password('Aa1!aaaaaaaa').ok).toBe(true);
     expect(validators.password('password123').ok).toBe(false);
@@ -103,6 +108,9 @@ describe('Book validators', () => {
     expect(validators.title('').ok).toBe(false);
     expect(validators.author('Adam Mickiewicz').ok).toBe(true);
     expect(validators.author('Author1, Author2').ok).toBe(false); // digits not allowed in this strict author regex
+    // what about title?
+    expect(validators.author("1999").ok).toBe(true) // Istnieje ksiązka o takim tytule!
+
     expect(validators.publisher('Wydawnictwo ABC').ok).toBe(true);
   });
 
@@ -119,6 +127,7 @@ describe('Book validators', () => {
     expect(validators.keywords('').ok).toBe(true);
     expect(validators.pages('1').ok).toBe(true);
     expect(validators.pages('0').ok).toBe(false);
+    expect(validators.pages('1a').ok).toBe(false);
     expect(validators.pages('100000').ok).toBe(false);
   });
 });

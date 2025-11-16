@@ -1,1 +1,0 @@
-export const validate_name = '' // jakiś regex string
