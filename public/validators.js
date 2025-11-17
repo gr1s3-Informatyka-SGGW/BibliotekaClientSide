@@ -8,11 +8,11 @@ const regex = {
     city: /^(?=.{1,80}$)[\p{L}]+(?:[ \-][\p{L}]+)*$/u,
     postal: /^\d{2}-\d{3}$/,
     cardNum: /^\d{13,19}$/, // format only; Luhn separately
-    cardExp: /^(0[1-9]|1[0-2])\/(\d{2}|\d{4})$/,
+    cardExp: /^([1-9]|0[1-9]|1[0-2])\/(\d{2}|\d{4})$/,
     cvv: /^\d{3,4}$/,
     password: /^(?=.{12,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%\^&\*\(\)\-_:;\=\+\[\]\{\}\|;:'",<\.>\/\?`~]).+$/,
     title: /^(?=.{1,255}$)[\p{L}0-9][\p{L}0-9\s!?:;,. '"()\[\]{}/&+-]*$/u,
-    author: /^(?=.{1,200}$)[\p{L}]+(?:[ '\-][\p{L}]+)*(?:\s*,\s*[\p{L}]+(?:[ '\-][\p{L}]+)*)*$/u,
+    author: /^(?=.{1,200}$)([\p{L}]+(?:[ '\-][\p{L}]+)*(?:\s*,\s*[\p{L}]+(?:[ '\-][\p{L}]+)*)*$|^(\d+)$)/u,
     publisher: /^(?=.{1,150}$)[\p{L}0-9][\p{L}0-9\s&,.'-]*$/u,
     isbnFmt: /^(?:ISBN(?:-1[03])?:?\s*)?(?:\d{9}[\dXx]|\d{13}|\d{1,5}-\d{1,7}-\d{1,7}-[\dXx]?)$/,
     keywords: /^(?=.{0,500}$)(?:[^\s,]{1,50})(?:\s*,\s*[^\s,]{1,50}){0,19}$/,
@@ -40,8 +40,10 @@ function luhnCheck(cardNumber) {
 
 function parseExpiry(mmyy) {
     if (typeof mmyy !== 'string') return null;
+    if (!regex.cardExp.test(mmyy)) return null;
     const m = mmyy.split('/');
-    if (!m || m.length !== 2) return null;
+    if (!m || m.length !== 2) return null; 
+
     const mm = parseInt(m[0], 10);
     let yy = m[1];
     if (!/^(\d{2}|\d{4})$/.test(yy)) return null;
