@@ -64,19 +64,25 @@ button:hover {
 }
 
 button.boring {
-  background-color: #85586a;
-  color: white;
+  border: 1px solid #891E49;
+  background-color: white;
+  color: #891E49;
 }
 
-button:hover.boring {
-  background-color: #694753;
+button.boring:hover {
+  background-color: #f0d0dc;
+  color: #891E49;
 }
 
 button:disabled {
   background-color: #D3D3D3;
   color: #888888;
   cursor: default;
-  box-shadow: none;/
+  box-shadow: none;
+}
+
+button.boring:disabled {
+  border: 0;
 }
 
 button:disabled:hover {

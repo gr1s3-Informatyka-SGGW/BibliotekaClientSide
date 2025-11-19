@@ -212,13 +212,23 @@
                     </div>
                 </div>
 
-                <span id="labelDateRange">Zakres dat wypożyczenia:</span>
-                <div style="flex: 1; display: flex; gap: 1em; width: 100%; margin-top: 10px; align-items: center;">
+                <span id="labelDateRange">Zakres dat wypożyczenia (od daty do daty):</span>
+                <div style="flex: 1; display: flex; gap: 1em; width: 100%; ; align-items: center;">
                     <input type="date" placeholder="Od daty" style="flex: 1;">
                     <input type="date" placeholder="Do daty" style="flex: 1;">
                 </div>
 
-                <div style="display: flex; gap: 1em; width: 100%; align-items: center; margin-top: 10px;">
+                <div style="display: flex; width: 100%; flex-wrap: wrap;">
+                    <label>Sortuj po:</label>
+                    <select>
+                        <option>Termin zwrotu (rosnąco)</option>
+                        <option>Termin zwrotu (malejąco)</option>
+                        <option>Termin wypożyczenia (rosnąco)</option>
+                        <option>Termin wypożyczenia (malejąco)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 1em; width: 100%; align-items: center; ;">
                     <button style="white-space: nowrap; margin-left: auto;"><img src="assets/search.svg"></img>
                         Szukaj</button>
                     <button onclick="showPopup('change_search_mode_simple')">
@@ -231,14 +241,27 @@
         <div class="book-section">
             <div id="returns-list">
                 <div class="panel">
-                    <h3 class="header"><img src="assets/book.svg"> „1984”</h3>
+                    <h3 class="header"><img src="assets/book.svg"> Zwrot z dnia 10.11.2025</h3>
 
                     <div>
-                        <strong>Jan Kowalski</strong>
-                        <span class="user-email">
-                            <img src="assets/mail.svg" class="date-icon">
-                            <span>jan.kowalski@example.com</span>
-                        </span>
+                        <a href="users.html" style="text-align: left;">
+                            <strong>Jan Kowalski</strong>
+                            <span class="user-email">
+                                <img src="assets/mail.svg" class="date-icon">
+                                <span>jan.kowalski@example.com</span>
+                            </span>
+                        </a>
+                    </div>
+
+                    <div style="margin-top: 1em;">
+                        <a href="catalog.html" style="text-align: left;">
+                            <strong>Tytuł: „1984”</strong>
+                            <span class="user-email" style="display: block; margin-top: 0.25em;">
+                                <img src="assets/book.svg" class="date-icon"
+                                    style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                                <span>Autor: George Orwell</span>
+                            </span>
+                        </a>
                     </div>
 
                     <div class="details-grid">
@@ -269,19 +292,35 @@
                                 <span class="fine-red">165.00 zł</span>
                             </div>
                         </div>
-                        <button style="width: 100%;">Potwierdź zwrot</button>
+                        <button style="width: 100%;" onclick="showPopup('confirm_return_librarian')"><img src="" alt="">
+                            Potwierdź
+                            zwrot</button>
                     </div>
                 </div>
                 <div class="panel">
-                    <h3 class="header"><img src="assets/book.svg"> „Władca Pierścieni: Drużyna Pierścienia”</h3>
+                    <h3 class="header"><img src="assets/book.svg"> Zwrot z dnia 29.11.2025</h3>
 
                     <div>
-                        <strong>Anna Nowak</strong>
-                        <span class="user-email">
-                            <img src="assets/mail.svg" class="date-icon">
-                            <span>anna.nowak@example.com</span>
-                        </span>
+                        <a href="users.html" style="text-align: left;">
+                            <strong>Anna Nowak</strong>
+                            <span class="user-email">
+                                <img src="assets/mail.svg" class="date-icon">
+                                <span>anna.nowak@example.com</span>
+                            </span>
                     </div>
+                    </a>
+
+                    <div style="margin-top: 1em;">
+                        <a href="catalog.html" style="text-align: left;">
+                            <strong>Tytuł: „Władca Pierścieni: Drużyna Pierścienia”</strong>
+                            <span class="user-email" style="display: block; margin-top: 0.25em;">
+                                <img src="assets/book.svg" class="date-icon"
+                                    style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                                <span>Autor: J.R.R. Tolkien</span>
+                            </span>
+                        </a>
+                    </div>
+
 
                     <div class="details-grid">
                         <div class="date-container">
@@ -311,7 +350,9 @@
                                 <span class="fine-black">0.00 zł</span>
                             </div>
                         </div>
-                        <button style="width: 100%;">Potwierdź zwrot</button>
+                        <button style="width: 100%;" onclick="showPopup('confirm_return_librarian')"><img src="" alt="">
+                            Potwierdź
+                            zwrot</button>
                     </div>
                 </div>
             </div>

@@ -5,6 +5,18 @@ body {
   margin: 1em;
 }
 
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
 .content {
   max-width: 65em;
   margin: auto;
@@ -16,7 +28,6 @@ body {
 
 a {
   text-align: center;
-  text-decoration: none;
   color: #891E49;
   transition: color 0.3s;
 }
@@ -47,7 +58,6 @@ legend {
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center;
   height: 100vh;
 }
 
@@ -75,6 +85,10 @@ legend {
 .checkbox-container a {
   text-align: left;
   display: inline;
+}
+
+button img {
+  margin-right: 0.3em;
 }
 
 a2 {
@@ -152,6 +166,12 @@ strong {
   padding-bottom: 0.5em;
 }
 
+form>h2 {
+  margin: 0;
+  color: #891E49;
+  padding-bottom: 0.5em;
+}
+
 .book-item {
   display: flex;
   justify-content: space-between;
@@ -213,6 +233,7 @@ a img {
   max-width: 80vw;
   max-height: 80vw;
   margin: 0;
+  gap: 0;
   overflow: hidden;
 }
 

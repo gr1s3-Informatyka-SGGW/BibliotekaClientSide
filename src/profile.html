@@ -14,17 +14,13 @@
     href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
     rel="stylesheet">
   <style>
-    .content {
-      max-width: 80em;
-    }
-
     .profile-container {
       display: grid;
       overflow: hidden;
     }
 
     #user-info-section {
-      overflow: scroll;
+      overflow: auto;
     }
 
     .empty {
@@ -170,7 +166,7 @@
 
           <div class="info-row">
             <span class="label">Numer karty:</span>
-            <span class="value">********1234</span>
+            <span class="value">**** **** **** 1234</span>
           </div>
 
         </div>
@@ -189,14 +185,15 @@
       </div>
       <div class="empty"></div>
       <div class="books-reserved panel">
-        <h3 class="header"><img src="assets/book_ribbon.svg"> Zarezerwowane książki</h3>
-        <div style="overflow-y: scroll; max-height: 30em;">
+        <h3 class="header"><img src="assets/book_ribbon.svg"> Zarezerwowane książki (2)</h3>
+        <div style="overflow-y: auto; max-height: 30em;">
           <div class="book-item">
             <span>„Rok 1984” — George Orwell</span>
             <span class="status">Pozostały 3 dni na odbiór</span>
             <div class="book-actions">
               <button onclick="showPopup('confirm_cancel')">Anuluj rezerwację</button>
-              <button onclick="showPopup('confirm_pickup')">Odbierz</button>
+              <button onclick="showPopup('confirm_pickup')"><img src="assets/qr_code_scanner.svg"></img>
+                Odbierz</button>
             </div>
           </div>
           <div class="book-item">
@@ -210,72 +207,66 @@
 
       </div>
       <div class="books-borrowed panel">
-        <h3 class="header"><img src="assets/book.svg"> Wypożyczone książki</h3>
-        <div style="overflow-y: scroll; max-height: 30em;">
+        <h3 class="header"><img src="assets/book.svg"> Wypożyczone książki (2)</h3>
+        <div style="overflow-y: auto; max-height: 30em;">
           <div class="book-item">
             <span>„Wiedźmin: Miecz przeznaczenia” — Andrzej Sapkowski</span>
             <span class="status">Termin zwrotu: 31.12.2025</span>
             <div class="book-actions">
-              <button onclick="showPopup('confirm_prolong')">Prolonguj</button>
-              <button onclick="showPopup('confirm_return')">Zwróć</button>
+              <button onclick="showPopup('confirm_prolong')">Przedłuż</button>
+              <button onclick="showPopup('confirm_return')"><img src="assets/qr_code_scanner.svg"></img> Zwróć</button>
             </div>
           </div>
           <div class="book-item">
             <span>„Zbrodnia i kara” — Fiodor Dostojewski</span>
             <span class="status" style="color: #e00000;"><b>Termin zwrotu: 1.11.2025</b></span>
             <div class="book-actions">
-              <button onclick="showPopup('confirm_prolong')">Prolonguj</button>
-              <button onclick="showPopup('confirm_return')">Zwróć</button>
+              <button onclick="showPopup('confirm_prolong')">Przedłuż</button>
+              <button onclick="showPopup('confirm_return')"><img src="assets/qr_code_scanner.svg"></img> Zwróć</button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="content bibliotekarz">
+  <div class="content bibliotekarz" style="max-width: 30em;">
     <h1><img src="assets/account_circle.svg"></img> Twój profil</h1>
-      <div class="panel" style="width: 30em; margin: auto;">
-        <h3 class="header"><img src="assets/account_circle.svg"> Twój profil</h3>
+    <div class="panel">
+      <h3 class="header"><img src="assets/account_circle.svg"> Twój profil</h3>
 
-        <div id="user-info-section">
+      <div id="user-info-section">
 
-          <div class="info-row editable-field">
-            <span class="label">Imię:</span>
-            <span class="value">Jan</span>
-            <input type="text" value="Jan" class="edit-field hidden">
-          </div>
-
-          <div class="info-row editable-field">
-            <span class="label">Nazwisko:</span>
-            <span class="value">Kowalski</span>
-            <input type="text" value="Kowalski" class="edit-field hidden">
-          </div>
-
-          <div class="info-row editable-field">
-            <span class="label">E-mail:</span>
-            <span class="value">jan.kowalski@example.com</span>
-            <input type="text" value="jan.kowalski@example.com" class="edit-field hidden">
-          </div>
-
-          <div class="info-row">
-            <span class="label">Numer karty:</span>
-            <span class="value">********1234</span>
-          </div>
-
+        <div class="info-row editable-field">
+          <span class="label">Imię:</span>
+          <span class="value">Jan</span>
+          <input type="text" value="Jan" class="edit-field hidden">
         </div>
 
-        <div id="default-buttons" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
-          <button onclick="editProfile(true)" style="min-width: 6em; flex-grow: 1;">Edytuj profil</button>
-          <button onclick="showPopup('change_card')" style="min-width: 6em; flex-grow: 1;">Zmień dane karty</button>
-          <button onclick="showPopup('change_password')" style="min-width: 6em; flex-grow: 1;">Zmień hasło</button>
+        <div class="info-row editable-field">
+          <span class="label">Nazwisko:</span>
+          <span class="value">Kowalski</span>
+          <input type="text" value="Kowalski" class="edit-field hidden">
         </div>
 
-        <div id="edit-buttons" class="hidden" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
-          <button class="boring" onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Odrzuć
-            zmiany</button>
-          <button onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Zapisz zmiany</button>
+        <div class="info-row editable-field">
+          <span class="label">E-mail:</span>
+          <span class="value">jan.kowalski@example.com</span>
+          <input type="text" value="jan.kowalski@example.com" class="edit-field hidden">
         </div>
+
       </div>
+
+      <div id="default-buttons" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+        <button onclick="editProfile(true)" style="min-width: 6em; flex-grow: 1;">Edytuj profil</button>
+        <button onclick="showPopup('change_password')" style="min-width: 6em; flex-grow: 1;">Zmień hasło</button>
+      </div>
+
+      <div id="edit-buttons" class="hidden" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+        <button class="boring" onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Odrzuć
+          zmiany</button>
+        <button onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Zapisz zmiany</button>
+      </div>
+    </div>
   </div>
 </body>
 

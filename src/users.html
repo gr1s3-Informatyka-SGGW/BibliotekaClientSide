@@ -15,15 +15,12 @@
     href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
     rel="stylesheet">
   <style>
-    /* Dodaj box-sizing: border-box do inputów i selectów w panelu dla lepszej kontroli szerokości */
     .panel input,
     .panel select {
       box-sizing: border-box;
       width: 100%;
-      /* Upewnia się, że inputy zajmują całą dostępną przestrzeń w kolumnie flex */
     }
 
-    /* Dodatkowe style */
     h4 {
       margin: 0.5em 0;
     }
@@ -166,8 +163,7 @@
       background-color: #BF8049;
     }
 
-    .librarian,
-    .librarian button {
+    .librarian {
       background-color: #fee6f0;
     }
   </style>
@@ -200,7 +196,7 @@
 
         <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px;">
-            <label for="adv-name">Imię i Nazwisko:</label>
+            <label for="adv-name">Imię i nazwisko:</label>
             <input type="text" id="adv-name" placeholder="Imię i nazwisko użytkownika">
           </div>
           <div style="flex: 1; min-width: 200px;">
@@ -213,14 +209,15 @@
           <div style="flex: 1; min-width: 200px;">
             <label for="adv-status">Status konta:</label>
             <select id="adv-status" style="width: 100%;">
-              <option selected>Aktywny</option>
+              <option selected>Dowolny</option>
+              <option>Aktywny</option>
               <option>Zablokowany</option>
               <option>Bibliotekarz</option>
             </select>
           </div>
           <div style="flex: 1; min-width: 200px;">
-            <label for="adv-card">Numer karty:</label>
-            <input type="text" id="adv-card" placeholder="Numer karty czytelnika">
+            <label>Wypożyczona/zarezerwowana książka:</label>
+            <input type="text" placeholder="Tytuł, autor lub ISBN...">
           </div>
         </div>
 
@@ -235,15 +232,15 @@
     </div>
     <div class="book-section">
       <div>
-        <div class="panel">
+        <div class="panel librarian">
           <h3 class="header collapsible-header toggle-header" onclick="toggleCollapsible(this)">
-            <img src="assets/account_circle.svg">
+            <img src="assets/account_circle_filled.svg">
             <span class="toggle-text">Pokaż formularz: Dodaj nowego bibliotekarza</span>
             <span class="arrow" style="margin-left: auto;">&#x25B8;</span>
           </h3>
 
-          <div class="collapsible-content" style="overflow: hidden;">
-            <div style="display: flex; gap: 12px; width: 100%;" class="row">
+          <div class="collapsible-content" style="overflow: hidden; display: flex; gap: 0.5em; flex-direction: column;">
+            <div style="display: flex; gap: 0.5em; width: 100%;" class="row">
               <div style="flex:1">
                 <label for="librarianFirstName">Imię:</label>
                 <input id="librarianFirstName" type="text" placeholder="Imię">
@@ -253,18 +250,25 @@
                 <input id="librarianLastName" type="text" placeholder="Nazwisko">
               </div>
             </div>
-            <div>
-              <label for="librarianEmail">E-mail:</label>
-              <input id="librarianEmail" type="email" placeholder="adres@example.com">
+
+            <div style="display: flex; gap: 0.5em; width: 100%;" class="row">
+
+              <div style="flex:1">
+                <label for="librarianEmail">E-mail:</label>
+                <input id="librarianEmail" type="email" placeholder="adres@example.com">
+              </div>
+              <div style="flex:1">
+                <label for="librarianPassword">Hasło:</label>
+                <input id="librarianPassword" type="password" placeholder="Hasło">
+              </div>
+
             </div>
-            <div>
-              <label for="librarianPassword">Hasło:</label>
-              <input id="librarianPassword" type="password" placeholder="Hasło">
-            </div>
+
             <div style="display: flex; justify-content: flex-end; margin-top: 0.5em;">
-              <button style="width: 20em;"><img src="assets/add.svg"> Dodaj bibliotekarza</button>
+              <button style="width: 100%;"><img src="assets/add.svg"> Dodaj bibliotekarza</button>
             </div>
           </div>
+
         </div>
         <div class="panel">
           <div class="user-panel-header">
@@ -496,17 +500,16 @@
             </span>
           </div>
           <div class="user-actions">
-            <button class="action-block">
-              <img src="assets/block.svg"> Zablokuj
-            </button>
-            <button class="action-delete" <img src="assets/delete.svg"> Usuń bibliotekarza
-            </button>
+            <button class="action-delete"><img src="assets/delete.svg">Usuń bibliotekarza
           </div>
-
         </div>
-
+        </button>
       </div>
+
     </div>
+
+  </div>
+  </div>
   </div>
 </body>
 

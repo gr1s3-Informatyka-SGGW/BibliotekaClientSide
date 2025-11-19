@@ -23,6 +23,7 @@ document.body.insertAdjacentHTML('beforeend', `
     <a class="sidebar-elem" id="sidebar-button-profile" href="profile.html"><img src="assets/account_circle.svg"></img> Twój profil</a>
     <a class="sidebar-elem bibliotekarz" id="sidebar-button-users" href="users.html"><img src="assets/group.svg"></img> Użytkownicy</a>
     <a class="sidebar-elem bibliotekarz" id="sidebar-button-add-book" href="add_book.html"><img src="assets/add_box.svg"></img> Dodaj książkę</a>
+    <a class="sidebar-elem bibliotekarz" id="sidebar-button-pending" href="pending.html"><img src="assets/borrow.svg"></img> Aktywne</a>
     <a class="sidebar-elem bibliotekarz" id="sidebar-button-returns" href="returns.html"><img src="assets/returns.svg"></img> Zwroty</a>
 
     <div style="flex: 1 1 auto;"></div>
@@ -56,6 +57,8 @@ if (path.includes("catalog.html")) {
   document.getElementById("sidebar-button-returns").classList.add('selected');
 } else if (path.includes("about.html")) {
   document.getElementById("sidebar-button-about").classList.add('selected');
+} else if (path.includes("pending.html")) {
+  document.getElementById("sidebar-button-pending").classList.add('selected');
 }
 
 async function toggleMenu() {
