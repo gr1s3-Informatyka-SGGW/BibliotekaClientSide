@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Twój profil</title>
+  <link rel="stylesheet" href="../../style.css">
+  <link rel="stylesheet" href="../../input.css">
+  <link rel="stylesheet" href="../sidebar.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+    rel="stylesheet">
+  <style>
+    .profile-container {
+      display: grid;
+      overflow: hidden;
+    }
+
+    #user-info-section {
+      overflow: auto;
+    }
+
+    .empty {
+      grid-area: bl;
+    }
+
+    .books-reserved {
+      grid-area: tr;
+    }
+
+    .books-borrowed {
+      grid-area: br;
+    }
+
+    .profile-info {
+      grid-area: tl;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      margin: 1em 0;
+      height: 2em;
+    }
+
+    .info-row .value,
+    .info-row input[type="text"] {
+      flex-grow: 1;
+    }
+
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media(min-width:67em) {
+      .profile-container {
+        grid-template-areas:
+          "tl tr"
+          "tl br";
+        grid-template-columns: 24em auto;
+      }
+
+      .profile-info {
+        align-self: start;
+      }
+
+      .empty {
+        display: none
+      }
+    }
+
+    @media(max-width:67em) {
+      .profile-container {
+        grid-template-areas:
+          "tl"
+          "tr"
+          "br";
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+
+      .empty {
+        display: none
+      }
+    }
+
+    .book-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+
+    .book-item>span {
+      flex-basis: 100%;
+    }
+
+    .book-actions {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    .book-actions button {
+      padding: 0.25em 0.5em;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="../Client/sidebar.js"></script>
+  <script src="../popup.js"></script>
+
+  <script>
+    function editProfile(isEditing) {
+      const displayFields = document.querySelectorAll('.editable-field .value');
+      const editFields = document.querySelectorAll('.editable-field .edit-field');
+      const defaultButtons = document.getElementById('default-buttons');
+      const editButtons = document.getElementById('edit-buttons');
+
+      if (isEditing) {
+        displayFields.forEach(el => el.classList.add('hidden'));
+        editFields.forEach(el => el.classList.remove('hidden'));
+        defaultButtons.classList.add('hidden');
+        editButtons.classList.remove('hidden');
+      } else {
+        displayFields.forEach(el => el.classList.remove('hidden'));
+        editFields.forEach(el => el.classList.add('hidden'));
+        defaultButtons.classList.remove('hidden');
+        editButtons.classList.add('hidden');
+      }
+    }
+  </script>
+
+  <div class="content bibliotekarz" style="max-width: 30em;">
+    <h1><img src="../assets/account_circle.svg"/> Twój profil</h1>
+    <div class="panel">
+      <h3 class="header"><img src="../assets/account_circle.svg"> Twój profil</h3>
+
+      <div id="user-info-section">
+
+        <div class="info-row editable-field">
+          <span class="label">Imię:</span>
+          <span class="value">Jan</span>
+          <input type="text" value="Jan" class="edit-field hidden">
+        </div>
+
+        <div class="info-row editable-field">
+          <span class="label">Nazwisko:</span>
+          <span class="value">Kowalski</span>
+          <input type="text" value="Kowalski" class="edit-field hidden">
+        </div>
+
+        <div class="info-row editable-field">
+          <span class="label">E-mail:</span>
+          <span class="value">jan.kowalski@example.com</span>
+          <input type="text" value="jan.kowalski@example.com" class="edit-field hidden">
+        </div>
+
+      </div>
+
+      <div id="default-buttons" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+        <button onclick="editProfile(true)" style="min-width: 6em; flex-grow: 1;">Edytuj profil</button>
+        <button onclick="showPopup('change_password')" style="min-width: 6em; flex-grow: 1;">Zmień hasło</button>
+      </div>
+
+      <div id="edit-buttons" class="hidden" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+        <button class="boring" onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Odrzuć
+          zmiany</button>
+        <button onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Zapisz zmiany</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

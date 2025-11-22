@@ -12,35 +12,35 @@ document.body.insertAdjacentHTML('beforeend', `
 <nav class="sidebar" id="sidebar">
 <div style="display: flex; margin: auto; align-items: center; gap: 0.5em; color: #891E49; margin-bottom: 0.75em;">
     <div id="menu-toggle-padding"></div>
-    <img src="assets/logo.png" style="height: 2.5em; width: auto; filter: none;"> 
+    <img src="../assets/logo.png" style="height: 2.5em; width: auto; filter: none;"> 
     <h2 style="margin: 0; color: white;">Biblioteka</h2>
     <div style="flex-grow: 1;"></div>
 </div>
 
     <hr style="width: 100%; color: #ffffff20;">
 
-    <a class="sidebar-elem" id="sidebar-button-catalog" href="catalog.html"><img src="assets/newsstand.svg"></img> Katalog</a>
-    <a class="sidebar-elem" id="sidebar-button-profile" href="profile.html"><img src="assets/account_circle.svg"></img> Twój profil</a>
-    <a class="sidebar-elem bibliotekarz" id="sidebar-button-users" href="users.html"><img src="assets/group.svg"></img> Użytkownicy</a>
-    <a class="sidebar-elem bibliotekarz" id="sidebar-button-add-book" href="add_book.html"><img src="assets/add_box.svg"></img> Dodaj książkę</a>
-    <a class="sidebar-elem bibliotekarz" id="sidebar-button-pending" href="pending.html"><img src="assets/borrow.svg"></img> Aktywne</a>
-    <a class="sidebar-elem bibliotekarz" id="sidebar-button-returns" href="returns.html"><img src="assets/returns.svg"></img> Zwroty</a>
+    <a class="sidebar-elem" id="sidebar-button-catalog" href="catalog.html"><img src="../assets/newsstand.svg"></img> Katalog</a>
+    <a class="sidebar-elem" id="sidebar-button-profile" href="profile.html"><img src="../assets/account_circle.svg"></img> Twój profil</a>
+    <a class="sidebar-elem bibliotekarz" id="sidebar-button-users" href="users.html"><img src="../assets/group.svg"></img> Użytkownicy</a>
+    <a class="sidebar-elem bibliotekarz" id="sidebar-button-add-book" href="add_book.html"><img src="../assets/add_box.svg"></img> Dodaj książkę</a>
+    <a class="sidebar-elem bibliotekarz" id="sidebar-button-pending" href="pending.html"><img src="../assets/borrow.svg"></img> Aktywne</a>
+    <a class="sidebar-elem bibliotekarz" id="sidebar-button-returns" href="returns.html"><img src="../assets/returns.svg"></img> Zwroty</a>
 
     <div style="flex: 1 1 auto;"></div>
 
-    <a class="sidebar-elem" id="sidebar-button-about" href="about.html"><img src="assets/local_library.svg"></img> O bibliotece</a>
+    <a class="sidebar-elem" id="sidebar-button-about" href="../about.html"><img src="../assets/local_library.svg"></img> O bibliotece</a>
 
     <hr style="width: 100%; color: #ffffff20;">
 
       <div class="login-info" onclick="window.location.href = 'profile.html';" style="cursor: pointer; display: flex; align-items: center; gap: 15px; background: #FFFFFF33; padding: 10px; border-radius: 8px;">
-      <img src="assets/person.svg" style="height: 40px; width: auto; filter: invert(1.0) brightness(500%);">
+      <img src="../assets/person.svg" style="height: 40px; width: auto; filter: invert(1.0) brightness(500%);">
         <div style="display: flex; flex-direction: column; justify-content: center; line-height: 1.2;">
           <span style="font-weight: bold; color: #ffffff;">Jan Paweł</span>
           <span style="font-size: 0.9em; color: #ffffff90;">jan.pawel@example.com</span>
         </div>
       </div>
 
-    <a class="sidebar-elem" href="index.html"><img src="assets/logout.svg"></img> Wyloguj się</a>
+    <a class="sidebar-elem" href="../Login/login_index.html"><img src="../assets/logout.svg"></img> Wyloguj się</a>
 </nav>
 `);
 

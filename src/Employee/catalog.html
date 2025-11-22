@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Katalog książek</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="add_book.css">
+    <link rel="stylesheet" href="../../input.css">
+    <link rel="stylesheet" href="../collapsible.css">
+    <link rel="stylesheet" href="../sidebar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        @media (max-width: 40em) {
+            #search-quick {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+
+            #search-quick>.buttons {
+                flex: 1 1 100%;
+            }
+        }
+
+        @media (max-width: 40em) {
+            .book .header-actions {
+                flex-direction: column;
+                flex: 1 1 100%;
+                align-items: flex-start;
+                gap: 1.0em;
+            }
+
+            .reader-actions,
+            .reader-actions *,
+            .librarian-actions,
+            .librarian-actions * {
+                width: 100%;
+            }
+
+
+        }
+
+        .books {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }
+
+        .copy {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #FFE8EF;
+            padding-bottom: 8px;
+        }
+
+        .copy span {
+            flex: 1 1 100%;
+            margin-bottom: 5px;
+        }
+
+        .copy .actions {
+            display: flex;
+            gap: 5px;
+            flex: 1 1 100%;
+            justify-content: flex-end;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75em;
+        }
+
+        .header-actions .header {
+            margin-bottom: 0;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+
+        .status-available {
+            color: #2e7d32;
+        }
+
+        .status-busy {
+            color: #c62828;
+        }
+
+        .status-destroyed {
+            color: #c62828;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="../Client/sidebar.js"></script>
+    <script src="../popup.js"></script>
+    <script src="../collapsible.js"></script>
+    <script src="../pagination.js"></script>
+
+
+    <div class="content" style="gap: 0.5em;">
+        <h1><img src="../assets/newsstand.svg"/>Katalog książek</h1>
+
+        <div class="search">
+            <div id="search-quick" style=" width: 100%; display: flex; gap: 0.5em; overflow: hidden;">
+                <input class="search-bar" type="text" placeholder="Szukaj książki po tytule, autorze lub ISBN...">
+                <button><img src="../assets/search.svg"/></button>
+                <button onclick="showPopup('confirm_borrow')">
+                    <img src="../assets/qr_code_scanner.svg"/>
+                </button>
+                <div class="buttons" style="display: flex; gap: 0.5em;">
+                    <button onclick="showPopup('change_search_mode')">
+                        <img src="../assets/search_mode.svg"/> Zmień tryb
+                    </button>
+
+                </div>
+            </div>
+
+            <div id="search-advanced"
+                style=" width: 100%; display: none; gap: 0.5em; overflow: hidden; align-items: flex-start; flex-direction: column; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+
+                <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="adv-author">Autor:</label>
+                        <input type="text" id="adv-author" placeholder="Imię i nazwisko autora">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="adv-title">Tytuł:</label>
+                        <input type="text" id="adv-title" placeholder="Tytuł książki">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="adv-tags">Tagi:</label>
+                        <input type="text" id="adv-tag" placeholder="zabójstwo, śledztwo, kotki...">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="adv-genre">Gatunek:</label>
+                        <input type="text" id="adv-genre" placeholder="Wpisz gatunek, np. Fantasy, Kryminał">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="adv-publisher">Wydawca:</label>
+                        <input type="text" id="adv-publisher" placeholder="Nazwa wydawcy">
+                    </div>
+                </div>
+
+                <span id="labelDateRange">Zakres dat wydania:</span>
+                <div style="flex: 1; display: flex; gap: 1em; width: 100%; margin-top: 10px; align-items: center;">
+                    <input type="number" placeholder="Od roku (np. 1990)" min="1000" max="2100" style="flex: 1;">
+                    <input type="number" placeholder="Do roku (np. 2024)" min="1000" max="2100" style="flex: 1;">
+                </div>
+
+                <span id="labelSort" style="white-space: nowrap;">Sortuj:</span>
+                <div style="display: flex; gap: 1em; width: 100%; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+                    <select style="flex: 1; min-width: 10em;">
+                        <option>Tytuł (rosnąco)</option>
+                        <option>Tytuł (malejąco)</option>
+                        <option>Autor (A-Z)</option>
+                        <option>Autor (Z-A)</option>
+                        <option>Rok wydania (najnowsze)</option>
+                        <option>Rok wydania (najstarsze)</option>
+                    </select>
+
+                    <button style="white-space: nowrap; margin-left: auto;"><img src="../assets/search.svg"></img>
+                        Szukaj</button>
+                    <button onclick="showPopup('change_search_mode')">
+                        <img src="../assets/search_mode.svg"></img> Zmień tryb
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="books">
+            <div class="book">
+                <div class="header-actions">
+                    <h3 class="header"><img src="../assets/book.svg"> „Wiedźmin: Ostatnie życzenie” — Andrzej Sapkowski
+                    </h3>
+
+
+
+                    <div class="bibliotekarz flex-row librarian-actions">
+                        <button onclick="showPopup('librarian_actions')">Pokaż działania</button>
+                    </div>
+                </div>
+
+                <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+                    <span class="toggle-text">Pokaż szczegóły</span>
+                    <span class="arrow">&#x25B8;</span>
+                </h4>
+
+                <div class="collapsible-content">
+                    <div class="details" style="display: grid; grid-template-columns: 8em 1fr; gap: 0.25em 0.5em;">
+                        <span class="label">Tytuł:</span> <span>Wiedźmin: Ostatnie życzenie</span>
+                        <span class="label">Autor:</span> <span>Andrzej Sapkowski</span>
+                        <span class="label">Rok wydania:</span> <span>1993</span>
+                        <span class="label">Wydawnictwo:</span> <span>SuperNOWA</span>
+                        <span class="label">ISBN:</span> <span>978-83-7054-056-1</span>
+                        <span class="label">Gatunek:</span> <span>Fantasy</span>
+                        <span class="label">Język:</span> <span>Polski</span>
+                        <span class="label">Liczba stron:</span> <span>330</span>
+                        <span class="label">Dostępne egzemplarzy:</span> <span>1/2 dostępne</span>
+                    </div>
+                    <div class="tags">Tagi: magia, potwory, słowiańskość</div>
+                </div>
+
+                <h4 class="bibliotekarz collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+                    <span class="toggle-text">Pokaż egzemplarze</span>
+                    <span class="arrow">&#x25B8;</span>
+                </h4>
+
+                <div class="bibliotekarz collapsible-content">
+                    <div class="copies">
+                        <div class="copy">
+                            <span><b>Egzemplarz #1</b> - <span class="status-busy">wypożyczony przez <a
+                                        href="users.html">Jan Kowalski</a>, zarezerwowany przez <a
+                                        href="users.html">Janusz Cebula</a></span></span>
+                            <div class="actions">
+                                <button onclick="showPopup('show_copy_code')"><img src="../assets/qr_code.svg"></button>
+                                <button class="borrow button" onclick="showPopup('remove_copy')" disabled>Usuń</button>
+                                <button class="reserve button" onclick="showPopup('mark_copy_destroyed')" disabled>Ozn.
+                                    jako zniszczony</button>
+                            </div>
+                        </div>
+                        <div class="copy">
+                            <span><b>Egzemplarz #2</b> - <span class="status-busy">wypożyczony przez <a
+                                        href="users.html">Jan Kowalski</a></span></span>
+                            <div class="actions">
+                                <button onclick="showPopup('show_copy_code')"><img src="../assets/qr_code.svg"></button>
+                                <button class="borrow button" onclick="showPopup('remove_copy')" disabled>Usuń</button>
+                                <button class="reserve button" onclick="showPopup('mark_copy_destroyed')" disabled>Ozn.
+                                    jako zniszczony</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="header-actions">
+                    <h3 class="header"><img src="../assets/book.svg"> „1984” — George Orwell</h3>
+
+
+
+                    <div class="bibliotekarz flex-row librarian-actions">
+                        <button onclick="showPopup('librarian_actions')">Pokaż działania</button>
+                    </div>
+                </div>
+
+                <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+                    <span class="toggle-text">Pokaż szczegóły</span>
+                    <span class="arrow">&#x25B8;</span>
+                </h4>
+
+                <div class="collapsible-content">
+                    <div class="details" style="display: grid; grid-template-columns: 8em 1fr; gap: 0.25em 0.5em;">
+                        <span class="label">Tytuł:</span> <span>1984</span>
+                        <span class="label">Autor:</span> <span>George Orwell</span>
+                        <span class="label">Rok wydania:</span> <span>1949</span>
+                        <span class="label">Wydawnictwo:</span> <span>Secker & Warburg</span>
+                        <span class="label">ISBN:</span> <span>978-83-274-0245-6</span>
+                        <span class="label">Gatunek:</span> <span>Dystopia</span>
+                        <span class="label">Język:</span> <span>Angielski (Oryginalny)</span>
+                        <span class="label">Liczba stron:</span> <span>328</span>
+                        <span class="label">Dostępne egzemplarzy:</span> <span>1/2 dostępne</span>
+                    </div>
+                    <div class="tags">Tagi: totalitaryzm, wolność, kontrola</div>
+                </div>
+
+                <h4 class="bibliotekarz collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+                    <span class="toggle-text">Pokaż egzemplarze</span>
+                    <span class="arrow">&#x25B8;</span>
+                </h4>
+
+                <div class="bibliotekarz collapsible-content">
+                    <div class="copies">
+                        <div class="copy">
+                            <span><b>Egzemplarz #1</b> - <span class="status-available">dostępny</span></span>
+                            <div class="actions">
+                                <button onclick="showPopup('show_copy_code')"><img src="../assets/qr_code.svg"></button>
+                                <button class="borrow button" onclick="showPopup('remove_copy')">Usuń</button>
+                                <button class="reserve button" onclick="showPopup('mark_copy_destroyed')">Ozn. jako
+                                    zniszczony</button>
+                            </div>
+                        </div>
+                        <div class="copy">
+                            <span><b>Egzemplarz #2</b> - <span class="status-busy">zarezerwowany przez <a
+                                        href="users.html">Marek Nowak</a>, <a href="users.html">Anna
+                                        Wiśniewska</a></span></span>
+                            <div class="actions">
+                                <button onclick="showPopup('show_copy_code')"><img src="../assets/qr_code.svg"></button>
+                                <button class="borrow button" onclick="showPopup('remove_copy')" disabled>Usuń</button>
+                                <button class="reserve button" onclick="showPopup('mark_copy_destroyed')" disabled>Ozn.
+                                    jako zniszczony</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="book">
+                <div class="header-actions">
+                    <h3 class="header"><img src="../assets/book.svg"> „Diuna” — Frank Herbert</h3>
+
+                    <div class="bibliotekarz flex-row librarian-actions">
+                        <button onclick="showPopup('librarian_actions')">Pokaż działania</button>
+                    </div>
+                </div>
+
+                <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+                    <span class="toggle-text">Pokaż szczegóły</span>
+                    <span class="arrow">&#x25B8;</span>
+                </h4>
+
+                <div class="collapsible-content">
+                    <div class="details" style="display: grid; grid-template-columns: 8em 1fr; gap: 0.25em 0.5em;">
+                        <span class="label">Tytuł:</span> <span>Diuna</span>
+                        <span class="label">Autor:</span> <span>Frank Herbert</span>
+                        <span class="label">Rok wydania:</span> <span>1965</span>
+                        <span class="label">Wydawnictwo:</span> <span>Wydawnictwo Rebis</span>
+                        <span class="label">ISBN:</span> <span>978-83-7337-586-7</span>
+                        <span class="label">Gatunek:</span> <span>Science Fiction</span>
+                        <span class="label">Język:</span> <span>Polski</span>
+                        <span class="label">Liczba stron:</span> <span>720</span>
+                        <span class="label">Dostępne egzemplarzy:</span> <span>2/2 dostępne</span>
+                    </div>
+                    <div class="tags">Tagi: kosmos, ekologia, polityka</div>
+                </div>
+
+                <h4 class="bibliotekarz collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+                    <span class="toggle-text">Pokaż egzemplarze</span>
+                    <span class="arrow">&#x25B8;</span>
+                </h4>
+
+                <div class="bibliotekarz collapsible-content">
+                    <div class="copies">
+                        <div class="copy">
+                            <span><b>Egzemplarz #1</b> - <span class="status-available">dostępny</span></span>
+                            <div class="actions">
+                                <button onclick="showPopup('show_copy_code')"><img src="../assets/qr_code.svg"></button>
+                                <button class="borrow button" onclick="showPopup('remove_copy')">Usuń</button>
+                                <button class="reserve button" onclick="showPopup('mark_copy_destroyed')">Ozn. jako
+                                    zniszczony</button>
+                            </div>
+                        </div>
+                        <div class="copy">
+                            <span><b>Egzemplarz #2</b> - <span class="status-destroyed">zniszczony</span></span>
+                            <div class="actions">
+                                <button onclick="showPopup('show_copy_code')"><img src="../assets/qr_code.svg"></button>
+                                <button class="borrow button" onclick="showPopup('remove_copy')">Usuń</button>
+                                <button class="reserve button" onclick="showPopup('mark_copy_destroyed')" disabled>Ozn.
+                                    jako
+                                    zniszczony</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

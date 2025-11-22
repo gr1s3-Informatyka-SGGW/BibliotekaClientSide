@@ -4,10 +4,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Aktywne wypożyczenia</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="input.css">
-    <link rel="stylesheet" href="sidebar.css">
+    <title>Zwroty</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../input.css">
+    <link rel="stylesheet" href="../sidebar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -35,6 +35,16 @@
         .search-flex button {
             flex-shrink: 0;
         }
+
+
+        .returns-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5em;
+            margin-top: 1.5em;
+        }
+
+
 
         .user-email {
             font-size: 0.9em;
@@ -120,10 +130,6 @@
             background-color: #dc3545;
         }
 
-        .status-pending {
-            background-color: #17a2b8;
-        }
-
         .status-icon {
             height: 1.4em;
             margin-right: 0.4em;
@@ -153,35 +159,24 @@
         .fine-black {
             color: #000000;
         }
-
-        .button-row {
-            display: flex;
-            gap: 0.5em;
-            width: 100%;
-        }
-
-        .button-row button {
-            flex-grow: 1;
-        }
     </style>
 </head>
 
 <body>
-    <script src="sidebar.js"></script>
-    <script defer src="mode_switcher.js"></script>
-    <script src="popup.js"></script>
+    <script src="../Client/sidebar.js"></script>
+    <script src="../popup.js"></script>
 
     <div class="content">
-        <h1><img src="assets/borrow.svg"></img> Aktywne wypożyczenia</h1>
+        <h1><img src="../assets/returns.svg"></img> Oczekujące zwroty</h1>
 
         <div class="search">
             <div id="search-quick" style="width: 100%; display: flex; gap: 0.5em; overflow: hidden;">
                 <input class="search-bar" type="text"
                     placeholder="Szukaj wypożyczenia po tytule, autorze lub użytkowniku...">
-                <button><img src="assets/search.svg"></img></button>
+                <button><img src="../assets/search.svg"></img></button>
                 <div class="buttons" style="display: flex; gap: 0.5em;">
                     <button onclick="showPopup('change_search_mode_simple')">
-                        <img src="assets/search_mode.svg"></img> Zmień tryb
+                        <img src="../assets/search_mode.svg"></img> Zmień tryb
                     </button>
                 </div>
             </div>
@@ -202,7 +197,7 @@
 
                 <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 200px;">
-                        <label for="adv-user-name">Imię i nazwisko użytkownika:</label>
+                        <label for="adv-user-name">Imię i Nazwisko Użytkownika:</label>
                         <input type="text" id="adv-user-name" placeholder="Imię i nazwisko użytkownika">
                     </div>
                     <div style="flex: 1; min-width: 200px;">
@@ -211,6 +206,7 @@
                             <option selected>Wszystkie</option>
                             <option>Aktywne (w terminie)</option>
                             <option>Przeterminowane</option>
+                            <option>Zwrócone</option>
                         </select>
                     </div>
                 </div>
@@ -232,24 +228,25 @@
                 </div>
 
                 <div style="display: flex; gap: 1em; width: 100%; align-items: center; ;">
-                    <button style="white-space: nowrap; margin-left: auto;"><img src="assets/search.svg"></img>
+                    <button style="white-space: nowrap; margin-left: auto;"><img src="../assets/search.svg"></img>
                         Szukaj</button>
                     <button onclick="showPopup('change_search_mode_simple')">
-                        <img src="assets/search_mode.svg"></img> Zmień tryb
+                        <img src="../assets/search_mode.svg"></img> Zmień tryb
                     </button>
                 </div>
             </div>
         </div>
+
         <div class="book-section">
-            <div id="returns-list" class="returns-list">
+            <div id="returns-list">
                 <div class="panel">
-                    <h3 class="header"><img src="assets/book.svg"> Aktywne wypożyczenie: „1984”</h3>
+                    <h3 class="header"><img src="../assets/book.svg"> Zwrot z dnia 10.11.2025</h3>
 
                     <div>
                         <a href="users.html" style="text-align: left;">
                             <strong>Jan Kowalski</strong>
                             <span class="user-email">
-                                <img src="assets/mail.svg" class="date-icon">
+                                <img src="../assets/mail.svg" class="date-icon">
                                 <span>jan.kowalski@example.com</span>
                             </span>
                         </a>
@@ -259,8 +256,8 @@
                         <a href="catalog.html" style="text-align: left;">
                             <strong>Tytuł: „1984”</strong>
                             <span class="user-email" style="display: block; margin-top: 0.25em;">
-                                <img src="assets/book.svg" class="date-icon"
-                                    style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                                <img src="../assets/book.svg" class="date-icon"
+                                     style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
                                 <span>Autor: George Orwell</span>
                             </span>
                         </a>
@@ -270,14 +267,14 @@
                         <div class="date-container">
                             <span class="date-label">Data wypożyczenia</span>
                             <div class="date-value">
-                                <img src="assets/calendar.svg" class="date-icon">
+                                <img src="../assets/calendar.svg" class="date-icon">
                                 <span>2025-10-05</span>
                             </div>
                         </div>
                         <div class="date-container">
                             <span class="date-label">Termin zwrotu</span>
                             <div class="date-value">
-                                <img src="assets/calendar.svg" class="date-icon">
+                                <img src="../assets/calendar.svg" class="date-icon">
                                 <span>2025-10-30</span>
                             </div>
                         </div>
@@ -286,30 +283,27 @@
                     <div class="action-row">
                         <div class="status-fine-row">
                             <span class="status-badge status-overdue">
-                                <img src="assets/error.svg" class="status-icon">
-                                Przeterminowane: 11 dni
+                                <img src="../assets/error.svg" class="status-icon">
+                                11 dni po terminie zwrotu
                             </span>
                             <div class="fine-display">
-                                <span class="fine-label">Kara do zapłaty</span>
+                                <span class="fine-label">Kara</span>
                                 <span class="fine-red">165.00 zł</span>
                             </div>
                         </div>
-                        <div class="button-row">
-                            <button onclick="showPopup('confirm_prolong')">
-                                <img src="assets/refresh.svg"> Przedłuż wypożyczenie
-                            </button>
-                        </div>
+                        <button style="width: 100%;" onclick="showPopup('confirm_return_librarian')"><img src="" alt="">
+                            Potwierdź
+                            zwrot</button>
                     </div>
                 </div>
-
                 <div class="panel">
-                    <h3 class="header"><img src="assets/book.svg"> Aktywne wypożyczenie: „Władca Pierścieni”</h3>
+                    <h3 class="header">
+                        <img src="../assets/book.svg"> Zwrot z dnia 29.11.2025</h3>
 
                     <div>
-                        <a href="users.html" style="text-align: left;">
                             <strong>Anna Nowak</strong>
                             <span class="user-email">
-                                <img src="assets/mail.svg" class="date-icon">
+                                <img src="../assets/mail.svg" class="date-icon">
                                 <span>anna.nowak@example.com</span>
                             </span>
                     </div>
@@ -319,8 +313,8 @@
                         <a href="catalog.html" style="text-align: left;">
                             <strong>Tytuł: „Władca Pierścieni: Drużyna Pierścienia”</strong>
                             <span class="user-email" style="display: block; margin-top: 0.25em;">
-                                <img src="assets/book.svg" class="date-icon"
-                                    style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                                <img src="../assets/book.svg" class="date-icon"
+                                     style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
                                 <span>Autor: J.R.R. Tolkien</span>
                             </span>
                         </a>
@@ -331,14 +325,14 @@
                         <div class="date-container">
                             <span class="date-label">Data wypożyczenia</span>
                             <div class="date-value">
-                                <img src="assets/calendar.svg" class="date-icon">
+                                <img src="../assets/calendar.svg" class="date-icon">
                                 <span>2025-11-01</span>
                             </div>
                         </div>
                         <div class="date-container">
                             <span class="date-label">Termin zwrotu</span>
                             <div class="date-value">
-                                <img src="assets/calendar.svg" class="date-icon">
+                                <img src="../assets/calendar.svg" class="date-icon">
                                 <span>2025-12-01</span>
                             </div>
                         </div>
@@ -346,20 +340,18 @@
 
                     <div class="action-row">
                         <div class="status-fine-row">
-                            <span class="status-badge status-pending">
-                                <img src="assets/schedule.svg" class="status-icon">
-                                Pozostało 13 dni
+                            <span class="status-badge status-ontime">
+                                <img src="../assets/check.svg" class="status-icon">
+                                W terminie
                             </span>
                             <div class="fine-display">
                                 <span class="fine-label">Kara</span>
                                 <span class="fine-black">0.00 zł</span>
                             </div>
                         </div>
-                        <div class="button-row">
-                            <button onclick="showPopup('confirm_prolong')">
-                                <img src="assets/refresh.svg"> Przedłuż wypożyczenie
-                            </button>
-                        </div>
+                        <button style="width: 100%;" onclick="showPopup('confirm_return_librarian')"><img src="" alt="">
+                            Potwierdź
+                            zwrot</button>
                     </div>
                 </div>
             </div>
