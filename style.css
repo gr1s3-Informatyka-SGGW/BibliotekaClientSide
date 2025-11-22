@@ -203,7 +203,7 @@ form>h2 {
 
 .header {
   display: flex;
-  align-items: left;
+  align-items: flex-start;
   justify-content: left;
   gap: 0.5em;
 }
@@ -252,8 +252,7 @@ a img {
 }
 
 *::selection,
-*::-moz-selection,
-*::-webkit-selection {
+*::-moz-selection {
   background: rgb(155, 70, 104);
   color: #ffffff;
 }
