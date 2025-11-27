@@ -5,8 +5,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Użytkownicy</title>
-  <link rel="stylesheet" href="../../style.css">
-  <link rel="stylesheet" href="../../input.css">
+  <link rel="stylesheet" href="users.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../input.css">
   <link rel="stylesheet" href="../sidebar.css">
   <link rel="stylesheet" href="../collapsible.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,262 +15,88 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
     rel="stylesheet">
+
   <style>
-    .panel input,
-    .panel select {
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    h4 {
-      margin: 0.5em 0;
-    }
-
-    .user-panel-header {
-      display: flex;
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 0.5em;
-    }
-
-    .name-display {
-      margin: 0;
-      font-weight: bold;
-      font-size: 125%;
-      color: #891E49;
-      padding: 0;
-    }
-
-    .email-display {
-      font-size: 0.9em;
-      color: #666;
-      display: flex;
-      align-items: center;
-      gap: 0.3em;
-    }
-
-    .email-icon {
-      filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);
-      height: 1.1em;
-      width: 1.1em;
-    }
-
-    .loans-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 1em;
-      font-size: 0.9em;
-    }
-
-    .loans-table th,
-    .loans-table td {
-      border: 1px solid #FFE8EF;
-      padding: 0.5em;
-      text-align: left;
-    }
-
-    .loans-table th {
-      background-color: #FFE8EF;
-      color: #891E49;
-    }
-
-    .user-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5em;
-    }
-
-    .user-actions button {
-      background-color: white;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .user-actions button img {
-      width: 1.3em;
-      vertical-align: middle;
-      margin-right: 0.4em;
-    }
-
-    .action-block {
-      color: #ff9900;
-      border: 1px solid #ff9900;
-    }
-
-    .action-block:hover {
-      background-color: #ffe8cc;
-    }
-
-    .action-block img {
-      filter: invert(61%) sepia(90%) saturate(1751%) hue-rotate(359deg) brightness(101%) contrast(100%);
-    }
-
-    .action-delete {
-      color: #dc3545;
-      border: 1px solid #dc3545;
-    }
-
-    .action-delete:hover {
-      background-color: #f8d7da;
-    }
-
-    .action-delete img {
-      filter: invert(27%) sepia(74%) saturate(3015%) hue-rotate(345deg) brightness(89%) contrast(90%);
-    }
-
-    .date-cell,
-    .status-cell {
-      display: flex;
-      align-items: center;
-      gap: 0.3em;
-    }
-
-    .date-icon-small {
-      height: 1.1em;
-      width: 1.1em;
-      filter: invert(18%) sepia(87%) saturate(2250%) hue-rotate(320deg) brightness(65%) contrast(100%);
-    }
-
-    .status-icon-small {
-      height: 1.1em;
-      width: 1.1em;
-      filter: invert(100%) sepia(0%) saturate(7499%) hue-rotate(198deg) brightness(108%) contrast(100%);
-      margin-right: 0.1em;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.3em 0.6em;
-      border-radius: 15px;
-      font-weight: bold;
-      color: white;
-      font-size: 0.9em;
-      line-height: 1;
-      gap: 0.3em;
-    }
-
-    .status-active {
-      background-color: #28a745;
-    }
-
-    .status-overdue {
-      background-color: #dc3545;
-    }
-
-    .status-reserved {
-      background-color: #BF8049;
-    }
-
-    .librarian {
+    .panel.add-librarian {
       background-color: #fee6f0;
+    }
+
+    .panel.librarian {
+      border-left: 5px solid #891e49;
+      background-color: #fee6f0;
+    }
+
+    .panel.blocked {
+      border-left: 5px solid #ff9900;
+      background-color: #fff8ef;
+    }
+
+    table {
+      background-color: white;
     }
   </style>
 </head>
 
 <body>
-  <script src="../Client/sidebar.js"></script>
+  <script src="sidebar.js"></script>
   <script src="../popup.js"></script>
+  <script src="../popover.js"></script>
   <script src="../collapsible.js"></script>
   <script src="../pagination.js"></script>
+  <script src="../tooltip.js"></script>
 
-  <div class="content">
+
+
+  <div id="root">
     <h1 style="text-align:center;"><img src="../assets/group.svg"> Lista użytkowników</h1>
 
-    <div class="search">
-      <div id="search-quick" style="width: 100%; display: flex; gap: 0.5em; overflow: hidden;">
-        <input class="search-bar" type="text"
-          placeholder="Szukaj użytkownika po imieniu, nazwisku, e-mailu lub numerze karty...">
-        <button><img src="../assets/search.svg"></img></button>
-        <div class="buttons" style="display: flex; gap: 0.5em;">
-          <button onclick="showPopup('change_search_mode_simple')">
-            <img src="../assets/search_mode.svg"></img> Zmień tryb
-          </button>
+    <div class="flex-column search" style="flex: 1 1;">
+      <div>
+        <h4 style="margin: 0; margin-bottom: 0.4em;">Szukaj</h4>
+        <div style=" width: 100%; display: flex; gap: 0.25em; overflow: hidden;">
+          <input class="search-bar" type="text" placeholder="Szukaj książki po tytule, autorze lub ISBN...">
+          <button><img src="../assets/search.svg" /></button>
         </div>
+
       </div>
+      <div>
+        <div>
+          <div class="search-advanced">
+            <div class="filtered">
+              Wyczyść filtry (2)
+            </div>
 
-      <div id="search-advanced"
-        style=" width: 100%; display: none; gap: 0.5em; overflow: hidden; align-items: flex-start; flex-direction: column; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
-
-        <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 200px;">
-            <label for="adv-name">Imię i nazwisko:</label>
-            <input type="text" id="adv-name" placeholder="Imię i nazwisko użytkownika">
+            <div class="filtered" data-popover-trigger="filters_sort_users">
+              Sortuj
+              <div>Liczba wypożyczeń (rosnąco)</div>
+            </div>
+            <div class="separator"></div>
+            <div data-popover-trigger="filters_status_users">
+              Status
+              <div>dowolny</div>
+            </div>
           </div>
-          <div style="flex: 1; min-width: 200px;">
-            <label for="adv-email">E-mail:</label>
-            <input type="email" id="adv-email" placeholder="Adres e-mail użytkownika">
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 1em; width: 100%; flex-wrap: wrap; margin-top: 10px; align-items: center;">
-          <div style="flex: 1; min-width: 200px;">
-            <label for="adv-status">Status konta:</label>
-            <select id="adv-status" style="width: 100%;">
-              <option selected>Dowolny</option>
-              <option>Aktywny</option>
-              <option>Zablokowany</option>
-              <option>Bibliotekarz</option>
-            </select>
-          </div>
-          <div style="flex: 1; min-width: 200px;">
-            <label>Wypożyczona/zarezerwowana książka:</label>
-            <input type="text" placeholder="Tytuł, autor lub ISBN...">
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 1em; width: 100%; align-items: center; margin-top: 10px;">
-          <button style="white-space: nowrap; margin-left: auto;"><img src="../assets/search.svg"></img>
-            Szukaj</button>
-          <button onclick="showPopup('change_search_mode_simple')">
-            <img src="../assets/search_mode.svg"></img> Zmień tryb
-          </button>
         </div>
       </div>
     </div>
-    <div class="book-section">
-      <div>
-        <div class="panel librarian">
-          <h3 class="header collapsible-header toggle-header" onclick="toggleCollapsible(this)">
-            <img src="../assets/account_circle_filled.svg">
-            <span class="toggle-text">Pokaż formularz: Dodaj nowego bibliotekarza</span>
-            <span class="arrow" style="margin-left: auto;">&#x25B8;</span>
-          </h3>
 
-          <div class="collapsible-content" style="overflow: hidden; display: flex; gap: 0.5em; flex-direction: column;">
-            <div style="display: flex; gap: 0.5em; width: 100%;" class="row">
-              <div style="flex:1">
-                <label for="librarianFirstName">Imię:</label>
-                <input id="librarianFirstName" type="text" placeholder="Imię">
-              </div>
-              <div style="flex:1">
-                <label for="librarianLastName">Nazwisko:</label>
-                <input id="librarianLastName" type="text" placeholder="Nazwisko">
-              </div>
-            </div>
+    <div>
+      <div class="panel add-librarian" style="margin: 0; margin-bottom: 0.5em; margin-top: 0.5em;">
+        <h3 class="header">Zarządzaj bibliotekarzami</h3>
+        <button class="desktop" style="width: 20em; margin: auto;" onclick="showPopup('add_librarian')">
+          <img src="../assets/add.svg" onclick="closePopup('add_librarian')"> Dodaj nowego bibliotekarza
+        </button>
+        <button class="mobile" style="width: 100%; margin: auto;" onclick="showPopup('add_librarian')">
+          <img src="../assets/add.svg" onclick="closePopup('add_librarian')"> Dodaj nowego bibliotekarza
+        </button>
+      </div>
+    </div>
 
-            <div style="display: flex; gap: 0.5em; width: 100%;" class="row">
+    <div class="users-list">
 
-              <div style="flex:1">
-                <label for="librarianEmail">E-mail:</label>
-                <input id="librarianEmail" type="email" placeholder="adres@example.com">
-              </div>
-              <div style="flex:1">
-                <label for="librarianPassword">Hasło:</label>
-                <input id="librarianPassword" type="password" placeholder="Hasło">
-              </div>
 
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; margin-top: 0.5em;">
-              <button style="width: 100%;"><img src="../assets/add.svg"> Dodaj bibliotekarza</button>
-            </div>
-          </div>
-
-        </div>
-        <div class="panel">
+      <div class="panel">
+        <div class="user-header-row">
           <div class="user-panel-header">
             <span class="header name-display" style="border: none;">
               <img src="../assets/account_circle.svg">Jan Kowalski
@@ -279,18 +106,21 @@
             </span>
           </div>
           <div class="user-actions">
-            <button class="action-block">
+            <button class="action-block" onclick="showPopup('block_user')">
               <img src="../assets/block.svg"> Zablokuj
             </button>
-            <button class="action-delete">
+            <button class="action-delete" onclick="showPopup('delete_user')">
               <img src="../assets/delete.svg"> Usuń użytkownika
             </button>
           </div>
-          <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
-            <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
-            <span class="arrow">&#x25B8;</span>
-          </h4>
-          <div class="collapsible-content">
+        </div>
+
+        <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+          <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
+          <span class="arrow">&#x25B8;</span>
+        </h4>
+        <div class="collapsible-content">
+          <div class="loan-reservation-wrapper">
             <h4>Wypożyczone książki</h4>
             <table class="loans-table">
               <thead>
@@ -299,11 +129,13 @@
                   <th>Data wypożyczenia</th>
                   <th>Termin zwrotu</th>
                   <th>Status</th>
+                  <th>Naliczone koszty</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>„Duma i uprzedzenie”</td>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Duma i uprzedzenie”</a>
+                  </td>
                   <td>
                     <div class="date-cell">
                       <img src="../assets/calendar.svg" class="date-icon-small">
@@ -322,9 +154,13 @@
                       Aktywne
                     </span>
                   </td>
+                  <td>
+                    <span class="status-badge status-neutral">Termin nie upłynął</span>
+                  </td>
                 </tr>
                 <tr>
-                  <td>„Wiedźmin: Ostatnie życzenie”</td>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Wiedźmin: Ostatnie
+                      życzenie”</a></td>
                   <td>
                     <div class="date-cell">
                       <img src="../assets/calendar.svg" class="date-icon-small">
@@ -343,15 +179,22 @@
                       Aktywne
                     </span>
                   </td>
+                  <td>
+                    <span class="status-badge status-neutral">Termin nie upłynął</span>
+                  </td>
                 </tr>
               </tbody>
             </table>
             <h4>Rezerwacje</h4>
-            <p style="margin-top: 1em; color: #555; font-style: italic;">Brak aktywnych rezerwacji.</p>
+            <p class="empty-table-placeholder" style="margin-top: 1em; color: #555; font-style: italic;">Brak
+              aktywnych rezerwacji.
+            </p>
           </div>
         </div>
+      </div>
 
-        <div class="panel">
+      <div class="panel">
+        <div class="user-header-row">
           <div class="user-panel-header">
             <span class="header name-display" style="border: none;"><img src="../assets/account_circle.svg">Anna
               Nowak</span>
@@ -360,18 +203,21 @@
             </span>
           </div>
           <div class="user-actions">
-            <button class="action-block">
+            <button class="action-block" onclick="showPopup('block_user')">
               <img src="../assets/block.svg"> Zablokuj
             </button>
-            <button class="action-delete">
+            <button class="action-delete" onclick="showPopup('delete_user')">
               <img src="../assets/delete.svg"> Usuń użytkownika
             </button>
           </div>
-          <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
-            <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
-            <span class="arrow">&#x25B8;</span>
-          </h4>
-          <div class="collapsible-content">
+        </div>
+
+        <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+          <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
+          <span class="arrow">&#x25B8;</span>
+        </h4>
+        <div class="collapsible-content">
+          <div class="loan-reservation-wrapper">
             <h4>Wypożyczone książki</h4>
             <table class="loans-table">
               <thead>
@@ -380,11 +226,13 @@
                   <th>Data wypożyczenia</th>
                   <th>Termin zwrotu</th>
                   <th>Status</th>
+                  <th>Naliczone koszty</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>„Harry Potter i Kamień Filozoficzny”</td>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Harry Potter i Kamień
+                      Filozoficzny”</a></td>
                   <td>
                     <div class="date-cell">
                       <img src="../assets/calendar.svg" class="date-icon-small">
@@ -403,6 +251,9 @@
                       Przeterminowane (3 dni)
                     </span>
                   </td>
+                  <td>
+                    <div><span class="cost-unpaid">Niezapłacone:</span> 1.50 zł</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -417,7 +268,7 @@
               </thead>
               <tbody>
                 <tr>
-                  <td>„Diuna”</td>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Diuna”</a></td>
                   <td>
                     <div class="date-cell">
                       <img src="../assets/calendar.svg" class="date-icon-small">
@@ -427,7 +278,7 @@
                   <td>
                     <span class="status-badge status-reserved">
                       <img src="../assets/bookmark.svg" class="status-icon-small"
-                           style="filter: invert(100%); margin-right: 0.1em;">
+                        style="filter: invert(100%); margin-right: 0.1em;">
                       Zarezerwowana do 2025-11-11
                     </span>
                   </td>
@@ -436,30 +287,37 @@
             </table>
           </div>
         </div>
+      </div>
 
-        <div class="panel">
+      <div class="panel blocked">
+        <div class="user-header-row">
           <div class="user-panel-header">
             <span class="header name-display" style="border: none;"><img src="../assets/account_circle.svg">Piotr
-              Zieliński</span>
+              Zieliński (zablokowany)</span>
             <span class="email-display">
               <img src="../assets/mail.svg" class="email-icon"> <span>piotr.zielinski@example.com</span>
             </span>
           </div>
           <div class="user-actions">
-            <button class="action-block">
-              <img src="../assets/block.svg"> Zablokuj
+            <button class="action-block" onclick="showPopup('unblock_user')">
+              <img src="../assets/block.svg"> Odblokuj
             </button>
-            <button class="action-delete">
+            <button class="action-delete" onclick="showPopup('delete_user')">
               <img src="../assets/delete.svg"> Usuń użytkownika
             </button>
           </div>
-          <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
-            <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
-            <span class="arrow">&#x25B8;</span>
-          </h4>
-          <div class="collapsible-content">
+        </div>
+
+        <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+          <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
+          <span class="arrow">&#x25B8;</span>
+        </h4>
+        <div class="collapsible-content">
+          <div class="loan-reservation-wrapper">
             <h4>Wypożyczone książki</h4>
-            <p style="margin-top: 1em; color: #555; font-style: italic;">Brak aktywnych wypożyczeń.</p>
+            <p class="empty-table-placeholder" style="margin-top: 1em; color: #555; font-style: italic;">Brak
+              aktywnych wypożyczeń.
+            </p>
             <h4>Rezerwacje</h4>
             <table class="loans-table">
               <thead>
@@ -471,7 +329,7 @@
               </thead>
               <tbody>
                 <tr>
-                  <td>„Zbrodnia i kara”</td>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Zbrodnia i kara”</a></td>
                   <td>
                     <div class="date-cell">
                       <img src="../assets/calendar.svg" class="date-icon-small">
@@ -481,7 +339,7 @@
                   <td>
                     <span class="status-badge status-reserved">
                       <img src="../assets/bookmark.svg" class="status-icon-small"
-                           style="filter: invert(100%); margin-right: 0.1em;">
+                        style="filter: invert(100%); margin-right: 0.1em;">
                       Zarezerwowana do 2025-11-19
                     </span>
                   </td>
@@ -490,22 +348,26 @@
             </table>
           </div>
         </div>
+      </div>
 
-        <div class="panel librarian">
+      <div class="panel librarian">
+        <div class="user-header-row">
           <div class="user-panel-header">
-            <span class="header name-display" style="border: none;"><img src="../assets/account_circle_filled.svg">Olimpia
+            <span class="header name-display" style="border: none;"><img
+                src="../assets/account_circle_filled.svg">Olimpia
               Dejko (bibliotekarz)</span>
             <span class="email-display">
               <img src="../assets/mail.svg" class="email-icon"> <span>olimpia.dejko@example.com</span>
             </span>
           </div>
           <div class="user-actions">
-            <button class="action-delete"><img src="../assets/delete.svg">Usuń bibliotekarza</button>
+            <button class="action-delete" onclick="showPopup('delete_librarian')"><img src="../assets/delete.svg">Usuń
+              bibliotekarza</button>
           </div>
         </div>
       </div>
-
     </div>
+
 
   </div>
   </div>

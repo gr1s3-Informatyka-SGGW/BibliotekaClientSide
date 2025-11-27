@@ -5,8 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Twój profil</title>
-  <link rel="stylesheet" href="../../style.css">
-  <link rel="stylesheet" href="../../input.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../input.css">
   <link rel="stylesheet" href="../sidebar.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -116,6 +116,7 @@
 <body>
   <script src="sidebar.js"></script>
   <script src="../popup.js"></script>
+  <script src="../tooltip.js"></script>
 
   <script>
     function editProfile(isEditing) {
@@ -137,11 +138,11 @@
       }
     }
   </script>
-  <div class="content czytelnik">
-    <h1><img src="../assets/account_circle.svg"/> Twój profil</h1>
+  <div id="root">
+    <h1><img src="../assets/account_circle.svg" /> Twój profil</h1>
     <div class="profile-container">
       <div class="profile-info panel">
-        <h3 class="header"><img src="../assets/account_circle.svg"/> Twój profil</h3>
+        <h3 class="header"><img src="../assets/account_circle.svg" /> Twój profil</h3>
 
         <div id="user-info-section">
           <div class="info-row editable-field">
@@ -165,6 +166,7 @@
           <div class="info-row">
             <span class="label">Numer karty:</span>
             <span class="value">**** **** **** 1234</span>
+            </span>
           </div>
 
         </div>
@@ -176,7 +178,8 @@
         </div>
 
         <div id="edit-buttons" class="hidden" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
-          <button class="boring" onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Odrzuć zmiany</button>
+          <button class="boring" onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Odrzuć
+            zmiany</button>
           <button onclick="editProfile(false)" style="min-width: 6em; flex-grow: 1;">Zapisz zmiany</button>
         </div>
       </div>
@@ -185,7 +188,7 @@
         <h3 class="header"><img src="../assets/book_ribbon.svg"> Zarezerwowane książki (2)</h3>
         <div style="overflow-y: auto; max-height: 30em;">
           <div class="book-item">
-            <span>„Rok 1984” — George Orwell</span>
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Rok 1984” — George Orwell</a>
             <span class="status">Pozostały 3 dni na odbiór</span>
             <div class="book-actions">
               <button onclick="showPopup('confirm_cancel')">Anuluj rezerwację</button>
@@ -194,7 +197,8 @@
             </div>
           </div>
           <div class="book-item">
-            <span>„Harry Potter i Kamień Filozoficzny” — J.K. Rowling</span>
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Harry Potter i Kamień Filozoficzny”
+              — J.K. Rowling</a>
             <span class="status">Oczekuje na dostępność</span>
             <div class="book-actions">
               <button onclick="showPopup('confirm_cancel')">Anuluj rezerwację</button>
@@ -207,19 +211,23 @@
         <h3 class="header"><img src="../assets/book.svg"> Wypożyczone książki (2)</h3>
         <div style="overflow-y: auto; max-height: 30em;">
           <div class="book-item">
-            <span>„Wiedźmin: Miecz przeznaczenia” — Andrzej Sapkowski</span>
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Wiedźmin: Miecz przeznaczenia” —
+              Andrzej Sapkowski</a>
             <span class="status">Termin zwrotu: 31.12.2025</span>
             <div class="book-actions">
               <button onclick="showPopup('confirm_prolong')">Przedłuż</button>
-              <button onclick="showPopup('confirm_return')"><img src="../assets/qr_code_scanner.svg"></img> Zwróć</button>
+              <button onclick="showPopup('confirm_return')"><img src="../assets/qr_code_scanner.svg"></img>
+                Zwróć</button>
             </div>
           </div>
           <div class="book-item">
-            <span>„Zbrodnia i kara” — Fiodor Dostojewski</span>
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Zbrodnia i kara” — Fiodor
+              Dostojewski</a>
             <span class="status" style="color: #e00000;"><b>Termin zwrotu: 1.11.2025</b></span>
             <div class="book-actions">
               <button onclick="showPopup('confirm_prolong')">Przedłuż</button>
-              <button onclick="showPopup('confirm_return')"><img src="../assets/qr_code_scanner.svg"></img> Zwróć</button>
+              <button onclick="showPopup('confirm_return')"><img src="../assets/qr_code_scanner.svg"></img>
+                Zwróć</button>
             </div>
           </div>
         </div>

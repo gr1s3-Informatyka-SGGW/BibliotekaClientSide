@@ -32,7 +32,8 @@
   z-index: 50;
 }
 
-.sidebar a {
+.sidebar a,
+#sidebar .collapsible-header {
   color: white;
   text-decoration: none;
   margin: 0.5em 0;
@@ -41,7 +42,7 @@
   transition: background var(--transition-speed);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.5em;
 }
 
 .sidebar * {
@@ -51,7 +52,8 @@
 }
 
 .sidebar a:hover,
-.sidebar-elem.selected {
+.sidebar-elem.selected,
+#sidebar .collapsible-header:hover {
   background-color: rgba(255, 232, 239, 0.2);
 }
 

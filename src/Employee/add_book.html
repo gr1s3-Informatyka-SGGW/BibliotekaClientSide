@@ -5,8 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dodaj książkę</title>
-  <link rel="stylesheet" href="../../style.css">
-  <link rel="stylesheet" href="../../input.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../input.css">
   <link rel="stylesheet" href="../sidebar.css">
   <link rel="stylesheet" href="add_book.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +17,7 @@
 </head>
 
 <body>
-  <script src="../Client/sidebar.js"></script>
+  <script src="sidebar.js"></script>
   <script src="../popup.js"></script>
 
   <script>
@@ -35,11 +35,11 @@
     });
   </script>
 
-  <div class="content">
+  <div id="root">
     <h1><img src="../assets/add_box.svg"></img> Dodaj książkę</h1>
 
     <div class="add-container">
-      <div class="panel book-info">
+      <div class="panel book-info" style="margin: 0;">
         <h3 class="header"><img src="../assets/book.svg"> Informacje o książce</h3>
 
         <div class="form-grid">
