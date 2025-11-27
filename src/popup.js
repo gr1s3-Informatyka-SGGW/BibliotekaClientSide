@@ -142,7 +142,7 @@ popups['book_copies_added'] = `
     <fieldset>
       <legend>Egzemplarz #1</legend>
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1em;">
-          <img src="assets/example_qr.png" alt="Kod QR Egzemplarza 1" style="width: 5em; padding: 0.5em;">
+          <img src="../assets/example_qr.png" alt="Kod QR Egzemplarza 1" style="width: 5em; padding: 0.5em;">
         <div style="display: flex; flex-direction: column; gap: 0.5em;">
           <button style="padding: 0.5em 1em;">Zapisz</button>
           <button style="padding: 0.5em 1em;">Drukuj</button>
@@ -153,7 +153,7 @@ popups['book_copies_added'] = `
     <fieldset>
       <legend>Egzemplarz #2</legend>
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1em;">
-          <img src="assets/example_qr.png" alt="Kod QR Egzemplarza 2" style="width: 5em; padding: 0.5em;">
+          <img src="../assets/example_qr.png" alt="Kod QR Egzemplarza 2" style="width: 5em; padding: 0.5em;">
         <div style="display: flex; flex-direction: column; gap: 0.5em;">
           <button style="padding: 0.5em 1em;">Zapisz</button>
           <button style="padding: 0.5em 1em;">Drukuj</button>
@@ -164,7 +164,7 @@ popups['book_copies_added'] = `
     <fieldset>
       <legend>Egzemplarz #3</legend>
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1em;">
-          <img src="assets/example_qr.png" alt="Kod QR Egzemplarza 3" style="width: 5em; padding: 0.5em;">
+          <img src="../assets/example_qr.png" alt="Kod QR Egzemplarza 3" style="width: 5em; padding: 0.5em;">
         <div style="display: flex; flex-direction: column; gap: 0.5em;">
           <button style="padding: 0.5em 1em;">Zapisz</button>
           <button style="padding: 0.5em 1em;">Drukuj</button>
@@ -235,26 +235,6 @@ popups['confirm_return_librarian'] = `
 </div>
 `
 
-popups['change_search_mode'] = `
-<div class="panel popup" id="popup_change_search_mode">
-  <h3 class="header">Wybierz tryb wyszukiwania</h3>
-  <div style="display: flex; flex-direction: column; gap: 0.25em;">
-    <button onclick="document.getElementById('search-quick').style.display='flex'; document.getElementById('search-advanced').style.display='none'; closePopup('change_search_mode');" style="padding: 0.75em 1em;">Szybkie</button>
-    <button onclick="document.getElementById('search-advanced').style.display='flex'; document.getElementById('search-quick').style.display='none'; closePopup('change_search_mode');" style="padding: 0.75em 1em;">Zaawansowane</button>
-  </div>
-</div>
-`;
-
-popups['change_search_mode_simple'] = `
-<div class="panel popup" id="popup_change_search_mode_simple">
-  <h3 class="header">Wybierz tryb wyszukiwania</h3>
-  <div style="display: flex; flex-direction: column; gap: 0.25em;">
-    <button onclick="document.getElementById('search-quick').style.display='flex'; document.getElementById('search-advanced').style.display='none'; closePopup('change_search_mode_simple');" style="padding: 0.75em 1em;">Szybkie</button>
-    <button onclick="document.getElementById('search-advanced').style.display='flex'; document.getElementById('search-quick').style.display='none'; closePopup('change_search_mode_simple');" style="padding: 0.75em 1em;">Zaawansowane</button>
-  </div>
-</div>
-`;
-
 popups['add_to_select'] = `
 <div class="panel popup" id="popup_add_to_select" style="gap: 1.5em;">
   <h3 class="header">Dodaj nowy element</h3>
@@ -287,6 +267,19 @@ popups['librarian_actions'] = `
 </div>
 `;
 
+
+async function handleConfirmBorrow() {
+  closePopup('confirm_borrow');
+  await wait(250);
+  showPopup('thanks_borrow');
+}
+
+async function handleConfirmReserve() {
+  closePopup('confirm_reserve');
+  await wait(250);
+  showPopup('thanks_reserve');
+}
+
 popups['confirm_borrow'] = `
 <div class="panel popup" id="popup_confirm_borrow">
   <h3 class="header">Potwierdzenie wypożyczenia</h3>
@@ -300,7 +293,23 @@ popups['confirm_borrow'] = `
   <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
     <button class="boring" style="flex: 1;" onclick="closePopup('confirm_borrow')">Nie</button>
     
-    <button style="flex: 1;" onclick="closePopup('confirm_borrow')">Tak, wypożycz</button>
+    <button style="flex: 1;" onclick="handleConfirmBorrow()">Tak, wypożycz</button>
+  </div>
+</div>
+`;
+
+popups['thanks_borrow'] = `
+<div class="panel popup" id="popup_thanks_borrow">
+  <h3 class="header">Potwierdzono wypożyczenie</h3>
+  
+  <p style="margin: 1em 0; text-align: center;">
+    Dziękujemy za wypożyczenie
+    <strong>„Sto lat samotności”</strong> autorstwa 
+    <strong>Gabriel García Márquez</strong>.
+  </p>
+
+  <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
+    <button class="boring" style="flex: 1;" onclick="closePopup('thanks_borrow')">Ok</button>
   </div>
 </div>
 `;
@@ -318,7 +327,23 @@ popups['confirm_reserve'] = `
   <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
     <button class="boring" style="flex: 1;" onclick="closePopup('confirm_reserve')">Nie</button>
     
-    <button style="flex: 1;" onclick="closePopup('confirm_reserve')">Tak, zarezerwuj</button>
+    <button style="flex: 1;" onclick="handleConfirmReserve()">Tak, zarezerwuj</button>
+  </div>
+</div>
+`;
+
+popups['thanks_reserve'] = `
+<div class="panel popup" id="popup_thanks_reserve">
+  <h3 class="header">Potwierdzono rezerwację</h3>
+  
+  <p style="margin: 1em 0; text-align: center;">
+    Dziękujemy za rezerwację
+    <strong>„Sto lat samotności”</strong> autorstwa 
+    <strong>Gabriel García Márquez</strong>.
+  </p>
+
+  <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
+    <button class="boring" style="flex: 1;" onclick="closePopup('thanks_reserve')">Ok</button>
   </div>
 </div>
 `;
@@ -326,7 +351,7 @@ popups['confirm_reserve'] = `
 popups['edit_book'] = `
 <div class="panel popup" id="popup_edit_book" style="width: 40em; overflow-y: auto; gap: 1.5em;">
         <script src="add_book.js"></script>
-<h3 class="header"><img src="assets/book.svg"> Informacje o książce</h3>
+<h3 class="header"><img src="../assets/book.svg"> Informacje o książce</h3>
 
         <div class="form-grid" style="overflow-y: auto; padding-right: 1em; overflow-x: hidden;">
 
@@ -410,7 +435,7 @@ popups['edit_book'] = `
 
             <div class="form-group">
               <label for="copies">Liczba egzemplarzy:</label>
-              <input type="number" id="copies" min="1" value="1" disabled>
+              <span style="margin-top: 0.25em">5 egzemplarzy</span>
             </div>
           </div>
           <div class="form-row">
@@ -440,7 +465,7 @@ popups['edit_book'] = `
 
 <div style="display: flex; gap: 0.5em; width: 100%;">
     <button class="boring" onclick="closePopup('edit_book')" style="flex-grow: 1;">Zamknij</button>
-    <button onclick="closePopup('edit_book')" style="flex-grow: 1;"><img src="assets/save.svg"></img>&nbspZapisz zmiany</button>
+    <button onclick="closePopup('edit_book')" style="flex-grow: 1;"><img src="../assets/save.svg"></img>&nbspZapisz zmiany</button>
 </div>
 </div>
 `;
@@ -450,7 +475,7 @@ popups['show_copy_code'] = `
   <h3 class="header">Kod egzemplarza</h3>
   
   <div style="display: flex; flex-direction: column; align-items: center; gap: 1em; margin: 1em 0;">
-    <img src="assets/example_qr.png" alt="QR Code" style="width: 10em; height: 10em; border: 1px solid #ddd; padding: 0.5em; border-radius: 0.5em;">
+    <img src="../assets/example_qr.png" alt="QR Code" style="width: 10em; height: 10em; border: 1px solid #ddd; padding: 0.5em; border-radius: 0.5em;">
   </div>
 
   <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
@@ -466,7 +491,7 @@ popups['add_book_copy'] = `
   <h3 class="header">Dodano egzemplarz</h3>
   
   <div style="display: flex; flex-direction: column; align-items: center; gap: 1em; margin: 1em 0;">
-    <img src="assets/example_qr.png" alt="QR Code" style="width: 10em; height: 10em; border: 1px solid #ddd; padding: 0.5em; border-radius: 0.5em;">
+    <img src="../assets/example_qr.png" alt="QR Code" style="width: 10em; height: 10em; border: 1px solid #ddd; padding: 0.5em; border-radius: 0.5em;">
   </div>
 
   <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
@@ -525,3 +550,129 @@ popups['confirm_librarian_return'] = `
 </div>
 `;
 
+popups['filters_add'] = `
+<div class="panel popup" style="overflow: hidden; gap: 1.0em;" id="popup_filters_add">
+  <h3 class="header">Wybierz elementy</h3>
+  <div class="search-container">
+    <input type="text" class="filter-search" placeholder="Szukaj..." />
+  </div>
+
+  <div class="filters-list">
+    <div class="filter-item">Element 1 <span class="checkmark"></span></div>
+    <div class="filter-item selected">Element 2 <span class="checkmark">✓</span></div>
+    <div class="filter-item">Element 3 <span class="checkmark"></span></div>
+    <div class="filter-item selected">Element 4 <span class="checkmark">✓</span></div>
+    <div class="filter-item">Element 5 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 6 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 7 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 8 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 9 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 10 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 11 <span class="checkmark"></span></div>
+    <div class="filter-item">Element 12 <span class="checkmark"></span></div>
+  </div>
+
+    <button "class="boring" onclick="closePopup('filters_add');">Zamknij</button>
+</div>
+`;
+
+popups['filters_add_date'] = `
+<div class="panel popup" id="popup_filters_add_date" style="gap: 1em;">
+  <h3 class="header">Wybierz zakres dat</h3>
+  
+    <div>
+      <label for="date_start">Data początkowa</label>
+      <input type="number" placeholder="YYYY" min="1000" max="2999" />
+    </div>
+    <div>
+      <label for="date_end">Data końcowa</label>
+      <input type="number" placeholder="YYYY" min="1000" max="2999" />
+    </div>
+
+  <div class="flex-row" style="width: 100%;">
+  <button style="flex: 1;" class="boring" onclick="closePopup('filters_add_date');">Anuluj</button>
+    <button style="flex: 1;" class="action-button" onclick="closePopup('filters_add_date'); /* Tutaj będzie funkcja zatwierdzająca daty */">Zatwierdź</button>
+  </div>
+</div>
+`;
+
+
+popups['add_librarian'] = `
+<div id="popup_add_librarian" class="panel popup">
+  <div style="display: flex; gap: 0.5em; width: 100%;" class="row">
+    <div style="flex:1">
+      <label for="librarianFirstName">Imię:</label>
+      <input id="librarianFirstName" type="text" placeholder="Imię">
+    </div>
+    <div style="flex:1">
+      <label for="librarianLastName">Nazwisko:</label>
+      <input id="librarianLastName" type="text" placeholder="Nazwisko">
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0.5em; width: 100%;" class="row">
+
+    <div style="flex:1">
+      <label for="librarianEmail">E-mail:</label>
+      <input id="librarianEmail" type="email" placeholder="adres@example.com">
+    </div>
+    <div style="flex:1">
+      <label for="librarianPassword">Hasło:</label>
+      <input id="librarianPassword" type="password" placeholder="Hasło">
+    </div>
+
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; margin-top: 0.5em;">
+    <button onclick="closePopup('add_librarian')" style="width: 100%;"><img src="../assets/add.svg"> Dodaj bibliotekarza</button>
+  </div>
+</div>
+`
+
+popups['block_user'] = `
+<div class="panel popup" id="popup_block_user">
+  <h3 class="header">Blokowanie użytkownika</h3>
+  <p>Czy na pewno chcesz zablokować użytkownika?</p>
+  <p>Zablokowany użytkownik straci możliwość wypożyczania i rezerwowania książek.</p>
+  <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
+    <button class="boring" style="flex: 1;" onclick="closePopup('block_user')">Anuluj</button>
+    <button style="flex: 1; background-color: #ff9900;" onclick="closePopup('block_user')">Zablokuj</button>
+  </div>
+</div>
+`;
+
+popups['unblock_user'] = `
+<div class="panel popup" id="popup_unblock_user">
+  <h3 class="header">Odblokowanie użytkownika</h3>
+  <p>Czy na pewno chcesz odblokować użytkownika?</p>
+  <p>Odblokowany użytkownik odzyska możliwość wypożyczania i rezerwowania książek.</p>
+  <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
+    <button class="boring" style="flex: 1;" onclick="closePopup('unblock_user')">Anuluj</button>
+    <button style="flex: 1;" onclick="closePopup('unblock_user')">Odblokuj</button>
+  </div>
+</div>
+`;
+
+popups['delete_user'] = `
+<div class="panel popup" id="popup_delete_user">
+  <h3 class="header">Usuwanie użytkownika</h3>
+  <p>Czy na pewno chcesz <strong>trwale usunąć</strong> użytkownika?</p>
+  <p>Ta operacja jest nieodwracalna i usunie wszystkie dane powiązane z kontem.</p>
+  <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
+    <button class="boring" style="flex: 1;" onclick="closePopup('delete_user')">Anuluj</button>
+    <button style="flex: 1; background-color: #c62828;" onclick="closePopup('delete_user')">Usuń trwale</button>
+  </div>
+</div>
+`;
+
+popups['delete_librarian'] = `
+<div class="panel popup" id="popup_delete_librarian">
+  <h3 class="header">Usuwanie bibliotekarza</h3>
+  <p>Czy na pewno chcesz <strong>trwale usunąć</strong> bibliotekarza?</p>
+  <p>Ta operacja jest nieodwracalna i usunie wszystkie dane powiązane z kontem.</p>
+  <div style="display: flex; flex-direction: row; gap: 0.5em; margin-top: 1em;">
+    <button class="boring" style="flex: 1;" onclick="closePopup('delete_librarian')">Anuluj</button>
+    <button style="flex: 1; background-color: #c62828;" onclick="closePopup('delete_librarian')">Usuń trwale</button>
+  </div>
+</div>
+`;

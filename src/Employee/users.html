@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Użytkownicy</title>
+  <link rel="stylesheet" href="users.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../input.css">
+  <link rel="stylesheet" href="../sidebar.css">
+  <link rel="stylesheet" href="../collapsible.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+    rel="stylesheet">
+
+  <style>
+    .panel.add-librarian {
+      background-color: #fee6f0;
+    }
+
+    .panel.librarian {
+      border-left: 5px solid #891e49;
+      background-color: #fee6f0;
+    }
+
+    .panel.blocked {
+      border-left: 5px solid #ff9900;
+      background-color: #fff8ef;
+    }
+
+    table {
+      background-color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="sidebar.js"></script>
+  <script src="../popup.js"></script>
+  <script src="../popover.js"></script>
+  <script src="../collapsible.js"></script>
+  <script src="../pagination.js"></script>
+  <script src="../tooltip.js"></script>
+
+
+
+  <div id="root">
+    <h1 style="text-align:center;"><img src="../assets/group.svg"> Lista użytkowników</h1>
+
+    <div class="flex-column search" style="flex: 1 1;">
+      <div>
+        <h4 style="margin: 0; margin-bottom: 0.4em;">Szukaj</h4>
+        <div style=" width: 100%; display: flex; gap: 0.25em; overflow: hidden;">
+          <input class="search-bar" type="text" placeholder="Szukaj książki po tytule, autorze lub ISBN...">
+          <button><img src="../assets/search.svg" /></button>
+        </div>
+
+      </div>
+      <div>
+        <div>
+          <div class="search-advanced">
+            <div class="filtered">
+              Wyczyść filtry (2)
+            </div>
+
+            <div class="filtered" data-popover-trigger="filters_sort_users">
+              Sortuj
+              <div>Liczba wypożyczeń (rosnąco)</div>
+            </div>
+            <div class="separator"></div>
+            <div data-popover-trigger="filters_status_users">
+              Status
+              <div>dowolny</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel add-librarian" style="margin: 0; margin-bottom: 0.5em; margin-top: 0.5em;">
+        <h3 class="header">Zarządzaj bibliotekarzami</h3>
+        <button class="desktop" style="width: 20em; margin: auto;" onclick="showPopup('add_librarian')">
+          <img src="../assets/add.svg" onclick="closePopup('add_librarian')"> Dodaj nowego bibliotekarza
+        </button>
+        <button class="mobile" style="width: 100%; margin: auto;" onclick="showPopup('add_librarian')">
+          <img src="../assets/add.svg" onclick="closePopup('add_librarian')"> Dodaj nowego bibliotekarza
+        </button>
+      </div>
+    </div>
+
+    <div class="users-list">
+
+
+      <div class="panel">
+        <div class="user-header-row">
+          <div class="user-panel-header">
+            <span class="header name-display" style="border: none;">
+              <img src="../assets/account_circle.svg">Jan Kowalski
+            </span>
+            <span class="email-display">
+              <img src="../assets/mail.svg" class="email-icon"> <span>jan.kowalski@example.com</span>
+            </span>
+          </div>
+          <div class="user-actions">
+            <button class="action-block" onclick="showPopup('block_user')">
+              <img src="../assets/block.svg"> Zablokuj
+            </button>
+            <button class="action-delete" onclick="showPopup('delete_user')">
+              <img src="../assets/delete.svg"> Usuń użytkownika
+            </button>
+          </div>
+        </div>
+
+        <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+          <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
+          <span class="arrow">&#x25B8;</span>
+        </h4>
+        <div class="collapsible-content">
+          <div class="loan-reservation-wrapper">
+            <h4>Wypożyczone książki</h4>
+            <table class="loans-table">
+              <thead>
+                <tr>
+                  <th>Tytuł</th>
+                  <th>Data wypożyczenia</th>
+                  <th>Termin zwrotu</th>
+                  <th>Status</th>
+                  <th>Naliczone koszty</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Duma i uprzedzenie”</a>
+                  </td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-10-15</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-11-15</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge status-active">
+                      <img src="../assets/check.svg" class="status-icon-small">
+                      Aktywne
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge status-neutral">Termin nie upłynął</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Wiedźmin: Ostatnie
+                      życzenie”</a></td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-11-01</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-11-30</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge status-active">
+                      <img src="../assets/check.svg" class="status-icon-small">
+                      Aktywne
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge status-neutral">Termin nie upłynął</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <h4>Rezerwacje</h4>
+            <p class="empty-table-placeholder" style="margin-top: 1em; color: #555; font-style: italic;">Brak
+              aktywnych rezerwacji.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="user-header-row">
+          <div class="user-panel-header">
+            <span class="header name-display" style="border: none;"><img src="../assets/account_circle.svg">Anna
+              Nowak</span>
+            <span class="email-display">
+              <img src="../assets/mail.svg" class="email-icon"> <span>anna.nowak@example.com</span>
+            </span>
+          </div>
+          <div class="user-actions">
+            <button class="action-block" onclick="showPopup('block_user')">
+              <img src="../assets/block.svg"> Zablokuj
+            </button>
+            <button class="action-delete" onclick="showPopup('delete_user')">
+              <img src="../assets/delete.svg"> Usuń użytkownika
+            </button>
+          </div>
+        </div>
+
+        <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+          <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
+          <span class="arrow">&#x25B8;</span>
+        </h4>
+        <div class="collapsible-content">
+          <div class="loan-reservation-wrapper">
+            <h4>Wypożyczone książki</h4>
+            <table class="loans-table">
+              <thead>
+                <tr>
+                  <th>Tytuł</th>
+                  <th>Data wypożyczenia</th>
+                  <th>Termin zwrotu</th>
+                  <th>Status</th>
+                  <th>Naliczone koszty</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Harry Potter i Kamień
+                      Filozoficzny”</a></td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-10-20</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-11-05</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge status-overdue">
+                      <img src="../assets/error.svg" class="status-icon-small">
+                      Przeterminowane (3 dni)
+                    </span>
+                  </td>
+                  <td>
+                    <div><span class="cost-unpaid">Niezapłacone:</span> 1.50 zł</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <h4>Rezerwacje</h4>
+            <table class="loans-table">
+              <thead>
+                <tr>
+                  <th>Tytuł</th>
+                  <th>Data rezerwacji</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Diuna”</a></td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-11-01</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge status-reserved">
+                      <img src="../assets/bookmark.svg" class="status-icon-small"
+                        style="filter: invert(100%); margin-right: 0.1em;">
+                      Zarezerwowana do 2025-11-11
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel blocked">
+        <div class="user-header-row">
+          <div class="user-panel-header">
+            <span class="header name-display" style="border: none;"><img src="../assets/account_circle.svg">Piotr
+              Zieliński (zablokowany)</span>
+            <span class="email-display">
+              <img src="../assets/mail.svg" class="email-icon"> <span>piotr.zielinski@example.com</span>
+            </span>
+          </div>
+          <div class="user-actions">
+            <button class="action-block" onclick="showPopup('unblock_user')">
+              <img src="../assets/block.svg"> Odblokuj
+            </button>
+            <button class="action-delete" onclick="showPopup('delete_user')">
+              <img src="../assets/delete.svg"> Usuń użytkownika
+            </button>
+          </div>
+        </div>
+
+        <h4 class="collapsible-header toggle-header" onclick="toggleCollapsible(this)">
+          <span class="toggle-text">Pokaż wypożyczenia i rezerwacje</span>
+          <span class="arrow">&#x25B8;</span>
+        </h4>
+        <div class="collapsible-content">
+          <div class="loan-reservation-wrapper">
+            <h4>Wypożyczone książki</h4>
+            <p class="empty-table-placeholder" style="margin-top: 1em; color: #555; font-style: italic;">Brak
+              aktywnych wypożyczeń.
+            </p>
+            <h4>Rezerwacje</h4>
+            <table class="loans-table">
+              <thead>
+                <tr>
+                  <th>Tytuł</th>
+                  <th>Data rezerwacji</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu">„Zbrodnia i kara”</a></td>
+                  <td>
+                    <div class="date-cell">
+                      <img src="../assets/calendar.svg" class="date-icon-small">
+                      <span>2025-11-08</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge status-reserved">
+                      <img src="../assets/bookmark.svg" class="status-icon-small"
+                        style="filter: invert(100%); margin-right: 0.1em;">
+                      Zarezerwowana do 2025-11-19
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel librarian">
+        <div class="user-header-row">
+          <div class="user-panel-header">
+            <span class="header name-display" style="border: none;"><img
+                src="../assets/account_circle_filled.svg">Olimpia
+              Dejko (bibliotekarz)</span>
+            <span class="email-display">
+              <img src="../assets/mail.svg" class="email-icon"> <span>olimpia.dejko@example.com</span>
+            </span>
+          </div>
+          <div class="user-actions">
+            <button class="action-delete" onclick="showPopup('delete_librarian')"><img src="../assets/delete.svg">Usuń
+              bibliotekarza</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+  </div>
+  </div>
+</body>
+
+</html>

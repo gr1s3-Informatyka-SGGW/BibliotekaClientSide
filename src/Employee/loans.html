@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zarządzanie wypożyczeniami</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../input.css">
+  <link rel="stylesheet" href="../sidebar.css">
+  <link rel="stylesheet" href="../collapsible.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+    rel="stylesheet">
+  <style>
+    .type-active>:nth-child(2),
+    .type-active>:nth-child(3),
+    .type-return>:nth-child(2),
+    .type-return>:nth-child(3) {
+      width: fit-content;
+    }
+
+    .type-return {
+      background-color: #fee6f0;
+    }
+
+    .returns-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+    }
+
+    .returns-list .panel {
+      margin: 0;
+    }
+
+    .user-email {
+      font-size: 0.9em;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+    }
+
+    .user-email img {
+      filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);
+      height: 1.1em;
+      width: 1.1em;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1em;
+    }
+
+    .date-container {
+      border: 1px solid #ff629145;
+      padding: 0.75em;
+      border-radius: 0.5em;
+    }
+
+    .date-label {
+      font-size: 0.8em;
+      color: #891E49;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 0.25em;
+      display: block;
+    }
+
+    .date-value {
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .date-icon {
+      filter: invert(18%) sepia(87%) saturate(2250%) hue-rotate(320deg) brightness(40%) contrast(100%);
+      height: 1.1em;
+      width: 1.1em;
+      flex-shrink: 0;
+    }
+
+    .action-row {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      align-items: center;
+    }
+
+    .status-fine-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5em 1em;
+      border-radius: 20px;
+      font-weight: bold;
+      color: white;
+      font-size: 0.85em;
+      line-height: 1;
+    }
+
+    .status-ontime {
+      background-color: #28a745;
+    }
+
+    .status-overdue {
+      background-color: #dc3545;
+    }
+
+    .status-pending {
+      background-color: #17a2b8;
+    }
+
+    .status-returned {
+      background-color: #6f42c1;
+    }
+
+    .status-icon {
+      height: 1.4em;
+      margin-right: 0.4em;
+      filter: invert(100%) brightness(200%);
+    }
+
+    .fine-display {
+      font-weight: bold;
+      font-size: 1.2em;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1;
+    }
+
+    .fine-label {
+      font-size: 0.65em;
+      font-weight: normal;
+      color: #666;
+      margin-bottom: 0.25em;
+    }
+
+    .fine-red {
+      color: #dc3545;
+    }
+
+    .fine-black {
+      color: #000000;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 0.5em;
+      width: 100%;
+    }
+
+    .button-row button {
+      flex-grow: 1;
+    }
+
+    .panel.type-return .header {
+      padding: 0.5em;
+      border-radius: 0.5em;
+      border-bottom: none;
+    }
+
+    .panel.type-active .header {
+      padding: 0.5em;
+      border-radius: 0.5em;
+      border-bottom: none;
+
+    }
+  </style>
+</head>
+
+<body>
+  <script src="sidebar.js"></script>
+  <script src="../popup.js"></script>
+  <script src="../popover.js"></script>
+  <script src="../collapsible.js"></script>
+  <script src="../pagination.js"></script>
+  <script src="../tooltip.js"></script>
+
+  <div id="root">
+    <h1><img src="../assets/borrow.svg"></img> Wypożyczenia i zwroty</h1>
+
+    <div class="flex-column search">
+      <div>
+        <h4 style="margin: 0; margin-bottom: 0.4em;">Szukaj</h4>
+        <div style=" width: 100%; display: flex; gap: 0.25em; overflow: hidden;">
+          <input class="search-bar" type="text" placeholder="Szukaj książki po tytule, autorze lub ISBN...">
+          <button><img src="../assets/search.svg" /></button>
+        </div>
+
+      </div>
+      <div>
+        <div>
+          <div class="search-advanced">
+            <div class="filtered">
+              Wyczyść filtry (2)
+            </div>
+
+            <div class="filtered" data-popover-trigger="filters_sort_loans">
+              Sortuj
+              <div>Kwota kary (rosnąco)</div>
+            </div>
+            <div class="separator"></div>
+            <div data-popover-trigger="filters_status">
+              Status
+              <div>dowolny</div>
+            </div>
+            <div class="active">
+              Po terminie
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-section">
+      <div id="mixed-list" class="returns-list">
+
+        <div class="panel type-active">
+          <h3 class="header">
+            <img src="../assets/book.svg"> Aktywne wypożyczenie
+          </h3>
+
+          <div>
+            <a href="users.html" data-tooltip="Naciśnij, aby zobaczyć na liście użytkowników" style="text-align: left;">
+              <strong>Jan Kowalski</strong>
+              <span class="user-email">
+                <img src="../assets/mail.svg" class="date-icon">
+                <span>jan.kowalski@example.com</span>
+              </span>
+            </a>
+          </div>
+
+          <div style="margin-top: 1em;">
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu" style="text-align: left;">
+              <strong>Tytuł: „1984”</strong>
+              <span class="user-email" style="display: block; margin-top: 0.25em;">
+                <img src="../assets/book.svg" class="date-icon"
+                  style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                <span>Autor: George Orwell</span>
+              </span>
+            </a>
+          </div>
+
+          <div class="details-grid">
+            <div class="date-container">
+              <span class="date-label">Data wypożyczenia</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-10-05</span>
+              </div>
+            </div>
+            <div class="date-container">
+              <span class="date-label">Termin zwrotu</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-10-30</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="status-fine-row">
+              <span class="status-badge status-overdue">
+                <img src="../assets/error.svg" class="status-icon">
+                Przeterminowane: 11 dni
+              </span>
+              <div class="fine-display">
+                <span class="fine-label">Kara do zapłaty</span>
+                <span class="fine-red">165.00 zł</span>
+              </div>
+            </div>
+            <div class="button-row">
+              <button onclick="showPopup('confirm_prolong')">
+                <img src="../assets/refresh.svg"> Przedłuż wypożyczenie
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel type-return">
+          <h3 class="header">
+            <img src="../assets/returns.svg"> Oczekujący zwrot
+          </h3>
+
+          <div>
+            <a href="users.html" data-tooltip="Naciśnij, aby zobaczyć na liście użytkowników" style="text-align: left;">
+              <strong>Piotr Nowak</strong>
+              <span class="user-email">
+                <img src="../assets/mail.svg" class="date-icon">
+                <span>piotr.nowak@example.com</span>
+              </span>
+            </a>
+          </div>
+
+          <div style="margin-top: 1em;">
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu" style="text-align: left;">
+              <strong>Tytuł: „Zbrodnia i Kara”</strong>
+              <span class="user-email" style="display: block; margin-top: 0.25em;">
+                <img src="../assets/book.svg" class="date-icon"
+                  style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                <span>Autor: Fiodor Dostojewski</span>
+              </span>
+            </a>
+          </div>
+
+          <div class="details-grid">
+            <div class="date-container">
+              <span class="date-label">Data wypożyczenia</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-10-15</span>
+              </div>
+            </div>
+            <div class="date-container">
+              <span class="date-label">Data faktycznego zwrotu</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-11-20</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="status-fine-row">
+              <span class="status-badge status-overdue">
+                <img src="../assets/error.svg" class="status-icon">
+                Oddano 11 dni po terminie
+              </span>
+              <div class="fine-display">
+                <span class="fine-label">Naliczona kara</span>
+                <span class="fine-red">165.00 zł</span>
+              </div>
+            </div>
+            <button style="width: 100%;" onclick="showPopup('confirm_return_librarian')">
+              <img src="../assets/check.svg" alt=""> Potwierdź odbiór książki
+            </button>
+          </div>
+        </div>
+
+        <div class="panel type-active">
+          <h3 class="header">
+            <img src="../assets/book.svg"> Aktywne wypożyczenie
+          </h3>
+
+          <div>
+            <a href="users.html" data-tooltip="Naciśnij, aby zobaczyć na liście użytkowników" style="text-align: left;">
+              <strong>Anna Nowak</strong>
+              <span class="user-email">
+                <img src="../assets/mail.svg" class="date-icon">
+                <span>anna.nowak@example.com</span>
+              </span>
+            </a>
+          </div>
+
+
+          <div style="margin-top: 1em;">
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu" style="text-align: left;">
+              <strong>Tytuł: „Władca Pierścieni: Drużyna Pierścienia”</strong>
+              <span class="user-email" style="display: block; margin-top: 0.25em;">
+                <img src="../assets/book.svg" class="date-icon"
+                  style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                <span>Autor: J.R.R. Tolkien</span>
+              </span>
+            </a>
+          </div>
+
+
+          <div class="details-grid">
+            <div class="date-container">
+              <span class="date-label">Data wypożyczenia</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-11-01</span>
+              </div>
+            </div>
+            <div class="date-container">
+              <span class="date-label">Termin zwrotu</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-12-01</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="status-fine-row">
+              <span class="status-badge status-pending">
+                <img src="../assets/schedule.svg" class="status-icon">
+                Pozostało 13 dni
+              </span>
+              <div class="fine-display">
+                <span class="fine-label">Kara</span>
+                <span class="fine-black">0.00 zł</span>
+              </div>
+            </div>
+            <div class="button-row">
+              <button onclick="showPopup('confirm_prolong')">
+                <img src="../assets/refresh.svg"> Przedłuż wypożyczenie
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel type-return">
+          <h3 class="header">
+            <img src="../assets/returns.svg"> Oczekujący zwrot
+          </h3>
+
+          <a href="users.html" data-tooltip="Naciśnij, aby zobaczyć na liście użytkowników" style="text-align: left;">
+            <div>
+              <strong>Katarzyna Wiśniewska</strong>
+              <span class="user-email">
+                <img src="../assets/mail.svg" class="date-icon">
+                <span>katarzyna.wisniewska@example.com</span>
+              </span>
+            </div>
+          </a>
+
+          <div style="margin-top: 1em;">
+            <a href="catalog.html" data-tooltip="Naciśnij, aby zobaczyć w katalogu" style="text-align: left;">
+              <strong>Tytuł: „Diuna”</strong>
+              <span class="user-email" style="display: block; margin-top: 0.25em;">
+                <img src="../assets/book.svg" class="date-icon"
+                  style="filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);">
+                <span>Autor: Frank Herbert</span>
+              </span>
+            </a>
+          </div>
+
+
+          <div class="details-grid">
+            <div class="date-container">
+              <span class="date-label">Data wypożyczenia</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-11-15</span>
+              </div>
+            </div>
+            <div class="date-container">
+              <span class="date-label">Data faktycznego zwrotu</span>
+              <div class="date-value">
+                <img src="../assets/calendar.svg" class="date-icon">
+                <span>2025-11-20</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="status-fine-row">
+              <span class="status-badge status-ontime">
+                <img src="../assets/check.svg" class="status-icon">
+                Oddano w terminie
+              </span>
+              <div class="fine-display">
+                <span class="fine-label">Kara</span>
+                <span class="fine-black">0.00 zł</span>
+              </div>
+            </div>
+            <button style="width: 100%;" onclick="showPopup('confirm_return_librarian')">
+              <img src="../assets/check.svg" alt=""> Potwierdź odbiór książki
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</body>
+
+</html>

@@ -3,7 +3,7 @@ select,
 textarea {
   background-color: #FFFFFF;
   border: 1px solid #E0E0E0;
-  border-radius: 0.5em;
+  border-radius: 0.75em;
   box-sizing: border-box;
   color: #333;
   font-family: inherit;
@@ -34,7 +34,6 @@ label,
 }
 
 select {
-  -moz-appearance: none;
   -webkit-appearance: none;
   appearance: none;
   background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="292.4" height="292.4" fill="%23891E49"><path d="M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-4.9 0-9.4 1.8-13 5.4a17.6 17.6 0 0 0 0 24.1l128 128a17.6 17.6 0 0 0 24.1 0l128-128a17.6 17.6 0 0 0 0-24.1z"/></svg>');
@@ -48,15 +47,16 @@ button {
   height: 2.5em;
   background-color: #891E49;
   border: none;
-  border-radius: 0.5em;
+  border-radius: 0.75em;
   color: white;
   cursor: pointer;
   padding: 0.5em 1.0em;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4em;
 }
 
 button:hover {
