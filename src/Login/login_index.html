@@ -16,15 +16,17 @@
 
 <body>
   <div class="center-screen">
-    <form action="../Client/catalog.html">
+    <form action="../Client/catalog.html" id="loginForm">
       <h2 style="text-align:center; margin-bottom:20px;">Logowanie</h2>
-      <input type="email" placeholder="E-mail">
-      <input type="password" placeholder="Hasło">
+      <input type="email" placeholder="E-mail" id="email">
+      <input type="password" placeholder="Hasło" id="haslo">
       <button type="submit">Zaloguj się</button>
       <a href="reset_password.html" class="forgot-password">Zapomniałem hasła</a>
       <p class="muted">Nie masz konta? <a href="register.html">Zarejestruj się</a></p>
     </form>
   </div>
+
+  <script src="../../public/login.js"></script>
 </body>
 
 </html>
