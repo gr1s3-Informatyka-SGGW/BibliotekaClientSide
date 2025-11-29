@@ -13,7 +13,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div style="display: flex; margin: auto; align-items: center; gap: 0.5em; color: #891E49; margin-bottom: 0.75em;">
     <div id="menu-toggle-padding"></div>
           <a href="catalog.html">
-      <img src="../assets/logo.png" style="height: 2.5em; width: auto; filter: none;"> 
+      <img src="../assets/logo.png" alt="" style="height: 2.5em; width: auto; filter: none;"> 
       <h2 style="margin: 0; color: white;">Biblioteka</h2>
       </a>
     <div style="flex-grow: 1;"></div>
@@ -38,12 +38,12 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <div style="flex: 1 1 auto;"></div>
 
-    <a class="sidebar-elem" id="sidebar-button-about" href="../about.html"><img src="../assets/local_library.svg"></img> O bibliotece</a>
+    <a class="sidebar-elem" id="sidebar-button-about" href="/about-us"><img src="../assets/local_library.svg"></img> O bibliotece</a>
 
     <hr style="width: 100%; color: #ffffff20;">
 
 
-    <a class="sidebar-elem" href="../Login/login_index.html"><img src="../assets/logout.svg"></img> Wyloguj się</a>
+    <a class="sidebar-elem" href="/login"><img src="../assets/logout.svg"></img> Wyloguj się</a>
 </nav>
 `);
 

@@ -37,12 +37,12 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
     <div style="flex: 1 1 auto;"></div>
 
-    <a class="sidebar-elem" id="sidebar-button-about" href="../about.html"><img src="../assets/local_library.svg"/> O bibliotece</a>
+    <a class="sidebar-elem" id="sidebar-button-about" href="/about-us"><img src="../assets/local_library.svg"/> O bibliotece</a>
 
     <hr style="width: 100%; color: #ffffff20;">
 
 
-    <a class="sidebar-elem" href="../Login/login_index.html"><img src="../assets/logout.svg"></img> Wyloguj się</a>
+    <a class="sidebar-elem" href="/login"><img src="../assets/logout.svg"></img> Wyloguj się</a>
 </nav>
 `);
 
