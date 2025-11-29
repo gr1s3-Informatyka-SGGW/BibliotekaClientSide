@@ -1,4 +1,4 @@
-import {useState, type ReactNode, createContext, useContext} from "react";
+import {type ReactNode, createContext, useContext} from "react";
 import {Navigate} from "react-router-dom";
 
 export interface User{
@@ -7,25 +7,14 @@ export interface User{
     type: ('admin'|'user')
     // other data
 }
-interface AuthContextType{
+export interface AuthContextType{
     user: User | null;
     login: (data:User) => void;
     logout: () => void;
 
 }
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-export function AuthProvider({children}:{children:ReactNode}){
-    const [user, setUser] = useState<User | null>(null);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-    const login = (data: User) => setUser(data);
-    const logout = () => setUser(null);
-
-    return (
-        <AuthContext.Provider value={{ user, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    )
-}
 
 // przenosi do strony tylko i wyłącznie użytkowników danego typu
 export function ProtectedRoute( props:{mode:('admin'|'user'|null), children: ReactNode, reroute_path?: (string | undefined)}){

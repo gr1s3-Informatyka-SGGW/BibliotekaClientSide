@@ -1,0 +1,71 @@
+@media (max-width: 40em) {
+  .book .header-actions {
+    flex-direction: column;
+    flex: 1 1 100%;
+    align-items: flex-start;
+    gap: 1.0em;
+  }
+
+  .reader-actions,
+  .reader-actions *,
+  .librarian-actions,
+  .librarian-actions * {
+    width: 100%;
+  }
+
+
+}
+
+.books {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #FFE8EF;
+  padding-bottom: 8px;
+}
+
+.copy span {
+  flex: 1 1 100%;
+  margin-bottom: 5px;
+}
+
+.copy .actions {
+  display: flex;
+  gap: 5px;
+  flex: 1 1 100%;
+  justify-content: flex-end;
+  margin-top: 5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75em;
+}
+
+.header-actions .header {
+  margin-bottom: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.status-available {
+  color: #2e7d32;
+}
+
+.status-busy {
+  color: #c62828;
+}
+
+.status-destroyed {
+  color: #c62828;
+}
