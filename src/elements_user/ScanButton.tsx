@@ -1,0 +1,1 @@
+// implementuje skanowanie książek

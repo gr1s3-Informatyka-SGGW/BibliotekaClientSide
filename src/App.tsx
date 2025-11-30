@@ -1,28 +1,23 @@
 import {useState} from 'react'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 
-import Login from "./Login/Login";
-import PasswordReset from "./Login/PasswordReset";
-import Register from "./Login/Register";
-
-// import {default as UserCatalogView} from './User/CatalogView'
-// import {default as UserProfileView} from './User/ProfileView'
+import Login from "./login/Login";
+import PasswordReset from "./login/PasswordReset";
+import Register from "./login/Register";
 
 
 import AboutUs from './AboutUs'
 import Error404 from "./error404.tsx";
 
-import {AuthContext, ProtectedRoute, type User} from "../public/UserAuth.tsx";
-
-
-
+import {type User, type Session} from '../public/db_types.ts'
+import {AuthContext, ProtectedRoute} from "../public/UserAuth.tsx";
 
 function App(){
 
 
-    const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<User | null>(null);
 
-    const login = (data: User) => setUser(data);
+    const login = (data: Session) => setUser(Session);
     const logout = () => setUser({token:'', name:'', type:'user'});
 
 
@@ -30,11 +25,12 @@ function App(){
         <AuthContext.Provider value={{ user, login, logout }}>
             <BrowserRouter>
                 <Routes>
+                    {/*Poprawić error 404*/}
                     <Route path='/:invalid_path' element={<Error404/>}/>
                     <Route path='/about-us' element={<AboutUs/>} />
 
                     <Route path='/' element={
-                        <Navigate to='/katalog'/>
+                        <Navigate to='/login'/>
                     }/>
 
 
@@ -47,6 +43,7 @@ function App(){
                     <Route path='/password-reset' element={
                         <ProtectedRoute mode={null} reroute_path='/'><PasswordReset/></ProtectedRoute>
                     }/>
+
 
 
 

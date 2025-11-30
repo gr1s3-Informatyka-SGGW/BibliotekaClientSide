@@ -1,17 +1,13 @@
 import {type ReactNode, createContext, useContext} from "react";
 import {Navigate} from "react-router-dom";
 
-export interface User{
-    token: string;
-    name: string;
-    type: ('admin'|'user')
-    // other data
-}
+import {type Session, type User} from './db_types.ts';
+
+
 export interface AuthContextType{
-    user: User | null;
+    session: Session | null;
     login: (data:User) => void;
     logout: () => void;
-
 }
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -28,7 +24,6 @@ export function ProtectedRoute( props:{mode:('admin'|'user'|null), children: Rea
         return reroute
     else
         return props.children
-
 }
 
 

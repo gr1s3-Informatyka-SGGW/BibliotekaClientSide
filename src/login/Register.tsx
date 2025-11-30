@@ -3,7 +3,7 @@ import './register.css'
 function Register() {
     return (
         <div className="center-screen">
-            <form action="../Admin/catalog.html" style={{width: '22em'}} className="login-panel">
+            <form action="../elements_admin/catalog.html" style={{width: '22em'}} className="login-panel">
                 <h2 style={{textAlign:'center', marginBottom:'18px'}}>Rejestracja</h2>
 
                 <div className="row">

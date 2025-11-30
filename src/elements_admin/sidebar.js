@@ -13,7 +13,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div style="display: flex; margin: auto; align-items: center; gap: 0.5em; color: #891E49; margin-bottom: 0.75em;">
     <div id="menu-toggle-padding"></div>
           <a href="catalog.html">
-      <img src="../assets/logo.png" alt="" style="height: 2.5em; width: auto; filter: none;"> 
+      <img src="../assets/logo.svg" alt="" style="height: 2.5em; width: auto; filter: none;"> 
       <h2 style="margin: 0; color: white;">Biblioteka</h2>
       </a>
     <div style="flex-grow: 1;"></div>
