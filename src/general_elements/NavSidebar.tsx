@@ -1,6 +1,6 @@
 /*
 * odpowiadający plik w design: 'navbar.js'
-* widok w design: np: https://kocham-sggw.ct.ws/biblioteka/Client/catalog.html oraz https://kocham-sggw.ct.ws/biblioteka/Employee/catalog.html
+* przykład w design:  https://kocham-sggw.ct.ws/biblioteka/Client/catalog.html oraz https://kocham-sggw.ct.ws/biblioteka/Employee/catalog.html sidebar po lewej
 * realizowana funkcjonalność:
 *   Boczny element nawigacyjny aplikacji. Posiada logo (logo.svg), które odświeża stronę po kliknięciu.
 *   Niżej znajduje się widget z informacjami użytkownika oraz listą dostępnych stron w zależności od tego, czy zalogowany jest to user, czy admin

@@ -1,7 +1,8 @@
 /*
-* odpowiadający plik w design: 'navbar.js'
-* widok w design: np: https://kocham-sggw.ct.ws/biblioteka/Client/catalog.html oraz https://kocham-sggw.ct.ws/biblioteka/Employee/catalog.html
+* odpowiadający plik w design: 'User/catalog.html' oraz 'Employee/catalog.html'
+* przykład w design: https://kocham-sggw.ct.ws/biblioteka/Client/catalog.html oraz https://kocham-sggw.ct.ws/biblioteka/Employee/catalog.html
 * realizowana funkcjonalność:
+*   Wyświetla listę książek i obsługuje wygląd
 */
 import "./catalog.css"
 

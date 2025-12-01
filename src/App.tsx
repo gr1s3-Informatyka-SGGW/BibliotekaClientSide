@@ -1,28 +1,42 @@
 import {useState} from 'react'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
+// general
+import AboutUs from './AboutUs'
+import Error404 from "./error404";
+import AccessDenied from "./AccessDenied";
 
+// login
 import Login from "./login/Login";
 import PasswordReset from "./login/PasswordReset";
 import Register from "./login/Register";
 
+// shared
+import CatalogView from "./general_elements/CatalogView";
 
-import AboutUs from './AboutUs'
-import Error404 from "./error404.tsx";
+// user only
+import UserProfileView from "./elements_user/UserProfileView";
 
+// admin only
+import AdminProfileView from "./elements_admin/AdminProfileView.tsx";
+import UsersListView from "./elements_admin/UsersListView.tsx";
+import AddBookView from "./elements_admin/AddBookView.tsx";
+import RentedBooksListView from "./elements_admin/RentedBooksListView.tsx";
+
+// react
 import {type User, type Session} from '../public/db_types.ts'
-import {AuthContext, ProtectedRoute} from "../public/UserAuth.tsx";
+import {AuthContext, ProtectedRoute} from "../public/UserAuth";
+import React from "react";
 
-function App(){
+export default function App(){
 
 
-    const [session, setSession] = useState<User | null>(null);
-
-    const login = (data: Session) => setUser(Session);
-    const logout = () => setUser({token:'', name:'', type:'user'});
+    const [session, setSession] = useState<Session | null>(null);
+    const login = (user: User) => setSession({token:'', user: user, });
+    const logout = () => setSession(null);
 
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ session, login, logout }}>
             <BrowserRouter>
                 <Routes>
                     {/*Poprawić error 404*/}
@@ -54,5 +68,3 @@ function App(){
 
     )
 }
-
-export default App;
