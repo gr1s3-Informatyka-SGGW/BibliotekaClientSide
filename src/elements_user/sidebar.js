@@ -13,13 +13,13 @@ document.body.insertAdjacentHTML('beforeend', `
   <div style="display: flex; margin: auto; align-items: center; gap: 0.5em; color: #891E49; margin-bottom: 0.75em;">
       <div id="menu-toggle-padding"></div>
       <a href="catalog.html">
-      <img src="../assets/logo.png" style="height: 2.5em; width: auto; filter: none;"> 
+      <img src="../assets/logo.svg" style="height: 2.5em; width: auto; filter: none;"> 
       <h2 style="margin: 0; color: white;">Biblioteka</h2>
       </a>
       <div style="flex-grow: 1;"></div>
   </div>
 
-      <div class="login-info" onclick="window.location.href = 'profile.html';" style="cursor: pointer; display: flex; align-items: center; gap: 15px; background: #FFFFFF33s; padding: 10px; border-radius: 8px;">
+      <div class="login-info" onclick="window.location.href = 'profile.html';" style="cursor: pointer; display: flex; align-items: center; gap: 15px; background: #FFFFFF; padding: 10px; border-radius: 8px;">
       <img src="../assets/person.svg" style="height: 40px; width: auto; filter: invert(1.0) brightness(500%);">
         <div style="display: flex; flex-direction: column; justify-content: center; line-height: 1.2;">
           <span style="font-weight: bold; color: #ffffff;">Jan Paweł</span>
@@ -37,12 +37,12 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
     <div style="flex: 1 1 auto;"></div>
 
-    <a class="sidebar-elem" id="sidebar-button-about" href="../about.html"><img src="../assets/local_library.svg"/> O bibliotece</a>
+    <a class="sidebar-elem" id="sidebar-button-about" href="/about-us"><img src="../assets/local_library.svg"/> O bibliotece</a>
 
     <hr style="width: 100%; color: #ffffff20;">
 
 
-    <a class="sidebar-elem" href="../Login/login_index.html"><img src="../assets/logout.svg"></img> Wyloguj się</a>
+    <a class="sidebar-elem" href="/login"><img src="../assets/logout.svg"></img> Wyloguj się</a>
 </nav>
 `);
 
