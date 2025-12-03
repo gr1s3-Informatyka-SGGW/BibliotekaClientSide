@@ -1,4 +1,4 @@
-
+import '../../public/validators.js' // przerobić na typescript albo dołożyć plik deklaracji
 
 function PasswordReset() {
     return (

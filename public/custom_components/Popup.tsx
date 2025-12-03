@@ -19,7 +19,7 @@ import {createContext, type ReactNode, useContext} from "react";
 export const popupContext = createContext(()=>{})
 
 export default function Popup({children, title, title_icon}: {children:ReactNode, title?: String, title_icon?: any}){
-    var close = () => {} // close functio
+    const close = () => {} // close functio
     return <popupContext.Provider value={close}>
         {children}
     </popupContext.Provider>
