@@ -2,8 +2,7 @@ import {useState} from 'react'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 // general
 import AboutUs from './AboutUs'
-import Error404 from "./Errors.tsx";
-import AccessDenied from "./AccessDenied";
+import Error, {Error404, AccesDeniedError} from "./Errors.tsx";
 
 // login
 import Login from "./login/Login";
