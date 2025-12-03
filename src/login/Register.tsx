@@ -1,4 +1,6 @@
 import './register.css'
+import '../../public/validators.js' // przerobić na typescript albo dołożyć plik deklaracji
+
 
 function Register() {
     return (

@@ -26,10 +26,12 @@ import {Component} from "react";
 export class CustomOption extends Component{
     display_value: string
     passed_value: string|number
-    constructor(props:{children: string, value: string|number}) {
+    name: string
+    constructor(props:{children: string, value: string|number, name: string}) {
         super(props);
         this.display_value = props.children
         this.passed_value = props.value
+        this.name = props.name
     }
     render(){
         return <>{this.display_value}</>
