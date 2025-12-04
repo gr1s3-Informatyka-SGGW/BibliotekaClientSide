@@ -2,7 +2,7 @@ import {useState} from 'react'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 // general
 import AboutUs from './AboutUs'
-import Error, {Error404, AccesDeniedError} from "./Errors.tsx";
+import Error, {Error404, AccessDeniedError} from "./Errors.tsx";
 
 // login
 import Login from "./login/Login";
@@ -32,7 +32,6 @@ export default function App(){
     const [session, setSession] = useState<Session | null>(null);
     const login = (user: User) => setSession({token:'', user: user, });
     const logout = () => setSession(null);
-
 
     return (
         <AuthContext.Provider value={{ session, login, logout }}>
