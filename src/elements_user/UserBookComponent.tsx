@@ -1,21 +1,31 @@
-/*
-* odpowiadający plik w design: 'navbar.js'
-* widok w design: https://kocham-sggw.ct.ws/biblioteka/Client/catalog.html widoczny na liście książek
-* realizowana funkcjonalność:
-*   wyświetlał informacje o książce na podstawie dany, podanych jako atrybut book_info,
-* używane komponenty:
-*   <Collapsable> // dopóki nie jest gotowy ma się nie zwijać
- */
-import { Component } from "react";
+import { Component, type JSX } from "react";
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import bookIcon from '../assets/book.svg'
 import {type Book} from "../../public/db_types.ts"
 
+/**
+ * Właściwości (props) dla komponentu UserBookComponent.
+ * @property {Book} book_info - Obiekt zawierający szczegółowe informacje o książce.
+ */
 type Props = { book_info: Book };
-type State = {};
 
+/**
+ * Stan komponentu UserBookComponent (obecnie pusty).
+ */
+type State = object;
+
+/**
+ * Komponent klasowy wyświetlający szczegółowe informacje o książce w widoku użytkownika.
+ * Zawiera nagłówek z tytułem i akcjami oraz zwijaną sekcję ze szczegółami.
+ *
+ * @extends {Component<Props, State>}
+ */
 class UserBookComponent extends Component<Props, State> {
-    render() {
+    /**
+     * Renderuje strukturę HTML komponentu książki.
+     * @returns {JSX.Element} Element JSX reprezentujący widok książki.
+     */
+    render(): JSX.Element {
         const b = this.props.book_info;
         const authors = b.authors.join(", ");
         const genres = b.genre.join(", ");
@@ -56,12 +66,19 @@ class UserBookComponent extends Component<Props, State> {
         </div>
     }
 
-    onRentBookPressed = () => {
+    /**
+     * Obsługuje zdarzenie kliknięcia przycisku "Wypożycz".
+     * @returns {void}
+     */
+    onRentBookPressed = (): void => {
         alert(`naciśnięto wypożycz dla „${this.props.book_info.title}”`)
-        console.log("DAD");
     }
 
-    onReserveBookPressed = () => {
+    /**
+     * Obsługuje zdarzenie kliknięcia przycisku "Zarezerwuj".
+     * @returns {void}
+     */
+    onReserveBookPressed = (): void => {
         alert(`naciśnięto zarezerwuj dla „${this.props.book_info.title}”`)
     }
 

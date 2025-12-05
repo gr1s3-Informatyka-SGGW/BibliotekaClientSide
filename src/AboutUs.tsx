@@ -1,12 +1,15 @@
-/*
-* odpowiednik w design: 'about.html'
-* przykład w design: do poprawy nie ma co
-* funkcjonalność: doprowadzić do ładnego wyglądu. Ma to być strona z przykładowym opisem biblioteki
-* */
 import "./style.css"
 import aboutIcon from "./assets/local_library.svg"
+import type { JSX } from "react"
 
-function AboutUs() {
+/**
+ * Komponent funkcyjny renderujący stronę "O bibliotece".
+ * Zawiera statyczne informacje o misji biblioteki, funkcjonalnościach systemu
+ * oraz panelu użytkownika.
+ *
+ * @returns {JSX.Element} Widok strony informacyjnej.
+ */
+function AboutUs(): JSX.Element {
     return <>
         <h1><img src={aboutIcon} alt="icon" /> O bibliotece</h1>
         <div className="login-panel" style={{ margin: "auto", width: "auto", textAlign: "justify" }}>
@@ -37,4 +40,4 @@ function AboutUs() {
     </>
 }
 
-export default AboutUs
+export default AboutUs;
