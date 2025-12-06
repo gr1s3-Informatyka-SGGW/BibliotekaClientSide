@@ -1,4 +1,3 @@
-import "./style.css"
 import aboutIcon from "./assets/local_library.svg"
 import type { JSX } from "react"
 
@@ -12,7 +11,7 @@ import type { JSX } from "react"
 function AboutUs(): JSX.Element {
     return <>
         <h1><img src={aboutIcon} alt="icon" /> O bibliotece</h1>
-        <div className="login-panel" style={{ margin: "auto", width: "auto", textAlign: "justify" }}>
+        <main className="login-panel" style={{ margin: "auto", width: "auto", textAlign: "justify" }}>
 
             <p>Witamy w miejscu, gdzie tradycyjna pasja do czytania spotyka się z nowoczesną technologią. Nasza biblioteka to nie tylko regały pełne książek, to innowacyjny system zaprojektowany z myślą o Twojej wygodzie i oszczędności czasu. Stawiamy na samoobsługę, przejrzystość i łatwy dostęp do wiedzy.</p>
 
@@ -36,7 +35,7 @@ function AboutUs(): JSX.Element {
             <div style={{ textAlign: "center" }}>
                 <a href='/' >Wróć na stronę główną</a>
             </div>
-        </div>
+        </main>
     </>
 }
 
