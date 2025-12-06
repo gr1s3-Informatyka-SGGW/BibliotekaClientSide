@@ -1,5 +1,4 @@
 import { Component, type JSX } from 'react';
-import "./style.css"
 import "./errors.css"
 import errorIcon from './assets/error.svg';
 
@@ -15,7 +14,7 @@ export default class ErrorComponent extends Component {
      */
     code: number
     /**
-     * Treść komunikatu błędu wyświetlana użytkownikowi.
+     * Treść komunikatu o błędzie wyświetlana użytkownikowi.
      */
     message: string
 
@@ -37,10 +36,10 @@ export default class ErrorComponent extends Component {
     render(): JSX.Element {
         return <>
             <div className='error'>
-                <div className='error-code'><p>Bład {this.code}</p></div>
+                <div className='error-code'><p>Błąd {this.code}</p></div>
                 <div className='error-message'><p>{this.message}</p><a href='/'>Wróć na stronę główną</a></div>
             </div>
-            <img src={errorIcon} className='error-icon'></img>
+            <img src={errorIcon} alt="" className='error-icon'/>
         </>;
     }
 }
