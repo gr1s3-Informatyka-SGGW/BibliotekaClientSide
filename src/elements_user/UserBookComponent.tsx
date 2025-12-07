@@ -38,8 +38,8 @@ class UserBookComponent extends Component<Props, State> {
             return ins;
         })();
 
-        const disableRentButton = (b.instances.available === 0) ? true : false;
-        const disableReserveButton = (b.instances.total === 0) ? true : false;
+        const disableRentButton = (b.instances.available === 0);
+        const disableReserveButton = (b.instances.available === 0);
 
         return <div className="book">
             <div className="header-actions">
