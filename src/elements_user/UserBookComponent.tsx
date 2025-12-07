@@ -26,7 +26,7 @@ class  UserBookComponent extends Component{
 
     }
     // obsługuje kliknięcia guzika 'Zarezerwuj'
-    reservBook(){
+    reserveBook(){
 
     }
 

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', ()=>
             return;
         }
 
-        const passCheck = validators.password(passwordVal);
+        const passCheck = validators.password( document.getElementById('haslo').value);
         if (!passCheck.ok) {
             showError("Hasło nie spełnia wymagań bezpieczeństwa (min. 12 znaków, duża litera, cyfra, znak specjalny).");
             return;
@@ -33,9 +33,8 @@ document.addEventListener('DOMContentLoaded', ()=>
             const passwordHash = await hashPassword(hasloCzyste);
             error.style.display = 'none';
 
-            //wysyłanie hasła do backendu
-            /*w celu testowania poprawności kodu, została stworzona funckja
-                pomocnicza odpowiedzBackend()*/
+            // wysyłanie hasła do backendu
+            /* w celu testowania poprawności kodu została stworzona funkcja pomocnicza odpowiedzBackend()*/
             const response = await odpowiedzBackend(email, passwordHash);
         
             if(response.success){
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', ()=>
                 sessionStorage.setItem('userRole', response.role);
                 sessionStorage.setItem('userEmail', email);
 
-                if(response.role == 'employee'){
+                if(response.role === 'employee'){
                     window.location.href = '../src/Employee/pending.html';
                 }
                 else{
@@ -112,7 +111,7 @@ function logout() {
     window.location.href = "../src/Login/login_index.html";
 }
 
-//Guardy
+// Guardy
 
 function protectPage(requiredRole = null) {
     const session = getSession();

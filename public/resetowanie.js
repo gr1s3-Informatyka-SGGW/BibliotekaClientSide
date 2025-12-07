@@ -1,4 +1,4 @@
-import { validators } from './validation.js';
+import { validators } from './validators.js';
 document.addEventListener('DOMContentLoaded', ()=>
 {
     const resetForm = document.getElementById('resetForm');

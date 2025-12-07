@@ -5,7 +5,7 @@ import '../../public/validators.js' // przerobić na typescript albo dołożyć 
 function Register() {
     return (
         <div className="center-screen">
-            <form action="../elements_admin/catalog.html" style={{width: '22em'}} className="login-panel">
+            <form action="/katalog" style={{width: '22em'}} className="login-panel">
                 <h2 style={{textAlign:'center', marginBottom:'18px'}}>Rejestracja</h2>
 
                 <div className="row">
@@ -52,7 +52,7 @@ function Register() {
 
                 <div className="checkbox-container">
                     <input type="checkbox" id="privacyPolicy" name="privacyPolicy"/>
-                    <a id="privacyPolicyLabel" href="../privacy_policy.html">Akceptuję regulamin i politykę
+                    <a id="privacyPolicyLabel" href="">Akceptuję regulamin i politykę
                         prywatności.</a>
                 </div>
 

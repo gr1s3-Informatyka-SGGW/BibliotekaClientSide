@@ -3,8 +3,8 @@
 * przykład w design https://kocham-sggw.ct.ws/biblioteka/Client/profile.html
 * opis funkcjonalności:
 *   obsługuje widok profilu użytkownika, składając do kupy elementy opisane w innych komponentach.
-*   Pobiera informacje o użytkoniku a Authcontext
-* custom componenty:
+*   Pobiera informacje o użytkowniku a Authcontext
+* custom component:
 *   <NavSideBar/>
 *   <ProfileInfoPanel/>
 *   <ProfileBookList/>

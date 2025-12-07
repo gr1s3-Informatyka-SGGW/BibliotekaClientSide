@@ -1,3 +1,5 @@
+// noinspection SpellCheckingInspection
+
 import { describe, test, expect } from 'vitest';
 import { validators, luhnCheck, isCardExpiryValid, isbnValidate, passwordMeetsPolicy } from '../public/validators.js';
 
@@ -81,7 +83,7 @@ describe('Registration validators - normal and edge cases', () => {
     // format invalid
     expect(validators.cardExp('1/25').ok).toBe(false);
 
-    expect(validators.cardExp('1/26').ok).toBe(true); // thats a problem
+    expect(validators.cardExp('1/26').ok).toBe(true);
 
     // test edge: current month -> valid
     const now = new Date();

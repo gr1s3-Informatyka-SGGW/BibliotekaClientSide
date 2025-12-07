@@ -5,10 +5,10 @@
 * funkcjonalność:
 *   element wyświetla w liście informacje na temat książek wypożyczonych i zarezerwowanych, przez użytkownika informacje na temat tych wypożyczeń są w elementach
 *   ReservationComponent i RentComponent, które są bardzo podobne, ale mają inne akcje, co zaważyło nad podzieleniem ich, ale jak wola możecie użyć dziedziczenia.
-*   Teorytycznie naciścnięcie powinno przenosić do katalogu, aby obejrzeć informacje o książce, zamiast tego zrobimy jakiś popup, gdy ten będzie już napisany
+*   Teoretycznie naciśnięcie powinno przenosić do katalogu, aby obejrzeć informacje o książce, zamiast tego zrobimy jakiś popup, gdy ten będzie już napisany
 *
 *   ReservationComponent, wyświetla czas do upłynięcia rezerwacji, lub 'oczekuje na dostępność'
-*   RentComponent, wyświetla termin zwrotu książki, który podświetla na czerwono, gdy termin upłynął i wyświelta obok informacje o naliczonej opłacie i prośbą o zwrócenie książki.
+*   RentComponent, wyświetla termin zwrotu książki, który podświetla na czerwono, gdy termin upłynął i wyświetla obok informacje o naliczonej opłacie i prośbą o zwrócenie książki.
 * przykład implementacji:
 *   <ProfileBookList header="Lista rezerwacji" icon={logo.svg}>
 *       <ReservationComponent info={}/>

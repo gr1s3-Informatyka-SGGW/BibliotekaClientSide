@@ -2,7 +2,7 @@ import {useState, lazy, Suspense} from 'react'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 // general
 const AboutUs = lazy(()=>import('./AboutUs'))
-import {Error404, AccesDeniedError} from "./Errors.tsx" // named exports nie działa dla lazy
+import {Error404, AccessDeniedError} from "./Errors.tsx" // named exports nie działa dla lazy
 import {type User, type Session} from '../public/db_types.ts'
 import {AuthContext, ProtectedRoute} from "../public/UserAuth";
 
