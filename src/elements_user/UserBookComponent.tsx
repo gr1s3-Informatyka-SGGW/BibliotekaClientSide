@@ -38,14 +38,17 @@ class UserBookComponent extends Component<Props, State> {
             return ins;
         })();
 
+        const disableRentButton = (b.instances.available === 0) ? true : false;
+        const disableReserveButton = (b.instances.total === 0) ? true : false;
+
         return <div className="book">
             <div className="header-actions">
                 <h3 className="header">
                     <img src={bookIcon} alt="icon" /> „{b.title}” — {authors}
                 </h3>
                 <div className="flex-row reader-actions">
-                    <button onClick={this.onRentBookPressed}>Wypożycz</button>
-                    <button onClick={this.onReserveBookPressed}>Zarezerwuj</button>
+                    <button onClick={this.onRentBookPressed} disabled={disableRentButton}>Wypożycz</button>
+                    <button onClick={this.onReserveBookPressed} disabled={disableReserveButton}>Zarezerwuj</button>
                 </div>
             </div>
 
