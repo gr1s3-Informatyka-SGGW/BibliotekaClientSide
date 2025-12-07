@@ -54,10 +54,12 @@ a {
   text-align: center;
   color: #891e49;
   transition: color 0.3s;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 a:hover {
-  color: #6b1737;
+  color: #5f1230;
 }
 
 .label {
@@ -151,6 +153,7 @@ strong {
   color: #891e49;
 }
 
+h3,
 h4 {
   color: #891e49;
 }
@@ -163,6 +166,23 @@ h4 {
 .tags {
   color: #666;
   margin-bottom: 0.5em;
+  display: flex;
+  flex-direction: row;
+  gap: 0.3em;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: flex;
+  white-space: nowrap;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4em 0.6em;
+  border-radius: 100em;
+  background-color: #FFE8EF;
+  color: #891E49;
 }
 
 .book-section {

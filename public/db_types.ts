@@ -20,7 +20,7 @@ export interface Book{
 
     keywords: string[];
     genre: string[];
-    instances: {total: number, available: number}[]
+    instances: {total: number, available: number}
 
 
 }

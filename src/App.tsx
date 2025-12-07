@@ -32,7 +32,6 @@ export default function App(){
     const login = (user: User) => setSession({token:'', user: user, });
     const logout = () => setSession(null);
 
-
     return (
         <AuthContext.Provider value={{ session, login, logout }}>
             <Suspense fallback={<h1>Loading</h1>}>

@@ -11,8 +11,8 @@ import {useContext} from "react";
 import {Navigate} from "react-router-dom";
 
 // assets and stylesheet
-import 'sidebar.css'
-import 'logo.svg'
+import './sidebar.css'
+import '../assets/logo.svg'
 
 // login info
 import {AuthContext} from '../../public/UserAuth.tsx'

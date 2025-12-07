@@ -42,7 +42,7 @@ export function parseExpiry(mmyy) {
     if (typeof mmyy !== 'string') return null;
     if (!regex.cardExp.test(mmyy)) return null;
     const m = mmyy.split('/');
-    if (!m || m.length !== 2) return null; 
+    if (!m || m.length !== 2) return null;
 
     const mm = parseInt(m[0], 10);
     let yy = m[1];
@@ -131,7 +131,7 @@ export const validators = {
         if (!regex.firstName.test(v)) return { ok: false, reason: 'Invalid first name' };
         return { ok: true };
     },
-// ...
+    // ...
     lastName(val) {
         const v = sanitizeTrim(val);
         if (!regex.lastName.test(v)) return { ok: false, reason: 'Invalid last name' };

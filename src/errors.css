@@ -1,0 +1,58 @@
+.error {
+  display: flex;
+  flex-direction: row;
+  gap: 2em;
+  width: 95vw;
+  justify-content: center;
+  align-items: center;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.error-code,
+.error-message {
+  color: #631433;
+  flex: 1;
+  text-align: center;
+}
+
+.error-icon {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(75vw, 75vh);
+  z-index: -1;
+  filter: invert(16%) sepia(87%) saturate(2250%) hue-rotate(320deg) brightness(65%);
+  opacity: 0.15;
+}
+
+.error-code p {
+  font-size: min(12vw, 12vh);
+  font-weight: bold;
+  text-align: center;
+  margin: 0.5em 0.1em;
+}
+
+.error-message p {
+  font-size: 120%;
+  text-align: justify;
+}
+
+.error-message a {
+  font-size: 120%;
+  text-align: justify;
+}
+
+@media (max-width: 57em) {
+  .error {
+    flex-direction: column;
+  }
+
+  .error-code p {
+    /* margin: 0.1em 0.5em; */
+  }
+}
