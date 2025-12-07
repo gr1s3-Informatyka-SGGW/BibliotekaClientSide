@@ -103,7 +103,7 @@
   }
 
   .sidebar:not(.open) {
-    box-shadow: 0;
+    box-shadow: none;
   }
 
   .sidebar.open {

@@ -9,8 +9,8 @@
 *   Ma posiadać atrybut 'allow_multiple' domyślnie ustawiony na false, który definiuje czy można wybrać wiele opcji
 *   Musi przejmować focus tabulatora.
 *
-*   Posiada też wariant SearchableSelect, który dodatkowo posiada na górze pasek wyszukiwania i na bieżąco filtruje dostepnę opcje aż użytkownik znajdzie to czego szuka.
-*   Design nie implementuje ostatecznego wyglądu tej wersji komponentu, funkcjonalnie ma działać tak samo jak opcja wyboru tagów, ale wyglądać, jak opcja wyboru sortowania
+*   Posiada też wariant SearchableSelect, który dodatkowo posiada na górze pasek wyszukiwania i na bieżąco filtruje dostępne opcje, aż użytkownik znajdzie to, czego szuka.
+*   Design nie implementuje ostatecznego wyglądu tej wersji komponentu, funkcjonalnie ma działać tak samo, jak opcja wyboru tagów, ale wyglądać, jak opcja wyboru sortowania
 *
 *   Przykład wywołania:
 *   <CustomSelect>
