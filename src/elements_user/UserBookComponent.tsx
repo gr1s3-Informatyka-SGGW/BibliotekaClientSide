@@ -60,7 +60,7 @@ class UserBookComponent extends Component<Props, State> {
                     <span className="label">Język:</span> <span>{b.language}</span>
                     <span className="label">Liczba stron:</span> <span>{b.length}</span>
                     <span className="label">Dostępne egzemplarze:</span> <span>{instances}</span>
-                    <span className="label">Tagi:</span> <span><div className="tags">{b.keywords.map((keyword) => (<div className="tag">{keyword}</div>))}</div></span>
+                    <span className="label">Tagi:</span> <div className="tags">{b.keywords.map((keyword, index) => (<div className="tag" key={index}>{keyword}</div>))}</div>
                 </div>
             </Collapsible>
         </div>
