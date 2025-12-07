@@ -1,4 +1,4 @@
-const regex = {
+export const regex = {
     firstName: /^(?=.{2,60}$)[\p{L}]+(?:[ '\-][\p{L}]+)*$/u,
     lastName: /^(?=.{2,80}$)[\p{L}]+(?:[ '\-][\p{L}]+)*$/u,
     email: /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,63}$/, // pragmatic
@@ -20,7 +20,7 @@ const regex = {
 };
 
 // ---- Helpers ----
-function luhnCheck(cardNumber) {
+export function luhnCheck(cardNumber) {
     if (!cardNumber) return false;
     const s = String(cardNumber).replace(/\D/g, '');
     if (!/^\d{13,19}$/.test(s)) return false;
@@ -38,7 +38,7 @@ function luhnCheck(cardNumber) {
     return sum % 10 === 0;
 }
 
-function parseExpiry(mmyy) {
+export function parseExpiry(mmyy) {
     if (typeof mmyy !== 'string') return null;
     if (!regex.cardExp.test(mmyy)) return null;
     const m = mmyy.split('/');
@@ -53,7 +53,7 @@ function parseExpiry(mmyy) {
     return { month: mm, year: y };
 }
 
-function isCardExpiryValid(mmyy, now = new Date()) {
+export function isCardExpiryValid(mmyy, now = new Date()) {
     const parsed = parseExpiry(mmyy);
     if (!parsed) return false;
     const { month, year } = parsed;
@@ -65,12 +65,12 @@ function isCardExpiryValid(mmyy, now = new Date()) {
 }
 
 // ISBN helpers: remove hyphens and spaces then checksum
-function isbnNormalize(isbn) {
+export function isbnNormalize(isbn) {
     if (typeof isbn !== 'string') return null;
     return isbn.replace(/[^0-9Xx]/g, '');
 }
 
-function isbn10Check(isbn10) {
+export function isbn10Check(isbn10) {
     if (!/^\d{9}[\dXx]$/.test(isbn10)) return false;
     let sum = 0;
     for (let i = 0; i < 10; i++) {
@@ -81,7 +81,7 @@ function isbn10Check(isbn10) {
     return sum % 11 === 0;
 }
 
-function isbn13Check(isbn13) {
+export function isbn13Check(isbn13) {
     if (!/^\d{13}$/.test(isbn13)) return false;
     let sum = 0;
     for (let i = 0; i < 13; i++) {
@@ -91,7 +91,7 @@ function isbn13Check(isbn13) {
     return sum % 10 === 0;
 }
 
-function isbnValidate(isbn) {
+export function isbnValidate(isbn) {
     if (typeof isbn !== 'string') return false;
     const norm = isbnNormalize(isbn);
     if (!norm) return false;
@@ -101,7 +101,7 @@ function isbnValidate(isbn) {
 }
 
 // Password common checks (basic). For breached-check use external service (not included here).
-function passwordMeetsPolicy(pwd) {
+export function passwordMeetsPolicy(pwd) {
     if (typeof pwd !== 'string') return false;
     if (!regex.password.test(pwd)) return false;
     // disallow whitespace
@@ -111,13 +111,13 @@ function passwordMeetsPolicy(pwd) {
 }
 
 // Generic sanitizers
-function sanitizeTrim(input) {
+export function sanitizeTrim(input) {
     if (typeof input !== 'string') return input;
     return input.trim();
 }
 
 // Field validators - return { ok: boolean, reason?: string }
-const validators = {
+export const validators = {
     firstName(val) {
         if (val === null || val === undefined) {
             return { ok: false, reason: 'Value cannot be null/undefined' };
@@ -218,4 +218,3 @@ const validators = {
     }
 };
 
-module.exports = { regex, validators, luhnCheck, isCardExpiryValid, isbnValidate, passwordMeetsPolicy };

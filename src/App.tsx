@@ -1,30 +1,29 @@
-import {useState} from 'react'
+import {useState, lazy, Suspense} from 'react'
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 // general
-import AboutUs from './AboutUs'
-import Error, {Error404, AccesDeniedError} from "./Errors.tsx";
-
-// login
-import Login from "./login/Login";
-import PasswordReset from "./login/PasswordReset";
-import Register from "./login/Register";
-
-// shared
-import CatalogView from "./general_elements/CatalogView";
-
-// user only
-import UserProfileView from "./elements_user/UserProfileView";
-
-// admin only
-import AdminProfileView from "./elements_admin/AdminProfileView.tsx";
-import UsersListView from "./elements_admin/UsersListView.tsx";
-import AddBookView from "./elements_admin/AddBookView.tsx";
-import RentedBooksListView from "./elements_admin/RentedBooksListView.tsx";
-
-// react
+const AboutUs = lazy(()=>import('./AboutUs'))
+import {Error404, AccesDeniedError} from "./Errors.tsx" // named exports nie działa dla lazy
 import {type User, type Session} from '../public/db_types.ts'
 import {AuthContext, ProtectedRoute} from "../public/UserAuth";
-import React from "react";
+
+// login
+const Login = lazy(()=> import("./login/Login"));
+const PasswordReset = lazy(()=> import("./login/PasswordReset"))
+const Register = lazy(()=>import("./login/Register"));
+
+// shared
+const CatalogView = lazy(()=> import('./general_elements/CatalogView'))
+
+// user only
+const UserProfileView = lazy(()=> import("./elements_user/UserProfileView"))
+
+// admin only
+const AdminProfileView = lazy(()=> import("./elements_admin/AdminProfileView.tsx"))
+const UsersListView = lazy(()=> import("./elements_admin/UsersListView.tsx"))
+const AddBookView = lazy(()=> import("./elements_admin/AddBookView.tsx"))
+const RentedBooksListView = lazy(()=> import("./elements_admin/RentedBooksListView.tsx"))
+
+
 
 export default function App(){
 
@@ -36,33 +35,35 @@ export default function App(){
 
     return (
         <AuthContext.Provider value={{ session, login, logout }}>
-            <BrowserRouter>
-                <Routes>
-                    {/*Poprawić error 404*/}
-                    <Route path='/:invalid_path' element={<Error404/>}/>
-                    <Route path='/about-us' element={<AboutUs/>} />
+            <Suspense fallback={<h1>Loading</h1>}>
+                <BrowserRouter>
+                    <Routes>
+                        {/*Poprawić error 404*/}
+                        <Route path='/:invalid_path' element={<Error404/>}/>
+                        <Route path='/about-us' element={<AboutUs/>} />
 
-                    <Route path='/' element={
-                        <Navigate to='/login'/>
-                    }/>
-
-
-                    <Route path='/login' element={
-                        <ProtectedRoute mode={null} reroute_path='/'><Login/></ProtectedRoute>
-                    }/>
-                    <Route path='/register' element={
-                        <ProtectedRoute mode={null} reroute_path='/'><Register/></ProtectedRoute>
-                    }/>
-                    <Route path='/password-reset' element={
-                        <ProtectedRoute mode={null} reroute_path='/'><PasswordReset/></ProtectedRoute>
-                    }/>
+                        <Route path='/' element={
+                            <Navigate to='/login'/>
+                        }/>
 
 
+                        <Route path='/login' element={
+                            <ProtectedRoute mode={null} reroute_path='/'><Login/></ProtectedRoute>
+                        }/>
+                        <Route path='/register' element={
+                            <ProtectedRoute mode={null} reroute_path='/'><Register/></ProtectedRoute>
+                        }/>
+                        <Route path='/password-reset' element={
+                            <ProtectedRoute mode={null} reroute_path='/'><PasswordReset/></ProtectedRoute>
+                        }/>
 
 
-                </Routes>
 
-            </BrowserRouter>
+
+                    </Routes>
+
+                </BrowserRouter>
+            </Suspense>
         </AuthContext.Provider>
 
     )

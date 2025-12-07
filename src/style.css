@@ -1,8 +1,20 @@
 body {
-  background-color: #FFF5F8;
+  background-color: #fff5f8;
   font-family: "Lato", sans-serif;
   margin: 1em;
   overflow-x: hidden;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 @media (min-width: 57em) {
@@ -40,19 +52,19 @@ body {
 
 a {
   text-align: center;
-  color: #891E49;
+  color: #891e49;
   transition: color 0.3s;
 }
 
 a:hover {
-  color: #6B1737;
+  color: #6b1737;
 }
 
 .label {
   font-weight: bold;
   width: 8em;
   flex-shrink: 0;
-  color: #6B1737;
+  color: #6b1737;
 }
 
 fieldset {
@@ -63,7 +75,7 @@ fieldset {
 legend {
   font-weight: bold;
   padding: 0 0.5em;
-  color: #891E49;
+  color: #891e49;
 }
 
 .center-screen {
@@ -103,7 +115,7 @@ legend {
   z-index: 101;
   top: 15px;
   left: 15px;
-  background-color: #891E49;
+  background-color: #891e49;
   color: white;
   border: none;
   padding: 0.5em 14px;
@@ -136,11 +148,11 @@ legend {
 .book h3,
 strong {
   margin-top: 0;
-  color: #891E49;
+  color: #891e49;
 }
 
 h4 {
-  color: #891E49;
+  color: #891e49;
 }
 
 .details {
@@ -167,14 +179,14 @@ h4 {
 
 .panel .header {
   margin: 0;
-  color: #891E49;
-  border-bottom: 1px solid #FFE8EF;
+  color: #891e49;
+  border-bottom: 1px solid #ffe8ef;
   padding-bottom: 0.5em;
 }
 
-form>h2 {
+form > h2 {
   margin: 0;
-  color: #891E49;
+  color: #891e49;
   padding-bottom: 0.5em;
 }
 
@@ -195,7 +207,7 @@ form>h2 {
   top: 0;
   margin: 0;
   z-index: 10;
-  background-color: #FFF5F8;
+  background-color: #fff5f8;
   margin: -1em -1em 0.25em -1em;
   padding: 0.75em 1em;
   margin-bottom: 0.25em;
@@ -230,7 +242,7 @@ form>h2 {
   padding-bottom: 0.8em;
 }
 
-.search-advanced>div {
+.search-advanced > div {
   font-size: 90%;
   display: flex;
   white-space: nowrap;
@@ -241,26 +253,26 @@ form>h2 {
   padding: 0.2em 1.0em;
   min-height: 2.0em;
   border-radius: 100em;
-  background-color: #FFE8EF;
-  color: #891E49;
+  background-color: #ffe8ef;
+  color: #891e49;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.search-advanced>div:hover {
+.search-advanced > div:hover {
   background-color: #ebc3cf;
 }
 
-.search-advanced>.filtered {
-  color: #FFE8EF;
-  background-color: #891E49;
+.search-advanced > .filtered {
+  color: #ffe8ef;
+  background-color: #891e49;
 }
 
-.search-advanced>.filtered:hover {
-  background-color: #6B1737;
+.search-advanced > .filtered:hover {
+  background-color: #6b1737;
 }
 
-.search-advanced>.separator {
+.search-advanced > .separator {
   min-width: 1px;
   padding: 0;
   background-color: #e4bcca;
@@ -268,14 +280,13 @@ form>h2 {
 }
 
 
-
-.search-advanced>div>div {
+.search-advanced > div > div {
   font-size: 75%;
   color: #976176;
   text-align: center;
 }
 
-.search-advanced>.filtered>div {
+.search-advanced > .filtered > div {
   color: #f1b3c6;
 }
 
@@ -342,7 +353,7 @@ h1 {
   transition: color 0.3s;
 }
 
-h1>img {
+h1 > img {
   filter: invert(16%) sepia(87%) saturate(2250%) hue-rotate(320deg) brightness(40%) contrast(100%);
   transform: scale(1.35);
   margin-right: 0.15em;
@@ -378,7 +389,7 @@ h1>img {
 }
 
 .checkmark {
-  color: #6B1737;
+  color: #6b1737;
   font-weight: bold;
 }
 
@@ -403,8 +414,8 @@ h1>img {
   position: fixed;
   z-index: 10000;
   padding: 0.5em 1em;
-  background-color: #891E49;
-  color: #FFF5F8;
+  background-color: #891e49;
+  color: #fff5f8;
   font-size: 0.85em;
   border-radius: 0.5em;
   box-shadow: 0 0.2em 0.5em rgba(0, 0, 0, 0.2);
@@ -428,13 +439,13 @@ h1>img {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #891E49 transparent transparent transparent;
+  border-color: #891e49 transparent transparent transparent;
 }
 
 .custom-tooltip.bottom::after {
   top: auto;
   bottom: 100%;
-  border-color: transparent transparent #891E49 transparent;
+  border-color: transparent transparent #891e49 transparent;
 }
 
 [data-tooltip] {
@@ -455,8 +466,8 @@ h1>img {
 .custom-popover {
   position: fixed;
   z-index: 2001;
-  background-color: #891E49;
-  color: #FFF5F8;
+  background-color: #891e49;
+  color: #fff5f8;
   border-radius: 0.5em;
   box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.3);
   padding: 1.0em;
@@ -482,13 +493,13 @@ h1>img {
   margin-left: -8px;
   border-width: 8px;
   border-style: solid;
-  border-color: transparent transparent #891E49 transparent;
+  border-color: transparent transparent #891e49 transparent;
 }
 
 .custom-popover.top::after {
   bottom: auto;
   top: 100%;
-  border-color: #891E49 transparent transparent transparent;
+  border-color: #891e49 transparent transparent transparent;
 }
 
 .custom-popover h3.header {
@@ -496,7 +507,7 @@ h1>img {
   font-size: 100%;
   margin-top: 0;
   margin-bottom: 1em;
-  color: #FFF5F8;
+  color: #fff5f8;
   font-weight: bold;
   text-align: center;
 }
