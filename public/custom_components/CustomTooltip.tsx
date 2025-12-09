@@ -1,18 +1,29 @@
-/**
- Implementacja
- <CustomTooltip title="Jakiś tekst">
-    Jakiś tekst
- </CustomTooltip>
- */
-
 import { useState, useRef, useLayoutEffect } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+* odpowiadający plik w design: 'tooltip.js'
+* przykład w design: https://kocham-sggw.ct.ws/biblioteka/Client/profile.html po najechaniu na nazwę książki
+* realizowana funkcjonalność:
+*   po najechaniu na ten obiekt (jego zawartość) wyświetla obok ładny komunikat sprecyzowany w argumencie `title`
+* przykład implementacji:
+*   <CustomTooltip title="tekst">
+*        <div>Jakiś HTML</div>
+*   </CustomTooltip>
+*/
+
 interface CustomTooltipProps {
+    /** Element potomny, na który najechanie wyzwala tooltip */
     children?: ReactNode;
+    /** Tekst wyświetlany wewnątrz dymka */
     title: string;
 }
+
+/**
+ * Komponent wewnętrzny (Portal) odpowiedzialny za renderowanie i pozycjonowanie dymka.
+ * Oblicza koordynaty względem elementu aktywującego (trigger) i krawędzi ekranu.
+ */
 
 const TooltipPortal = ({
                            title,
@@ -89,6 +100,13 @@ const TooltipPortal = ({
         document.body
     );
 };
+
+/**
+ * Komponent wrapper dla elementu z tooltipem.
+ *
+ * @param {CustomTooltipProps} props
+ * @returns {JSX.Element}
+ */
 
 export default function CustomTooltip({ children, title }: CustomTooltipProps) {
     const [isHovered, setIsHovered] = useState(false);
