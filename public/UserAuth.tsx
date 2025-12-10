@@ -1,13 +1,15 @@
 /**
  * @file UserAuth.tsx
  * @description Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
- * zarządzanie sesją oraz ochrona tras. Implementacja wykorzystuje React Context
- * oraz bezpieczne hashowanie haseł. Dokumentacja generowana automatycznie przez JSDoc.
+ * zarządzanie sesją oraz ochrona tras. Implementacja wykorzystuje React Context.
+ * Dokumentacja generowana automatycznie przez JSDoc.
  */
 
 import React, { type ReactNode, createContext, useContext, useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { type Session, type User } from "./db_types";
+import { LoginRequest } from "./server_requests";
+
 
 /**
  * Typ kontekstu autoryzacji.
@@ -62,6 +64,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session) localStorage.setItem("session", JSON.stringify(session));
   }, [session]);
+
+  // umożliwia testy w konsoli
+  // @ts-ignore
+  window.auth = { login, logout };
 
   return (
     <AuthContext.Provider value={{ session, login, logout }}>
