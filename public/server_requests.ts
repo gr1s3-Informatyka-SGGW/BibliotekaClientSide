@@ -64,4 +64,49 @@ export function ReturnRentRequest(session_token:string): RequestResponse{
     return {return_code: 0}
 }
 
+// LoginMock
+import type { User } from "./db_types";
 
+export interface LoginResponse {
+  user: User;
+  token: string;
+}
+
+export function LoginRequest(email: string,
+                             password: string): RequestResponse<LoginResponse> {
+  // mock admin
+  if (email === "admin@test.com" && password === "admin") {
+    return {
+      return_code: 0,
+      fetched_data: {
+        user: {
+          type: "admin",
+          name: "Admin",
+          email,
+        },
+        token: "mock-admin-token",
+      },
+    };
+  }
+
+  // mock normal user
+  if (email === "user@test.com" && password === "user") {
+    return {
+      return_code: 0,
+      fetched_data: {
+        user: {
+          type: "user",
+          name: "User",
+          email,
+        },
+        token: "mock-user-token",
+      },
+    };
+  }
+
+  // login failure
+  return {
+    return_code: 1,
+    error_message: "Invalid credentials",
+  };
+}
