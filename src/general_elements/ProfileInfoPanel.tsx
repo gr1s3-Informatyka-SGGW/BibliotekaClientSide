@@ -16,7 +16,7 @@ import {Component, useState} from "react";
 
 import type {FullUserInfo, User} from "../../public/db_types.ts";
 
-// import {} from '../../public/validators.js' // poczekaj, aż zostanie przerobiony na typescript przez team regex
+// import {} from '../../public/validators.ts' // poczekaj, aż zostanie przerobiony na typescript przez team regex
 import Popup from "../../public/custom_components/Popup.tsx";
 
 class ProfileInfoPanel extends Component{
