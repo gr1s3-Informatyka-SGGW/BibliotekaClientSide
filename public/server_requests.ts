@@ -75,7 +75,7 @@ export interface LoginResponse {
 export function LoginRequest(email: string,
                              password: string): RequestResponse<LoginResponse> {
   // mock admin
-  if (email === "admin@test.com" && password === "admin") {
+  if (email === "admin@test.com" && password === "adminADMIN123!@#") {
     return {
       return_code: 0,
       fetched_data: {
@@ -90,7 +90,7 @@ export function LoginRequest(email: string,
   }
 
   // mock normal user
-  if (email === "user@test.com" && password === "user") {
+  if (email === "user@test.com" && password === "userUSER123!@#") {
     return {
       return_code: 0,
       fetched_data: {
