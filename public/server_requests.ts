@@ -65,7 +65,7 @@ export function ReturnRentRequest(session_token:string): RequestResponse{
 }
 
 // LoginMock
-import type { User } from "./db_types";
+import { type User } from "./db_types";
 
 export interface LoginResponse {
   user: User;
