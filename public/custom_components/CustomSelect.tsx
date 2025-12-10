@@ -20,6 +20,7 @@
 */
 
 import {Component} from "react";
+import type IFormComponent from "./IFormComponent.tsx";
 
 
 // Pojedyńcza opcja
@@ -40,7 +41,7 @@ export class CustomOption extends Component{
 }
 
 // to jest zwykły select
-export class CustomSelect extends Component{
+export class CustomSelect extends Component implements IFormComponent<string|number>{
     options: CustomOption[]
     allow_multiple: boolean
     constructor(props: {children: CustomOption[], allow_multiple: boolean}) {
@@ -53,6 +54,9 @@ export class CustomSelect extends Component{
         return <>
             {this.options}
         </>;
+    }
+    getValue(): string|number{
+        return ""
     }
 }
 // ten może jeszcze sortować
