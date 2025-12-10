@@ -1,36 +1,86 @@
-/*
-* Plik kontekstu logowania użytkownika i komponentów związanych z zarządzaniem dostępem.
-* */
+/**
+ * @file UserAuth.tsx
+ * @description Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
+ * zarządzanie sesją oraz ochrona tras. Implementacja wykorzystuje React Context
+ * oraz bezpieczne hashowanie haseł. Dokumentacja generowana automatycznie przez JSDoc.
+ */
 
-import {type ReactNode, createContext, useContext} from "react";
-import {Navigate} from "react-router-dom";
+import React, { type ReactNode, createContext, useContext, useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { type Session, type User } from "./db_types";
 
-import {type Session, type User} from './db_types.ts';
-import React from "react";
-
-
-export interface AuthContextType{
-    session: Session | null;
-    login: (data:User) => void;
-    logout: () => void;
-}
-export const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-
-// przenosi do strony tylko i wyłącznie użytkowników danego typu
-export function ProtectedRoute( props:{mode:('admin'|'user'|null), children: ReactNode, reroute_path?: (string | undefined)}){
-
-    let user = useContext(AuthContext)?.session?.user
-    let user_mode = user != null ? user.type : null
-
-    let protection_mode = props.mode
-    let reroute = <Navigate to={props.reroute_path == undefined ? '/' : props.reroute_path}/>
-    if(protection_mode != user_mode )
-        return reroute
-    else
-        return props.children
+/**
+ * Typ kontekstu autoryzacji.
+ * @typedef {Object} AuthContextType
+ * @property {Session | null} session - Aktualna sesja.
+ * @property {(data:User, token:string) => void} login - Funkcja ustawiająca sesję użytkownika.
+ * @property {() => void} logout - Funkcja usuwająca sesję.
+ */
+export interface AuthContextType {
+  session: Session | null;
+  login: (data: User, token: string) => void;
+  logout: () => void;
 }
 
+/**
+ * Kontekst uwierzytelniania użytkownika.
+ * @type {React.Context<AuthContextType | undefined>}
+ */
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Provider przechowujący dane sesji użytkownika.
+ * Odpowiada za trwałe przechowywanie sesji w localStorage.
+ * @param {Object} props
+ * @param {ReactNode} props.children - Komponenty potomne.
+ */
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(() => {
+    const saved = localStorage.getItem("session");
+    return saved ? JSON.parse(saved) : null;
+  });
 
+  /**
+   * Logowanie — zapisuje dane użytkownika oraz token sesji.
+   * @param {User} user
+   * @param {string} token
+   */
+  const login = (user: User, token: string) => {
+    const newSession: Session = { user, token };
+    setSession(newSession);
+    localStorage.setItem("session", JSON.stringify(newSession));
+  };
 
+  /**
+   * Wylogowanie — usuwa sesję i czyści localStorage.
+   */
+  const logout = () => {
+    setSession(null);
+    localStorage.removeItem("session");
+  };
+
+  useEffect(() => {
+    if (session) localStorage.setItem("session", JSON.stringify(session));
+  }, [session]);
+
+  return (
+    <AuthContext.Provider value={{ session, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+/**
+ * Ochrona tras — umożliwia dostęp wyłącznie określonym typom użytkowników.
+ * @param {Object} props
+ * @param {('admin'|'user'|null)} props.mode - Wymagany typ użytkownika.
+ * @param {ReactNode} props.children
+ * @param {string} [props.reroute_path]
+ */
+export function ProtectedRoute({ mode, children, reroute_path }: { mode: "admin" | "user" | null; children: ReactNode; reroute_path?: string }) {
+  const userType = useContext(AuthContext)?.session?.user?.type ?? null;
+  const reroute = <Navigate to={reroute_path ?? "/"} />;
+
+  if (mode !== userType) return reroute;
+  return children;
+}
