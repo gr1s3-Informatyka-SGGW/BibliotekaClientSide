@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { validators } from "../../public/validators";
 import { AuthContext } from "../../public/UserAuth";
 import { LoginRequest } from "../../public/server_requests";
-import "./login.css";
 
 function Login() {
   const auth = useContext(AuthContext);
