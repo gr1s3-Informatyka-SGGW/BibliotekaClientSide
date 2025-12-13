@@ -83,10 +83,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  * @param {ReactNode} props.children
  * @param {string} [props.reroute_path]
  */
-export function ProtectedRoute({ mode, children, reroute_path }: { mode: "admin" | "user" | null; children: ReactNode; reroute_path?: string }) {
-  const userType = useContext(AuthContext)?.session?.user?.type ?? null;
-  const reroute = <Navigate to={reroute_path ?? "/"} />;
+export function ProtectedRoute({mode, children, reroute_path,}: {mode: "admin" | "user" | null; children: ReactNode; reroute_path?: string;}) {
+  const auth = useContext(AuthContext);
+  const userType = auth?.session?.user?.type ?? null;
 
-  if (mode !== userType) return reroute;
+  //niezalogowany użytkownik próbuje wejść w trasę chronioną
+  if (!userType && mode !== null) {
+    return <Navigate to="/login" />;
+  }
+
+  //zalogowany użytkownik próbuje wejść w trasę publiczną (login, register)
+  if (userType && mode === null) {
+    return <Navigate to="/catalog" />;
+  }
+
+  //zalogowany, ale zła rola
+  if (mode !== null && userType !== mode) {
+    return <Navigate to={reroute_path ?? "/access-denied"} />;
+  }
+
   return children;
 }
+
