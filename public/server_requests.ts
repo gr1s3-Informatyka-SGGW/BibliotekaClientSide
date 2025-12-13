@@ -46,6 +46,9 @@ export function ChangePasswordRequest(session_token: string,
                                       new_password: string): RequestResponse{
     return {return_code: 0}
 }
+export function ResetPasswordRequest(email: string): RequestResponse{
+  return { return_code: 0 }
+}
 
 export function CancelReservationRequest(session_token: string,
                                          instance_id: number):
