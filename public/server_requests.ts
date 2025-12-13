@@ -113,3 +113,32 @@ export function LoginRequest(email: string,
     error_message: "Invalid credentials",
   };
 }
+
+// RegisterMock
+export function RegisterRequest(firstName: string,
+                                lastName: string,
+                                email: string,
+                                password: string,
+                                cardNumber: string,
+                                exp: string,
+                                cvv: string): RequestResponse<null> {
+  const existingEmails = ["admin@test.com", "user@test.com"];
+  if (existingEmails.includes(email)) {
+    return {
+      return_code: 1,
+      error_message: "Użytkownik o podanym adresie e-mail już istnieje.",
+    };
+  }
+
+  console.log("REGISTER USER:", {
+    firstName,
+    lastName,
+    email,
+    password,
+    cardNumber,
+    exp,
+    cvv,
+  });
+
+  return { return_code: 0 };
+}
