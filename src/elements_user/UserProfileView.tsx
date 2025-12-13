@@ -12,7 +12,7 @@
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileBookList, {RentComponent, ReservationComponent} from "./ProfileBookList.tsx";
 import {AuthContext} from "../../public/UserAuth.tsx";
-import {type Session, type Rent, type Reservation} from '../../public/db_types.ts'
+import {type Session, type Rent, type Reservation} from '../../public/server_types.ts'
 
 import {useContext} from "react";
 

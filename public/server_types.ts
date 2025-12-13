@@ -22,8 +22,6 @@ export interface Book{
     keywords: string[];
     genre: string[];
     instances: {total: number, available: number}
-
-
 }
 export interface User{
     type: ('admin'|'user')
@@ -32,17 +30,12 @@ export interface User{
 
 }
 
-export interface Adres{
-    city: string;
-    postal_code: string;
-    street_name: string;
-    house_number: string;
+export interface CreditCardInfo{
+    number: string
+    exp_date: string // mm/yy
+    cvv: string
 }
-export interface FullUserInfo{
-    basic: User,
-    adres: Adres,
-    card_last_numbers: string
-}
+
 export interface Session{
     token: string;
     user:User;

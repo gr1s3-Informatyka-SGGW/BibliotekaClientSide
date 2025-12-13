@@ -5,7 +5,7 @@
 import {type ReactNode, createContext, useContext} from "react";
 import {Navigate} from "react-router-dom";
 
-import {type Session, type User} from './db_types.ts';
+import {type Session, type User} from './server_types.ts';
 import React from "react";
 
 
