@@ -2,7 +2,16 @@
  * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
  * */
 
-import type {Book} from "./server_types.ts";
+import type {
+    Book,
+    BookAdmin,
+    BookSearchFilter,
+    SearchSort,
+    BookUser,
+    CreditCardInfo,
+    Session,
+    User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo
+} from "./server_types.ts";
 
 /**
  * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
@@ -21,33 +30,26 @@ class RequestError extends Error{
     }
 
 }
+// Login
+export function loginRequest(email: string, password: string): Session{
+    throw Error("Not implemented exception")
+}
+export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
+    throw Error("Not implemented exception")
+}
+export function resetPasswordRequest(email: string): void{
+    throw Error("Not implemented exception")
+}
 
 // ProfileView
-interface ProfileViewFetchResponse{
-    user_info: {
-        name: string,
-        surname: string,
-        email: string,
-        card_number: string
-    },
-    rented_books: {
-        id: number,
-        title: string
-        author: string[],
-        return_date: Date
-    }[],
-    reserved_books: {
-        id: number,
-        title: string,
-        author: string[],
-        return_date: Date
-    }[]
+export function fetchUserInfoRequest(): User{
+    throw Error("Not implemented exception")
 }
 
 export function changeClientDataRequest(name: string, surname: string): void{
     throw Error("Not implemented exception")
 }
-export function changeClientCreditCardRequest(number: string, cvv: string, expDate: string): void{
+export function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): void{
     throw Error("Not implemented exception")
 }
 
@@ -69,14 +71,50 @@ export function extendRentRequest(rent_id: number): void{
 export function returnBookRequest(rend_id: number): void{
     throw Error("Not implemented exception")
 }
-export function rentBookRequest(rent_id: number): void{
-    throw Error("Not implemented exception")
-}
-export function fetchLoginInfoRequest(): { name: string, surname: string, email: string, card_numbers: string }{
-    throw Error("Not implemented exception")
-}
+
+
 export function fetchBorrowedBooksRequest(): Book[]{
     throw Error("Not implemented exception")
 }
 
 
+
+// Katalog - User
+export function fetchUserCatalogRequest(search_bar: string ,sort?: SearchSort, filter?: BookSearchFilter): BookUser[]{
+    throw Error("Not implemented exception")
+}
+export function rentBookRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+export function reserveBookRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+// Katalog - Admin
+export function fetchAdminCatalogRequest(search_bar?:string, sort?: SearchSort, filter?: BookSearchFilter): BookAdmin[]{
+    throw Error("Not implemented exception")
+}
+
+export function editBookRequest(data: Book): void{
+    throw Error("Not implemented exception")
+}
+export function removeBookInstanceRequest(instance_id: number):void{
+    throw Error("Not implemented exception")
+}
+export function markDamegedBookInstanceRequest(instance_id: number): void{
+    throw Error("Not implemented exception")
+}
+export function addBookInstanceRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+// Users
+export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): UserInfo[]{
+    throw Error("Not implemented exception")
+}
+// Add Book View
+export function addBookRequest(data: Book): void{
+    throw Error("Not implemented exception")
+}
+// Rent log
+export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
+    throw Error("Not implemented exception")
+}
