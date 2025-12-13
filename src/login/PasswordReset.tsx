@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { validators } from "../../public/validators";
 import { ResetPasswordRequest } from "../../public/server_requests";
-import "./login.css";
 
 function PasswordReset() {
   const [email, setEmail] = useState("");
