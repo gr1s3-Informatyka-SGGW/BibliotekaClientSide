@@ -1,6 +1,6 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, ProtectedRoute } from "../public/UserAuth";
+import { AuthProvider, ProtectedRoute, AuthContext  } from "../public/UserAuth";
 
 // general (public)
 const AboutUs = lazy(() => import("./AboutUs"));
@@ -24,6 +24,9 @@ const AddBookView = lazy(() => import("./elements_admin/AddBookView"));
 const RentedBooksListView = lazy(() => import("./elements_admin/RentedBooksListView"));
 
 export default function App() {
+  const auth = useContext(AuthContext);
+  const userType = auth?.session?.user.type ?? null;
+
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -61,46 +64,35 @@ export default function App() {
               }
             />
 
-            <Route path="/" element={<Navigate to="/login" />} />
+            {/* ===== ROOT REDIRECT ===== */}
+            <Route
+              path="/"
+              element={
+                !userType ? <Navigate to="/login" /> : <Navigate to="/catalog" />
+              }
+            />
 
             {/* ===== SHARED ===== */}
             <Route
               path="/catalog"
               element={
-                <ProtectedRoute mode="user">
-                  <CatalogView />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/catalog"
-              element={
-                <ProtectedRoute mode="admin">
+                <ProtectedRoute mode={null}>
                   <CatalogView />
                 </ProtectedRoute>
               }
             />
 
-            {/* ===== USER ONLY ===== */}
+            {/* ===== PROFILE ===== */}
             <Route
               path="/profile"
               element={
-                <ProtectedRoute mode="user" reroute_path="/catalog">
-                  <UserProfileView />
+                <ProtectedRoute mode={null}>
+                  {userType === "admin" ? <AdminProfileView /> : <UserProfileView />}
                 </ProtectedRoute>
               }
             />
 
             {/* ===== ADMIN ONLY ===== */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute mode="admin" reroute_path="/catalog">
-                  <AdminProfileView />
-                </ProtectedRoute>
-              }
-            />
-
             <Route
               path="/users-view"
               element={
