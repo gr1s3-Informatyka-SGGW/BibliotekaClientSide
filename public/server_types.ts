@@ -58,7 +58,7 @@ export interface BookAdmin extends Book{
     }[]
 }
 /**
- * @type BookUser - używany przy pobieraniu informacji o książce w widoku użytkownika strony /katalog
+ * @type BookUser - używany przy pobieraniu informacji o książce w widoku użytkownika strony /catalog
  * @extends Book
  * @prop instances - informacje na temat instancji książki
  * @prop {number} instances.available - ilość dostepnych książek
@@ -96,7 +96,7 @@ export interface Reservation{
  * @prop {string} name
  * @prop {string} surname
  * @prop {string} email
- * @prop {string} credit_card_number - nieobowiązkowy. Używany tylko przy pobieraniu danych na rzecz strony /profile dla użytkownika, są to cztery ostatnie cyfry karty płatniczej
+ * @prop {string|undefined} credit_card_number - Używany tylko przy pobieraniu danych na rzecz strony /profile dla użytkownika, są to cztery ostatnie cyfry karty płatniczej
  * */
 export interface User{
     name: string;
@@ -118,15 +118,14 @@ export interface CreditCardInfo{
 
 /**
  * @type BookSearchFilter - typ zbierający informacje o filtrach nałożonych na wyświetlaną listę
- * @prop {string[]} author - nieobowiązkowy. Lista dozwolonych autorów
- * @prop {string[]} genre - nieobowiązkowy. Lista dozwolonych gatunków
- * @prop {string[]} publisher - nieobowiązkowy. Lista dozwolonych wydawców
- * @prop {string[]} tags - nieobowiązkowy. Lista tagów, które mają zawierać zwrócone książki
- * @prop {string[]} language - nieobowiązkowy. Lista dozwolonych języków
- * @prop release_date - nieobowiązkowy. zakres dat wydania
+ * @prop {string[]|undefined} author - Lista dozwolonych autorów
+ * @prop {string[]|undefined} genre -  Lista dozwolonych gatunków
+ * @prop {string[]|undefined} publisher - Lista dozwolonych wydawców
+ * @prop {string[]|undefined} tags - Lista tagów, które mają zawierać zwrócone książki
+ * @prop {string[]|undefined} language - Lista dozwolonych języków
+ * @prop {object|undefined} release_date - zakres dat wydania
  * @prop {Date} release_date.from - dolna granica
  * @prop {Date} release_date.to - górna granica
- *
  * */
 export interface BookSearchFilter{
     author?: string[]
@@ -141,15 +140,59 @@ export interface BookSearchFilter{
 }
 
 /**
- * @type BookSearchSort
- * @prop {'author'|'title'| 'release_date'} key - po którym atrybucie będzie dokonywane sortowanie
+ * @type SearchSort
+ * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
  * @prop {'DESC'|'ASC'} direction - czy sortowanie będzie się odbywać rosnąco (ASC) czy malejąco (DESC)
  * */
-export interface BookSearchSort{
-    key: 'author'|'title'| 'release_date'
+export interface SearchSort{
+    key: string
     direction: 'DESC'|'ASC'
 }
 /**
- * @type UserSearch
- * @prop
+ * @type UserListSearchFilter - nakłada filtr na wynik wyszukiwania na stronie /users-view
+ * @prop {('user'|'admin'|'blocked')[]|undefined} status - jaki status ma użytkownika zostanie wyświetlony
  * */
+export interface UserListSearchFilter{
+    status?: ('user'|'admin'|'blocked')[]
+}
+
+/**
+ * @type UserInfo - informacje pobierane o użytkowniku na rzecz widoku /users-view dla administratora
+ * @prop {string} name
+ * @prop {string} surname
+ * @prop {string} email
+ * @prop {'user'|'admin'|'blocked'} status - informuje o poziomie dostępu użytkownika
+ * @prop {Rent[]} currently_rented - lista historii wypożyczeń użytkownika
+ * @prop {Reservation[]} currently_reserved - lista historii rezerwacji użytkownika
+ * */
+export interface UserInfo{
+    name: string
+    surname: string
+    email: string
+    status: 'user'|'admin'|'blocked'
+    currently_rented: Rent[]
+    currently_reserved: Reservation[]
+}
+
+/**
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * */
+export interface RentLogSearchFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
+}
+/**
+ * @type RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
+ * @param {User} user - użytkownik, który wypożyczył książkę
+ * @param {Book} book - wypożyczona książka
+ * @param {Date} borrow_date - data wypożyczenia
+ * @param {Date} return_date - data zwrotu
+ * */
+export interface RentFullInfo{
+    user:User
+    book: Book
+    borrow_date: Date
+    return_date: Date
+}
