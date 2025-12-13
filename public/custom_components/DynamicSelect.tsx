@@ -12,11 +12,12 @@
 * */
 
 import {Component} from "react";
+import type IFormComponent from "./IFormComponent.tsx";
 
 
-export default class DynamicSelect extends Component {
+export default class DynamicSelect extends Component implements IFormComponent<string[]|string>{
     options: string[]
-    chosen: string[]
+    chosen: string[]|string
     allow_multiple: boolean
 
     constructor({children, allow_multiple}: { children?: string[], allow_multiple?: boolean }) {
@@ -33,7 +34,9 @@ export default class DynamicSelect extends Component {
             </select>
         </>
     }
-
+    getValue():string[]|string{
+        return ''
+    }
 }
 
 export function DynamicSelectDisplay (){
