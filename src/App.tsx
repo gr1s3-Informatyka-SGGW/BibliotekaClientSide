@@ -44,7 +44,7 @@ export default function App() {
             />
 
             <Route
-              path="/reset-password"
+              path="/password-reset"
               element={
                 <ProtectedRoute mode={null}>
                   <PasswordReset />
