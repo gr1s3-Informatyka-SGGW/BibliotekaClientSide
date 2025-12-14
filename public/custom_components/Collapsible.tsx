@@ -37,7 +37,16 @@ function Collapsible({children, header}: {children:ReactNode, header: string}){
 
     return (
         <div className="collapsible-container">
-            <div className="collapsible-header" onClick={toggleCollapse}>
+            <div 
+                className="collapsible-header" 
+                onClick={toggleCollapse}
+                tabIndex={0} 
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                    }
+                }}
+            >
                 
                 <h3 className="collapsible-title">
                     {header}
