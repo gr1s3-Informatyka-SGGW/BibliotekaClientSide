@@ -31,6 +31,7 @@
     align-items: center;
     padding: 15px 20px;
     border-bottom: 1px solid #eee;
+    
 }
 
 .popup-title {
@@ -69,7 +70,7 @@
     
     border: none;
     padding: 10px 16px; 
-    border-radius: 6px; 
+    border-radius: 10px; 
     cursor: pointer;
     font-size: 1.1em; 
 }
@@ -79,17 +80,18 @@
     color: white;
     border: none;
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
 .alert-actions button:not(.save-button) {
-    background-color: #ecf0f1;
+    background-color: #ffffff;
     color: #333;
-    border: 1px solid #ccc;
+    border: 1px solid #891E49;
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
+    color: #891E49;
 }
 
 .save-button:hover {

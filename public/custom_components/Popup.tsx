@@ -10,12 +10,9 @@ import './Popup.css';
 /**
  * Kontekst dostarczający funkcję zamykania modalu ('close')
  * komponentom umieszczonym wewnątrz <Popup>.
- * Używany do wywołania funkcji onClose przekazanej z komponentu nadrzędnego.
  * @var {React.Context<() => void>} popupContext
  */
-export const popupContext: React.Context<() => void> = createContext(() => {
-    // Domyślna funkcja, nie robi nic. Jest tylko placeholderem.
-});
+export const popupContext: React.Context<() => void> = createContext(() => {});
 
 /**
  * Hook ułatwiający komponentom potomnym zamknięcie modalu.
@@ -43,14 +40,13 @@ interface PopupProps {
 
 /**
  * Komponent Popup (modal) wyświetlający zawartość na środku ekranu.
- * Używa React Portals do renderowania się poza drzewem DOM (w elemencie document.body). 
+ * Używa React Portals do renderowania się poza drzewem DOM.
  * Tło jest rozmywane i blokuje interakcję z resztą strony.
  * Okno zamyka się po kliknięciu poza nim, naciśnięciu ESC lub wywołaniu funkcji 'close' z kontekstu.
  *
  * @param {PopupProps} props - Właściwości komponentu.
  * @returns {JSX.Element | null} - Zwraca komponent React (Portal) lub null, gdy zamknięty.
  */
-
 export default function Popup({ children, title, title_icon, isOpen, onClose }: PopupProps): JSX.Element | null {
     
     /**
@@ -61,8 +57,7 @@ export default function Popup({ children, title, title_icon, isOpen, onClose }: 
     };
 
     /**
-     * Obsługuje kliknięcie na tło (backdrop). Zamyka modal, tylko jeśli kliknięty 
-     * element jest tym samym elementem, na którym wystąpiło zdarzenie (zapobiega zamknięciu po kliknięciu okna).
+     * Obsługuje kliknięcie na tło (backdrop).
      * @param {React.MouseEvent<HTMLDivElement>} e - Zdarzenie kliknięcia.
      */
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -73,7 +68,6 @@ export default function Popup({ children, title, title_icon, isOpen, onClose }: 
 
     /**
      * Efekt odpowiedzialny za nasłuchiwanie klawisza ESC w celu zamknięcia modala.
-     * Aktywuje się tylko, gdy modal jest otwarty (isOpen jest true).
      */
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -87,7 +81,7 @@ export default function Popup({ children, title, title_icon, isOpen, onClose }: 
         return () => {
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [isOpen, onClose]); // onClose dodane dla pełnej poprawności zależności useEffect
+    }, [isOpen, onClose]);
 
     if (!isOpen) {
         return null;
@@ -121,77 +115,141 @@ export default function Popup({ children, title, title_icon, isOpen, onClose }: 
     );
 }
 
+
 /**
  * @interface AlertProps
- * @property {ReactNode} children - Zawartość dynamiczna wyświetlana wewnątrz modala (np. formularz, komunikat JSX).
+ * Właściwości dla komponentu Alert, który sam zarządza swoją widocznością.
+ * @property {string} message - Treść komunikatu (tekst) wyświetlanego w oknie.
  * @property {string} title - Nagłówek okna.
- * @property {boolean} isOpen - Stan otwarcia/zamknięcia modalu.
- * @property {() => void} onClose - Funkcja wywoływana przy zamknięciu modala (przycisk 'Zamknij').
- * @property {() => void} [onSave] - Opcjonalna funkcja wywoływana przy kliknięciu 'Zapisz' (jeśli jest obecna, przycisk jest widoczny).
+ * @property {() => void} [onSave] - Opcjonalna funkcja wywoływana przy kliknięciu 'Zapisz'. Jeśli nie podana, przycisk się nie wyświetla.
+ * @property {string} [cancelButtonText] - Opcjonalny tekst dla przycisku zamknięcia (domyślnie 'Zamknij').
+ * @property {string} [saveButtonText] - Opcjonalny tekst dla przycisku zapisu (domyślnie 'Zapisz').
  */
-
 interface AlertProps {
-    children: ReactNode;
+    message: string;
     title: string;
+    onSave?: () => void;
+    cancelButtonText?: string;
+    saveButtonText?: string;
+}
+
+/**
+ * @interface AlertViewProps
+ * Wewnętrzne właściwości dla komponentu renderującego _AlertView, rozszerzające AlertProps 
+ * o wymagane przez Popup: isOpen i onClose.
+ */
+interface AlertViewProps extends AlertProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave?: () => void;
+}
+
+/**
+ * @interface SaveButtonProps
+ * Właściwości dla komponentu SaveButton.
+ */
+interface SaveButtonProps {
+    onClick: () => void;
+    text: string;
 }
 
 /**
  * Pomocniczy komponent do tworzenia przycisków akcji "Zapisz".
  * Wywołuje logikę zapisu przekazaną w propsie, a następnie zamyka modal (używając kontekstu).
- * @param {object} props - Właściwości komponentu.
- * @param {ReactNode} props.children - Zawartość przycisku (np. tekst "Zapisz").
- * @param {() => void} props.onClick - Funkcja do wykonania przed zamknięciem (logika zapisu).
+ * @param {SaveButtonProps} props - Właściwości komponentu.
  * @returns {JSX.Element} - Przycisk HTML z klasą save-button.
  */
-const SaveButton: React.FC<{ children: ReactNode, onClick: () => void }> = ({ children, onClick }): JSX.Element => {
+const SaveButton: React.FC<SaveButtonProps> = ({ onClick, text }): JSX.Element => {
     const close = usePopupClose();
     
     const handleClick = () => {
-        onClick(); // Wykonaj akcję zapisu
-        close();   // Zamknij modal
+        onClick();
+        close();
     };
     
-    return <button onClick={handleClick} className="save-button">{children}</button>;
+    return <button onClick={handleClick} className="save-button">{text}</button>;
 };
 
 /**
- * Definiuje typowe okno dialogowe (Alert) z dynamiczną zawartością i przyciskami akcji.
- * Jest to komponent opakowujący <Popup> z predefiniowanym układem: 
- * nagłówek, dynamiczna treść ({children}), oraz kontener przycisków 'Zamknij' i 'Zapisz'.
- * @param {AlertProps} props - Właściwości komponentu Alert.
- * @returns {JSX.Element} - Zwraca komponent Popup.
+ * @interface CloseButtonProps
+ * Właściwości dla komponentu CloseButton.
  */
-export function Alert({ children, title, isOpen, onClose, onSave }: AlertProps): JSX.Element {
-    return (
-        <Popup title={title} isOpen={isOpen} onClose={onClose}>
-            <div className="alert-message">
-                {children} 
-            </div>
-            <div className="alert-actions">
-                {/* Przycisk Zapisz jest renderowany tylko, jeśli onSave zostało przekazane */}
-                {onSave && (
-                    <SaveButton onClick={onSave}>Zapisz</SaveButton>
-                )}
-                {/* Przycisk Zamknij zawsze jest renderowany */}
-                <CloseButton>Zamknij</CloseButton>
-            </div>
-        </Popup>
-    );
+interface CloseButtonProps {
+    text: string;
 }
 
 /**
  * Pomocniczy komponent do tworzenia przycisków, które zamykają modal.
  * Używa hooka usePopupClose, aby uzyskać funkcję zamknięcia z kontekstu.
- * @param {object} props — Właściwości komponentu.
- * @param {ReactNode} props.children - Zawartość przycisku (np. tekst).
+ * @param {CloseButtonProps} props - Właściwości komponentu.
  * @returns {JSX.Element} - Przycisk HTML.
  */
-
-const CloseButton: React.FC<{ children: ReactNode }> = ({ children }: { children: ReactNode}): JSX.Element => {
+const CloseButton: React.FC<CloseButtonProps> = ({ text }: CloseButtonProps): JSX.Element => {
     const close = usePopupClose();
-    // Przycisk wywołuje funkcję zamknięcia z kontekstu
-    return <button onClick={close}>{children}</button>;
+    return <button onClick={close}>{text}</button>;
 };
+
+/**
+ * Wewnętrzny, kontrolowany komponent renderujący Alert. 
+ * Zawiera logikę układu (Alert) i renderuje Popup oraz przyciski na podstawie przekazanych propsów.
+ * @param {AlertViewProps} props - Właściwości komponentu.
+ * @returns {JSX.Element} - Zwraca komponent Popup.
+ */
+function _AlertView({ message, title, isOpen, onClose, onSave, cancelButtonText, saveButtonText }: AlertViewProps): JSX.Element {
+    
+    const finalSaveText = saveButtonText || 'Zapisz';
+    const finalCancelText = cancelButtonText || 'Zamknij';
+    
+    return (
+        <Popup title={title} isOpen={isOpen} onClose={onClose}>
+            <div className="alert-message">
+                {message} 
+            </div>
+            <div className="alert-actions">
+                {onSave && (
+                    <SaveButton onClick={onSave} text={finalSaveText} />
+                )}
+                <CloseButton text={finalCancelText} />
+            </div>
+        </Popup>
+    );
+}
+
+
+/**
+ * Definiuje typowe okno dialogowe (Alert) z prostą treścią tekstową i przyciskami akcji.
+ * Komponent ZARZĄDZA WŁASNĄ WIDOCZNOŚCIĄ (`isOpen` jest wewnętrzne).
+ * Jest widoczny natychmiast po zamontowaniu (`useState(true)`) i znika trwale z DOM po zamknięciu (`return null`).
+ * Upraszcza użycie, eliminując konieczność przekazywania `isOpen` i `onClose` przez komponent nadrzędny.
+ * * @param {AlertProps} props - Właściwości komponentu Alert.
+ * @returns {JSX.Element | null} - Zwraca komponent Alert (Popup) lub null, jeśli zamknięty.
+ */
+export function Alert({ title, message, onSave, cancelButtonText, saveButtonText }: AlertProps): JSX.Element | null {
+    
+    // Stan wewnętrzny, który kontroluje widoczność modala (domyślnie: otwarty)
+    const [isOpen, setIsOpen] = useState(true); 
+
+    /**
+     * Wewnętrzna funkcja zamykająca modal. Ustawia stan na false, co powoduje
+     * trwałe usunięcie komponentu z drzewa DOM (poprzez `return null`).
+     */
+    const handleClose = () => {
+        setIsOpen(false);
+    };
+
+    if (!isOpen) {
+        return null;
+    }
+
+    // Przekazuje wewnętrzne sterowanie do komponentu renderującego Popup
+    return (
+        <_AlertView
+            title={title}
+            message={message}
+            isOpen={isOpen}
+            onClose={handleClose}
+            onSave={onSave}
+            cancelButtonText={cancelButtonText}
+            saveButtonText={saveButtonText}
+        />
+    );
+}
