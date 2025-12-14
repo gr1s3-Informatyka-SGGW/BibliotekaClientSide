@@ -1,3 +1,8 @@
+/**
+ * @file Login.tsx
+ * @description Formularz logowania z walidacją i obsługą AuthContext.
+ */
+
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validators } from "../../public/validators";
@@ -45,7 +50,7 @@ function Login() {
 
   return (
     <div className="center-screen">
-      <form className="login-panel" onSubmit={handleSubmit}>
+      <form className="login-panel" onSubmit={handleSubmit} method="post">
         <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
           Logowanie
         </h2>

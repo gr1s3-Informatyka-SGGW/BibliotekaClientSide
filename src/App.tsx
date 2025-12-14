@@ -1,3 +1,9 @@
+/**
+ * @file App.tsx
+ * @description Komponent aplikacji odpowiedzialny za konfigurację routingu,
+ * inicjalizację AuthProvider oraz ochronę tras na podstawie roli użytkownika.
+ */
+
 import { lazy, Suspense, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, ProtectedRoute, AuthContext  } from "../public/UserAuth";

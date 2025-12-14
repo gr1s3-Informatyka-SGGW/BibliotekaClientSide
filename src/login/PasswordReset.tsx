@@ -1,3 +1,9 @@
+/**
+ * @file PasswordReset.tsx
+ * @description Formularz resetowania hasła użytkownika
+ * z walidacją adresu e-mail i wysyłką żądania do serwera.
+ */
+
 import React, { useState } from "react";
 import { validators } from "../../public/validators";
 import { ResetPasswordRequest } from "../../public/server_requests";
@@ -28,7 +34,7 @@ function PasswordReset() {
 
   return (
     <div className="center-screen">
-      <form className="login-panel" onSubmit={handleSubmit}>
+      <form className="login-panel" onSubmit={handleSubmit} method="post">
         <h2 style={{ textAlign: "center", marginBottom: 0 }}>
           Reset hasła
         </h2>
