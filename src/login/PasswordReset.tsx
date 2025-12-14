@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { validators } from "../../public/validators";
 import { ResetPasswordRequest } from "../../public/server_requests";
 
+
 function PasswordReset() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
