@@ -21,8 +21,16 @@ import {type ReactNode, useState} from "react";
  */
 
 function Collapsible({children, header}: {children:ReactNode, header: string}){
+    /**
+     * Stan określający, czy sekcja jest zwinięta (true) czy rozwinięta (false).
+     * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
+     */
     let [isCollapsed, setIsCollapsed] = useState(true)
 
+    /**
+     * Funkcja przełączająca stan zwinięcia/rozwinięcia komponentu.
+     * Wywoływana po kliknięciu nagłówka.
+     */
     const toggleCollapse = () => {
         setIsCollapsed(prev => !prev)
     }
@@ -30,20 +38,20 @@ function Collapsible({children, header}: {children:ReactNode, header: string}){
     return (
         <div className="collapsible-container">
             <div className="collapsible-header" onClick={toggleCollapse}>
-                <span className={`collapsible-arrow ${isCollapsed ? 'collapsed' : 'expanded'}`}>
-                    {isCollapsed ? '>' : 'v'}
-                </span>
                 
                 <h3 className="collapsible-title">
                     {header}
                 </h3>
+
+                <span className={`collapsible-arrow ${isCollapsed ? 'collapsed' : 'expanded'}`}>
+                    ►
+                </span>
+                
             </div>
 
-            {!isCollapsed && (
-                <div className="collapsible-content">
-                    {children}
-                </div>
-            )}
+            <div className={`collapsible-content ${isCollapsed ? 'collapsed' : 'expanded'}`}>
+                {children}
+            </div>
         </div>
     )
 }
