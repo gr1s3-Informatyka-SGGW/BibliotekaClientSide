@@ -4,6 +4,7 @@
  * */
 import './Collapsible.css'
 import {type ReactNode, useState} from "react";
+import arrowIcon from '../../src/assets/arrow.svg';
 
 /**
  * @typedef {object} CollapsibleProps
@@ -52,9 +53,16 @@ function Collapsible({children, header}: {children:ReactNode, header: string}){
                     {header}
                 </h3>
 
-                <span className={`collapsible-arrow ${isCollapsed ? 'collapsed' : 'expanded'}`}>
-                    ►
-                </span>
+                <div className={`collapsible-arrow-svg ${isCollapsed ? 'collapsed' : 'expanded'}`}>
+                    
+                    <svg 
+                        className="collapsible-icon" 
+                        viewBox="0 0 100 100"
+                    >
+                        <polygon points="10,10 90,50 10,90"/> 
+                    </svg>
+
+                </div>
                 
             </div>
 
