@@ -7,6 +7,8 @@ import type {BookAdmin} from "../../public/server_types.ts";
 
 import {editBookRequest, addBookInstanceRequest, removeBookRequest, markDamegedBookInstanceRequest, removeBookInstanceRequest, markMendedBookInstanceRequest } from "../../public/server_requests.ts";
 import {CustomSelect, CustomOption} from "../../public/custom_components/CustomSelect.tsx";
+import InstanceQR from "./InstanceQR.tsx";
+
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import {AddBookForm} from "./AddBookView.tsx";
 /**
@@ -37,10 +39,9 @@ export default class AdminBookComponent extends React.Component<{book_info: Book
     removeBook(): void{
     }
     /**
-     * @event editBook Obsługuje zdarzenie wybrania opcji 'Edytuj książkę'
+     * @event editBook Obsługuje zdarzenie wybrania opcji 'Edytuj książkę'. Wywołuje komponent <AddBookForm> i wysyła jego wynik do serwera
      * */
     editBook(): void{
-
     }
 }
 
@@ -79,7 +80,7 @@ class InstanceComponent extends React.Component<{id: number, state: "damaged"|"a
      * @event displayQRCode wyświetla komunikat z kodem QR egzemplarza
      * */
     displayQRCode(){
-
+        return <InstanceQR instance_id={this.props.id}/>
     }
 
 }

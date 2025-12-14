@@ -8,7 +8,7 @@ import {Component, type ReactNode} from "react";
 
 import DynamicSelect from "../../public/custom_components/DynamicSelect.tsx";
 import {validators} from "../../public/validators.ts";
-import {type Book} from "../../public/db_types.ts";
+import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
 
 /**
