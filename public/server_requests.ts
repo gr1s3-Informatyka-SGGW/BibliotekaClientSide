@@ -24,10 +24,11 @@ class RequestError extends Error{
      * @prop {string|undefined} cause - precyzuje powód wystapienia błędu
      * @prop {number|undefined} code - kod błędu zwrócony przez serwer
      * */
-    constructor(message: string, cause?: string, code?: number, ) {
+    constructor(message: string, cause?: string, code?: number) {
         super(message, {cause: cause})
 
     }
+
 }
 /**
  * Błąd zwrócony, gdy serwer nie wykonał zapytania przez brak uprawnień użytkownika,
@@ -84,10 +85,11 @@ export function loginRequest(email: string, password: string): Session{
     if (email === "admin@test.com" && password === "adminADMIN123!@#") {
         return {
             user: {
-                type: "admin",
                 name: "Admin",
-                email,
+                surname: "Adminowicz",
+                email: email,
             },
+            access: "admin",
             token: "mock-admin-token",
         };
     }
@@ -95,45 +97,34 @@ export function loginRequest(email: string, password: string): Session{
     // mock normal user
     if (email === "user@test.com" && password === "userUSER123!@#") {
         return {
-            return_code: 0,
-            fetched_data: {
-                user: {
-                    type: "user",
-                    name: "User",
-                    email,
-                },
-                token: "mock-user-token",
+            user: {
+                name: "User",
+                surname: "Userowicz",
+                email: email
             },
-        };
+            access: "user",
+            token: "mock-user-token"
+        }
     }
 
     // login failure
-    return {
-        return_code: 1,
-        error_message: "Invalid credentials",
-    };
+    throw new RequestError("Wystąpił nieprzewidziany błąd przy logowaniu")
+
 }
 
 export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
     const existingEmails = ["admin@test.com", "user@test.com"];
     if (existingEmails.includes(email)) {
-        return {
-            return_code: 1,
-            error_message: "Użytkownik o podanym adresie e-mail już istnieje.",
-        };
+        throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
     }
 
     console.log("REGISTER USER:", {
-        firstName,
-        lastName,
+        name,
+        surname,
         email,
         password,
-        cardNumber,
-        exp,
-        cvv,
+        card_info
     });
-
-    return { return_code: 0 };
 }
 export function resetPasswordRequest(email: string): void{
     throw Error("Not implemented exception")

@@ -6,20 +6,20 @@
 
 import React, { type ReactNode, createContext, useContext, useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { type Session, type User } from "./db_types";
-import { LoginRequest } from "./server_requests";
+import { type Session, type User } from "./server_types";
+import { loginRequest } from "./server_requests";
 
 
 /**
  * Typ kontekstu autoryzacji.
- * @typedef {Object} AuthContextType
+ * @type AuthContextType
  * @property {Session | null} session - Aktualna sesja.
- * @property {(data:User, token:string) => void} login - Funkcja ustawiająca sesję użytkownika.
+ * @property {(data:User, access: 'user'|'admin', token:string) => void} login - Funkcja ustawiająca sesję użytkownika.
  * @property {() => void} logout - Funkcja usuwająca sesję.
  */
 export interface AuthContextType {
   session: Session | null;
-  login: (data: User, token: string) => void;
+  login: (data: User, access: 'user'|'admin', token: string) => void;
   logout: () => void;
 }
 
@@ -44,10 +44,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Logowanie — zapisuje dane użytkownika oraz token sesji.
    * @param {User} user
+   * @param {'admin'|'user'} access
    * @param {string} token
    */
-  const login = (user: User, token: string) => {
-    const newSession: Session = { user, token };
+  const login = (user: User, access: 'admin'|'user', token: string) => {
+    const newSession: Session = { user, access, token };
     setSession(newSession);
     localStorage.setItem("session", JSON.stringify(newSession));
   };
@@ -84,22 +85,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  */
 export function ProtectedRoute({mode, children, reroute_path,}: {mode: "admin" | "user" | Array<"admin" | "user"> | null; children: ReactNode; reroute_path?: string;}) {
   const auth = useContext(AuthContext);
-  const userType = auth?.session?.user?.type ?? null;
+  const access = auth?.session?.access ?? null;
 
   //niezalogowany użytkownik próbuje wejść w trasę chronioną
-  if (!userType && mode !== null) {
+  if (!access && mode !== null) {
     return <Navigate to="/login" />;
   }
 
   //zalogowany użytkownik próbuje wejść w trasę publiczną (login, register)
-  if (userType && mode === null) {
+  if (access && mode === null) {
     return <Navigate to="/catalog" />;
   }
 
   //zalogowany, ale zła rola
   if (
   mode &&
-  (Array.isArray(mode)? !mode.includes(userType as any): userType !== mode)) {
+  (Array.isArray(mode)? !mode.includes(access as any): access !== mode)) {
     return <Navigate to={reroute_path ?? "/access-denied"} />;
   }
 
