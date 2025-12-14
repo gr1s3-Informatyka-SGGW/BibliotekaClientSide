@@ -84,10 +84,18 @@ export default function App() {
 
             {/* ===== PROFILE ===== */}
             <Route
-              path="/profile"
+              path="/profile-admin"
               element={
-                <ProtectedRoute mode={null}>
-                  {userType === "admin" ? <AdminProfileView /> : <UserProfileView />}
+                <ProtectedRoute mode="admin">
+                  <AdminProfileView />
+                </ProtectedRoute>
+              }
+            />
+                        <Route
+              path="/profile-user"
+              element={
+                <ProtectedRoute mode="user">
+                  <UserProfileView />
                 </ProtectedRoute>
               }
             />
