@@ -82,7 +82,7 @@ export default function App() {
             <Route
               path="/catalog"
               element={
-                <ProtectedRoute mode={null}>
+                <ProtectedRoute mode={["user", "admin"]}>
                   <CatalogView />
                 </ProtectedRoute>
               }
@@ -97,7 +97,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-                        <Route
+            <Route
               path="/profile-user"
               element={
                 <ProtectedRoute mode="user">
