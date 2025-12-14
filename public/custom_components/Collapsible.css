@@ -1,0 +1,83 @@
+:root {
+    --accent-color: #891E49; 
+    --line-color: #F1D0DA; 
+    --light-bg: #FCF4F6;
+}
+
+.collapsible-container {
+    border: 1px solid var(--line-color);
+    border-radius: 4px; 
+    overflow: hidden; 
+    margin-bottom: 15px; 
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03); 
+}
+
+.collapsible-header {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    cursor: pointer;
+    padding: 10px;
+    background-color: #FFFFFF; 
+    border-bottom: 1px solid var(--line-color); 
+    outline: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.collapsible-header:focus {
+    outline: 2px solid var(--accent-color); 
+    outline-offset: -1px;
+}
+
+.collapsible-header:hover, .collapsible-header:focus-visible {
+    background-color: var(--light-bg);
+}
+
+.collapsible-title {
+    margin: 0; 
+    font-size: 1.1em;
+    color: var(--accent-color); 
+}
+
+.collapsible-arrow-svg {
+    margin-left: 10px; 
+    transition: transform 0.2s ease-in-out; 
+    display: flex;
+    align-items: center;
+}
+
+.collapsible-icon {
+    width: 16px; 
+    height: 16px; 
+    display: block;
+    fill: var(--accent-color);
+}
+
+.collapsible-arrow-svg.collapsed {
+    transform: rotate(0deg); 
+}
+
+.collapsible-arrow-svg.expanded {
+    transform: rotate(90deg);
+}
+
+.collapsible-content {
+    text-align: left; 
+    padding: 10px;
+    background-color: #fff;
+    overflow: hidden;
+    transition: max-height 0.35s ease-out, padding 0.35s ease-out; 
+    border-top: none; 
+}
+
+.collapsible-content.collapsed {
+    max-height: 0; 
+    padding: 0 10px;
+    border: none;
+}
+
+.collapsible-content.expanded {
+    max-height: 500px;
+    padding: 10px; 
+}
