@@ -1,13 +1,17 @@
+/**
+ * @file Implementuje blok pojedyńczej książki na stronie /catalog użytkownika. Obsługuje akcje kliknięcia guzików
+ * @author Aleksander Grzegrzułka
+ * */
 import { Component, type JSX } from "react";
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import bookIcon from '../assets/book.svg'
-import {type Book} from "../../public/server_types.ts"
+import {type BookUser} from "../../public/server_types.ts"
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.
  * @property {Book} book_info - Obiekt zawierający szczegółowe informacje o książce.
  */
-type Props = { book_info: Book };
+type Props = { book_info: BookUser };
 
 /**
  * Stan komponentu UserBookComponent (obecnie pusty).

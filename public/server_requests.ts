@@ -186,10 +186,16 @@ export function fetchAdminCatalogRequest(search_bar?:string, sort?: SearchSort, 
 export function editBookRequest(data: Book): void{
     throw Error("Not implemented exception")
 }
+export function removeBookRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
 export function removeBookInstanceRequest(instance_id: number):void{
     throw Error("Not implemented exception")
 }
 export function markDamegedBookInstanceRequest(instance_id: number): void{
+    throw Error("Not implemented exception")
+}
+export function markMendedBookInstanceRequest(instance_id: number): void{
     throw Error("Not implemented exception")
 }
 export function addBookInstanceRequest(book_id: number): void{
