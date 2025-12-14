@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  * @param {ReactNode} props.children
  * @param {string} [props.reroute_path]
  */
-export function ProtectedRoute({mode, children, reroute_path,}: {mode: "admin" | "user" | null; children: ReactNode; reroute_path?: string;}) {
+export function ProtectedRoute({mode, children, reroute_path,}: {mode: "admin" | "user" | Array<"admin" | "user"> | null; children: ReactNode; reroute_path?: string;}) {
   const auth = useContext(AuthContext);
   const userType = auth?.session?.user?.type ?? null;
 
@@ -97,7 +97,9 @@ export function ProtectedRoute({mode, children, reroute_path,}: {mode: "admin" |
   }
 
   //zalogowany, ale zła rola
-  if (mode !== null && userType !== mode) {
+  if (
+  mode &&
+  (Array.isArray(mode)? !mode.includes(userType as any): userType !== mode)) {
     return <Navigate to={reroute_path ?? "/access-denied"} />;
   }
 
