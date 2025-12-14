@@ -21,19 +21,68 @@ class RequestError extends Error{
     /**
      * @constructor
      * @prop {cause} message - wiadomość błędu
-     * @prop {string} cause - precyzuje powód błędu, np.: odmowa dostępu
-     * @prop {number} code - kod błędu zwrócony przez serwer
+     * @prop {string|undefined} cause - precyzuje powód wystapienia błędu
+     * @prop {number|undefined} code - kod błędu zwrócony przez serwer
      * */
     constructor(message: string, cause?: string, code?: number, ) {
         super(message, {cause: cause})
 
     }
+}
+/**
+ * Błąd zwrócony, gdy serwer nie wykonał zapytania przez brak uprawnień użytkownika,
+ * bądź token sesji nie zostanie znaleziony przy próbie realizacji zapytania go wymagającego
+ * @extends RequestError
+ * */
+class AccessDeniedError extends RequestError{
+    constructor(message: string, cause?:string) {
+        cause = cause == undefined ? "Odmowa dostępu" : "Odmowa dostepu:"+cause
+        super(message, cause , 500);
+    }
+}
+/**
+ * Błąd zwracany, gdy dane podane w zapytaniu nie spełniają wymogów walidacji
+ * lub serwer zwrócił kod 500 powołując się na błędne dane
+ * @extends RequestError
+ * */
+class InvalidRequestDataError extends RequestError{
+    /**
+     * @constructor
+     * @param {string} message - wiadomość błędu
+     * @param {boolean} isServerSide - precyzuje czy błąd wynika z walidacji po stronie użytkownika, czy serwera
+     * @param {string|undefined} cause - sprecyzowanie powodu wystąpienia błędu
+     * */
+    constructor(message: string, isServerSide: boolean, cause?:string) {
+        cause = cause == undefined ? "Niepoprawne dane" : "Niepoprawne dane:"+cause
+        let code = isServerSide ? 500 : undefined
+        super(message, cause , code);
+    }
+}
+/**
+ * Stosowany przy zapytaniach posiadających jednoznacznie zdefiniowany target poprzez id
+ * w przypadku gdy obiekt o danym ID nie został odnaleziony przez bazę danych (kod 400)
+ * */
+class TargetNotFoundError extends RequestError{
+    constructor(message: string, cause?: string) {
+        super(message, cause, 400);
+
+    }
 
 }
-// Login
+// Login page requests
+/**
+ * Wysyła zapytanie w celu weryfikacji logowania użytkownika
+ * @param {string} email
+ * @param {string} password
+ * @returns {Session} token sesji w przypadku sukcesu
+ *
+ * @throws RequestError dla nieprzewidzianego błędu serwera przy tworzeniu użytkownika
+ * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
+ * */
 export function loginRequest(email: string, password: string): Session{
     throw Error("Not implemented exception")
 }
+
 export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
     throw Error("Not implemented exception")
 }
