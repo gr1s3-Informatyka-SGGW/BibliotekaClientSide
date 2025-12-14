@@ -1,69 +1,146 @@
-import {useState, lazy, Suspense} from 'react'
-import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
-// general
-const AboutUs = lazy(()=>import('./AboutUs'))
-import {Error404, AccessDeniedError} from "./Errors.tsx" // named exports nie działa dla lazy
-import {type User, type Session} from '../public/db_types.ts'
-import {AuthContext, ProtectedRoute} from "../public/UserAuth";
+/**
+ * @file App.tsx
+ * @description Komponent aplikacji odpowiedzialny za konfigurację routingu,
+ * inicjalizację AuthProvider oraz ochronę tras na podstawie roli użytkownika.
+ */
 
-// login
-const Login = lazy(()=> import("./login/Login"));
-const PasswordReset = lazy(()=> import("./login/PasswordReset"))
-const Register = lazy(()=>import("./login/Register"));
+import { lazy, Suspense, useContext } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, ProtectedRoute, AuthContext  } from "../public/UserAuth";
 
-// shared
-const CatalogView = lazy(()=> import('./general_elements/CatalogView'))
+// general (public)
+const AboutUs = lazy(() => import("./AboutUs"));
+import { Error404, AccessDeniedError } from "./Errors";
+
+// auth (not logged)
+const Login = lazy(() => import("./login/Login"));
+const PasswordReset = lazy(() => import("./login/PasswordReset"));
+const Register = lazy(() => import("./login/Register"));
+
+// shared (user + admin)
+const CatalogView = lazy(() => import("./general_elements/CatalogView"));
 
 // user only
-const UserProfileView = lazy(()=> import("./elements_user/UserProfileView"))
+const UserProfileView = lazy(() => import("./elements_user/UserProfileView"));
 
 // admin only
-const AdminProfileView = lazy(()=> import("./elements_admin/AdminProfileView.tsx"))
-const UsersListView = lazy(()=> import("./elements_admin/UsersListView.tsx"))
-const AddBookView = lazy(()=> import("./elements_admin/AddBookView.tsx"))
-const RentedBooksListView = lazy(()=> import("./elements_admin/RentedBooksListView.tsx"))
+const AdminProfileView = lazy(() => import("./elements_admin/AdminProfileView"));
+const UsersListView = lazy(() => import("./elements_admin/UsersListView"));
+const AddBookView = lazy(() => import("./elements_admin/AddBookView"));
+const RentedBooksListView = lazy(() => import("./elements_admin/RentedBooksListView"));
 
+export default function App() {
+  const auth = useContext(AuthContext);
+  const userType = auth?.session?.user.type ?? null;
 
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Suspense fallback={<h1>Loading...</h1>}>
+          <Routes>
 
-export default function App(){
+            {/* ===== GENERAL ===== */}
+            <Route path="/about-us" element={<AboutUs />} />
 
+            {/* ===== NOT LOGGED ===== */}
+            <Route
+              path="/login"
+              element={
+                <ProtectedRoute mode={null}>
+                  <Login />
+                </ProtectedRoute>
+              }
+            />
 
-    const [session, setSession] = useState<Session | null>(null);
-    const login = (user: User) => setSession({token:'', user: user, });
-    const logout = () => setSession(null);
+            <Route
+              path="/password-reset"
+              element={
+                <ProtectedRoute mode={null}>
+                  <PasswordReset />
+                </ProtectedRoute>
+              }
+            />
 
-    return (
-        <AuthContext.Provider value={{ session, login, logout }}>
-            <Suspense fallback={<h1>Loading</h1>}>
-                <BrowserRouter>
-                    <Routes>
-                        {/*Poprawić error 404*/}
-                        <Route path='/:invalid_path' element={<Error404/>}/>
-                        <Route path='/about-us' element={<AboutUs/>} />
+            <Route
+              path="/register"
+              element={
+                <ProtectedRoute mode={null}>
+                  <Register />
+                </ProtectedRoute>
+              }
+            />
 
-                        <Route path='/' element={
-                            <Navigate to='/login'/>
-                        }/>
+            {/* ===== ROOT REDIRECT ===== */}
+            <Route
+              path="/"
+              element={
+                !userType ? <Navigate to="/login" /> : <Navigate to="/catalog" />
+              }
+            />
 
+            {/* ===== SHARED ===== */}
+            <Route
+              path="/catalog"
+              element={
+                <ProtectedRoute mode={["user", "admin"]}>
+                  <CatalogView />
+                </ProtectedRoute>
+              }
+            />
 
-                        <Route path='/login' element={
-                            <ProtectedRoute mode={null} reroute_path='/'><Login/></ProtectedRoute>
-                        }/>
-                        <Route path='/register' element={
-                            <ProtectedRoute mode={null} reroute_path='/'><Register/></ProtectedRoute>
-                        }/>
-                        <Route path='/password-reset' element={
-                            <ProtectedRoute mode={null} reroute_path='/'><PasswordReset/></ProtectedRoute>
-                        }/>
+            {/* ===== PROFILE ===== */}
+            <Route
+              path="/profile-admin"
+              element={
+                <ProtectedRoute mode="admin">
+                  <AdminProfileView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile-user"
+              element={
+                <ProtectedRoute mode="user">
+                  <UserProfileView />
+                </ProtectedRoute>
+              }
+            />
 
+            {/* ===== ADMIN ONLY ===== */}
+            <Route
+              path="/users-view"
+              element={
+                <ProtectedRoute mode="admin">
+                  <UsersListView />
+                </ProtectedRoute>
+              }
+            />
 
+            <Route
+              path="/add-book"
+              element={
+                <ProtectedRoute mode="admin">
+                  <AddBookView />
+                </ProtectedRoute>
+              }
+            />
 
+            <Route
+              path="/rented-books"
+              element={
+                <ProtectedRoute mode="admin">
+                  <RentedBooksListView />
+                </ProtectedRoute>
+              }
+            />
 
-                    </Routes>
+            {/* ===== ERRORS ===== */}
+            <Route path="/access-denied" element={<AccessDeniedError />} />
+            <Route path="*" element={<Error404 />} />
 
-                </BrowserRouter>
-            </Suspense>
-        </AuthContext.Provider>
-
-    )
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
