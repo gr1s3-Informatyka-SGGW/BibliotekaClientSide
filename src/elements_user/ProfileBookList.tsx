@@ -23,7 +23,7 @@ import '../assets/book_ribbon.svg'
 import '../assets/book.svg'
 import {Component} from "react";
 
-import {type Rent, type Reservation} from "../../public/db_types.ts";
+import {type Rent, type Reservation} from "../../public/server_types.ts";
 import ScanButton from "./ScanButton.tsx";
 
 export default function ProfileBookList({children, header, icon}:{children: ReservationComponent[]|RentComponent[], header: string, icon: ImageBitmap}) {

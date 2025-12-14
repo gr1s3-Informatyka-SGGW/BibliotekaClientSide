@@ -1,7 +1,7 @@
 import { Component, type JSX } from "react";
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import bookIcon from '../assets/book.svg'
-import {type Book} from "../../public/db_types.ts"
+import {type Book} from "../../public/server_types.ts"
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.

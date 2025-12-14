@@ -1,144 +1,218 @@
-interface RequestResponse<ResponseType = null>{
-    return_code: number
-    fetched_data?: ResponseType
-    error_message?: string
+/**
+ * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
+ * */
+
+import type {
+    Book,
+    BookAdmin,
+    BookSearchFilter,
+    SearchSort,
+    BookUser,
+    CreditCardInfo,
+    Session,
+    User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo
+} from "./server_types.ts";
+
+/**
+ * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
+ * @extends Error
+ * */
+class RequestError extends Error{
+    /**
+     * @constructor
+     * @prop {cause} message - wiadomość błędu
+     * @prop {string|undefined} cause - precyzuje powód wystapienia błędu
+     * @prop {number|undefined} code - kod błędu zwrócony przez serwer
+     * */
+    constructor(message: string, cause?: string, code?: number, ) {
+        super(message, {cause: cause})
+
+    }
 }
+/**
+ * Błąd zwrócony, gdy serwer nie wykonał zapytania przez brak uprawnień użytkownika,
+ * bądź token sesji nie zostanie znaleziony przy próbie realizacji zapytania go wymagającego
+ * @extends RequestError
+ * */
+class AccessDeniedError extends RequestError{
+    constructor(message: string, cause?:string) {
+        cause = cause == undefined ? "Odmowa dostępu" : "Odmowa dostepu:"+cause
+        super(message, cause , 500);
+    }
+}
+/**
+ * Błąd zwracany, gdy dane podane w zapytaniu nie spełniają wymogów walidacji
+ * lub serwer zwrócił kod 500 powołując się na błędne dane
+ * @extends RequestError
+ * */
+class InvalidRequestDataError extends RequestError{
+    /**
+     * @constructor
+     * @param {string} message - wiadomość błędu
+     * @param {boolean} isServerSide - precyzuje czy błąd wynika z walidacji po stronie użytkownika, czy serwera
+     * @param {string|undefined} cause - sprecyzowanie powodu wystąpienia błędu
+     * */
+    constructor(message: string, isServerSide: boolean, cause?:string) {
+        cause = cause == undefined ? "Niepoprawne dane" : "Niepoprawne dane:"+cause
+        let code = isServerSide ? 500 : undefined
+        super(message, cause , code);
+    }
+}
+/**
+ * Stosowany przy zapytaniach posiadających jednoznacznie zdefiniowany target poprzez id
+ * w przypadku gdy obiekt o danym ID nie został odnaleziony przez bazę danych (kod 400)
+ * */
+class TargetNotFoundError extends RequestError{
+    constructor(message: string, cause?: string) {
+        super(message, cause, 400);
+
+    }
+
+}
+// Login page requests
+/**
+ * Wysyła zapytanie w celu weryfikacji logowania użytkownika
+ * @param {string} email
+ * @param {string} password
+ * @returns {Session} token sesji w przypadku sukcesu
+ *
+ * @throws RequestError dla nieprzewidzianego błędu serwera przy tworzeniu użytkownika
+ * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
+ * */
+export function loginRequest(email: string, password: string): Session{
+    // mock admin
+    if (email === "admin@test.com" && password === "adminADMIN123!@#") {
+        return {
+            user: {
+                type: "admin",
+                name: "Admin",
+                email,
+            },
+            token: "mock-admin-token",
+        };
+    }
+
+    // mock normal user
+    if (email === "user@test.com" && password === "userUSER123!@#") {
+        return {
+            return_code: 0,
+            fetched_data: {
+                user: {
+                    type: "user",
+                    name: "User",
+                    email,
+                },
+                token: "mock-user-token",
+            },
+        };
+    }
+
+    // login failure
+    return {
+        return_code: 1,
+        error_message: "Invalid credentials",
+    };
+}
+
+export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
+    const existingEmails = ["admin@test.com", "user@test.com"];
+    if (existingEmails.includes(email)) {
+        return {
+            return_code: 1,
+            error_message: "Użytkownik o podanym adresie e-mail już istnieje.",
+        };
+    }
+
+    console.log("REGISTER USER:", {
+        firstName,
+        lastName,
+        email,
+        password,
+        cardNumber,
+        exp,
+        cvv,
+    });
+
+    return { return_code: 0 };
+}
+export function resetPasswordRequest(email: string): void{
+    throw Error("Not implemented exception")
+}
+
 // ProfileView
-interface ProfileViewFetchResponse{
-    user_info: {
-        name: string,
-        surname: string,
-        email: string,
-        card_number: string
-    },
-    rented_books: {
-        id: number,
-        title: string
-        author: string[],
-        return_date: Date
-    }[],
-    reserved_books: {
-        id: number,
-        title: string,
-        author: string[],
-        return_date: Date
-    }[]
+export function fetchUserInfoRequest(): User{
+    throw Error("Not implemented exception")
 }
 
-export function ProfileViewFetch(session_token: string): RequestResponse<ProfileViewFetchResponse>{
-    return {return_code:0}
+export function changeClientDataRequest(name: string, surname: string): void{
+    throw Error("Not implemented exception")
+}
+export function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): void{
+    throw Error("Not implemented exception")
 }
 
-export function ChangeProfileInfoRequest(session_token:string,
-                                         new_name: string,
-                                         new_surname: string): RequestResponse{
-    return {return_code: 0}
-}
-export function ChangeCardInfoRequest(session_token: string,
-                                      card_number: string,
-                                      exp_date: string,
-                                      cvv: string): RequestResponse{
-    // exp_date = "mm/yy"
-    return {return_code: 0}
-}
-export function ChangePasswordRequest(session_token: string,
-                                      old_password: string,
-                                      new_password: string): RequestResponse{
-    return {return_code: 0}
-}
-export function ResetPasswordRequest(email: string): RequestResponse{
-  return { return_code: 0 }
+export function changeClientPasswordRequest(old_password: string, new_password: string): void{
+    throw Error("Not implemented exception")
 }
 
-export function CancelReservationRequest(session_token: string,
-                                         instance_id: number):
-    RequestResponse{
-    return {return_code: 0}
+export function cancelReservationRequest(reservation_id: number): void{
+    throw Error("Not implemented exception")
 }
-export function ClaimReservationRequest(session_token:string,
-                                        instance_id:number): RequestResponse{
-    return {return_code: 0}
-}
-export function ProlongRentRequest(session_token:string,
-                                   instance_id: number): RequestResponse{
-    return {return_code: 0}
-}
-export function ReturnRentRequest(session_token:string): RequestResponse{
-    return {return_code: 0}
+export function claimReservationRequest(reservation_id: number): void{
+    throw Error("Not implemented exception")
 }
 
-// LoginMock
-import { type User } from "./db_types";
-
-export interface LoginResponse {
-  user: User;
-  token: string;
+export function extendRentRequest(rent_id: number): void{
+    throw Error("Not implemented exception")
 }
 
-export function LoginRequest(email: string,
-                             password: string): RequestResponse<LoginResponse> {
-  // mock admin
-  if (email === "admin@test.com" && password === "adminADMIN123!@#") {
-    return {
-      return_code: 0,
-      fetched_data: {
-        user: {
-          type: "admin",
-          name: "Admin",
-          email,
-        },
-        token: "mock-admin-token",
-      },
-    };
-  }
-
-  // mock normal user
-  if (email === "user@test.com" && password === "userUSER123!@#") {
-    return {
-      return_code: 0,
-      fetched_data: {
-        user: {
-          type: "user",
-          name: "User",
-          email,
-        },
-        token: "mock-user-token",
-      },
-    };
-  }
-
-  // login failure
-  return {
-    return_code: 1,
-    error_message: "Invalid credentials",
-  };
+export function returnBookRequest(rend_id: number): void{
+    throw Error("Not implemented exception")
 }
 
-// RegisterMock
-export function RegisterRequest(firstName: string,
-                                lastName: string,
-                                email: string,
-                                password: string,
-                                cardNumber: string,
-                                exp: string,
-                                cvv: string): RequestResponse<null> {
-  const existingEmails = ["admin@test.com", "user@test.com"];
-  if (existingEmails.includes(email)) {
-    return {
-      return_code: 1,
-      error_message: "Użytkownik o podanym adresie e-mail już istnieje.",
-    };
-  }
 
-  console.log("REGISTER USER:", {
-    firstName,
-    lastName,
-    email,
-    password,
-    cardNumber,
-    exp,
-    cvv,
-  });
+export function fetchBorrowedBooksRequest(): Book[]{
+    throw Error("Not implemented exception")
+}
 
-  return { return_code: 0 };
+
+
+// Katalog - User
+export function fetchUserCatalogRequest(search_bar: string ,sort?: SearchSort, filter?: BookSearchFilter): BookUser[]{
+    throw Error("Not implemented exception")
+}
+export function rentBookRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+export function reserveBookRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+// Katalog - Admin
+export function fetchAdminCatalogRequest(search_bar?:string, sort?: SearchSort, filter?: BookSearchFilter): BookAdmin[]{
+    throw Error("Not implemented exception")
+}
+
+export function editBookRequest(data: Book): void{
+    throw Error("Not implemented exception")
+}
+export function removeBookInstanceRequest(instance_id: number):void{
+    throw Error("Not implemented exception")
+}
+export function markDamegedBookInstanceRequest(instance_id: number): void{
+    throw Error("Not implemented exception")
+}
+export function addBookInstanceRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+// Users
+export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): UserInfo[]{
+    throw Error("Not implemented exception")
+}
+// Add Book View
+export function addBookRequest(data: Book): void{
+    throw Error("Not implemented exception")
+}
+// Rent log
+export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
+    throw Error("Not implemented exception")
 }
