@@ -1,3 +1,16 @@
+:root {
+    --accent-color: #891E49; 
+    --line-color: #F1D0DA; 
+}
+
+.collapsible-container {
+    border: 1px solid var(--line-color);
+    border-radius: 4px;
+    overflow: hidden; 
+    margin-bottom: 10px; 
+    background-color: #fff;
+}
+
 .collapsible-header {
     display: flex;
     justify-content: space-between; 
@@ -5,21 +18,31 @@
     cursor: pointer;
     padding: 10px;
     background-color: #FFFFFF; 
-    border-bottom: 1px solid #F1D0DA;
+    border-bottom: 1px solid var(--line-color);
+}
+
+.collapsible-header:focus {
+    outline: 2px solid #891E49;
+    outline-offset: -1px;
+}
+
+.collapsible-header:focus:not(:focus-visible) {
+    outline: none;
 }
 
 .collapsible-title {
     margin: 0; 
     font-size: 1.1em;
+    color: var(--accent-color);
 }
 
 .collapsible-arrow {
     margin-left: 10px; 
     font-size: 1.2em; 
     font-weight: bold;
-    color: #333; 
+    color: var(--accent-color);
     display: inline-block; 
-    transition: transform 0.2s ease-in-out; 
+    transition: transform 0.5s ease-in-out; 
     line-height: 1;
 }
 
@@ -37,7 +60,7 @@
     border-top: none;
     background-color: #fff;
     overflow: hidden;
-    transition: max-height 0.25s ease-out;
+    transition: max-height 0.7s ease-out;
 }
 
 .collapsible-content.collapsed {
@@ -53,5 +76,5 @@
 .collapsible-content.expanded {
     max-height: 200px; 
     padding: 10px; 
-    border-top: none;
+    border-top: none; 
 }
