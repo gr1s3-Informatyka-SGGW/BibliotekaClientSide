@@ -4,7 +4,6 @@
  * */
 import './Collapsible.css'
 import {type ReactNode, useState} from "react";
-import arrowIcon from '../../src/assets/arrow.svg';
 
 /**
  * @typedef {object} CollapsibleProps
