@@ -45,6 +45,7 @@ function Collapsible({children, header}: {children:ReactNode, header: string}){
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
+                        toggleCollapse();
                     }
                 }}
             >
