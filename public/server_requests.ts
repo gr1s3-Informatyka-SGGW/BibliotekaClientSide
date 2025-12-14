@@ -24,10 +24,11 @@ class RequestError extends Error{
      * @prop {string|undefined} cause - precyzuje powód wystapienia błędu
      * @prop {number|undefined} code - kod błędu zwrócony przez serwer
      * */
-    constructor(message: string, cause?: string, code?: number, ) {
+    constructor(message: string, cause?: string, code?: number) {
         super(message, {cause: cause})
 
     }
+
 }
 /**
  * Błąd zwrócony, gdy serwer nie wykonał zapytania przez brak uprawnień użytkownika,
@@ -80,11 +81,50 @@ class TargetNotFoundError extends RequestError{
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export function loginRequest(email: string, password: string): Session{
-    throw Error("Not implemented exception")
+    // mock admin
+    if (email === "admin@test.com" && password === "adminADMIN123!@#") {
+        return {
+            user: {
+                name: "Admin",
+                surname: "Adminowicz",
+                email: email,
+            },
+            access: "admin",
+            token: "mock-admin-token",
+        };
+    }
+
+    // mock normal user
+    if (email === "user@test.com" && password === "userUSER123!@#") {
+        return {
+            user: {
+                name: "User",
+                surname: "Userowicz",
+                email: email
+            },
+            access: "user",
+            token: "mock-user-token"
+        }
+    }
+
+    // login failure
+    throw new RequestError("Wystąpił nieprzewidziany błąd przy logowaniu")
+
 }
 
 export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
-    throw Error("Not implemented exception")
+    const existingEmails = ["admin@test.com", "user@test.com"];
+    if (existingEmails.includes(email)) {
+        throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
+    }
+
+    console.log("REGISTER USER:", {
+        name,
+        surname,
+        email,
+        password,
+        card_info
+    });
 }
 export function resetPasswordRequest(email: string): void{
     throw Error("Not implemented exception")
@@ -120,10 +160,22 @@ export function extendRentRequest(rent_id: number): void{
 export function returnBookRequest(rend_id: number): void{
     throw Error("Not implemented exception")
 }
-export function rentBookRequest(rent_id: number): void{
+
+
+export function fetchBorrowedBooksRequest(): Book[]{
     throw Error("Not implemented exception")
 }
-export function fetchLoginInfoRequest(): { name: string, surname: string, email: string, card_numbers: string }{
+
+
+
+// Katalog - User
+export function fetchUserCatalogRequest(search_bar: string ,sort?: SearchSort, filter?: BookSearchFilter): BookUser[]{
+    throw Error("Not implemented exception")
+}
+export function rentBookRequest(book_id: number): void{
+    throw Error("Not implemented exception")
+}
+export function reserveBookRequest(book_id: number): void{
     throw Error("Not implemented exception")
 }
 // Katalog - Admin
@@ -155,5 +207,3 @@ export function addBookRequest(data: Book): void{
 export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
     throw Error("Not implemented exception")
 }
-
-
