@@ -1,3 +1,9 @@
+/**
+ * @file Register.tsx
+ * @description Formularz rejestracji użytkownika z walidacją danych
+ * oraz wysyłką żądania utworzenia konta do serwera.
+ */
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./register.css";
@@ -91,6 +97,7 @@ function Register() {
         className="login-panel"
         style={{ width: "22em" }}
         onSubmit={handleSubmit}
+        method="post"
       >
         <h2 style={{ textAlign: "center", marginBottom: "18px" }}>
           Rejestracja

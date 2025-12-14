@@ -2,7 +2,6 @@
  * @file UserAuth.tsx
  * @description Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
  * zarządzanie sesją oraz ochrona tras. Implementacja wykorzystuje React Context.
- * Dokumentacja generowana automatycznie przez JSDoc.
  */
 
 import React, { type ReactNode, createContext, useContext, useState, useEffect } from "react";
