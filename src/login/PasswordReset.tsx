@@ -6,7 +6,7 @@
 
 import React, { useState } from "react";
 import { validators } from "../../public/validators";
-import { ResetPasswordRequest } from "../../public/server_requests";
+import { resetPasswordRequest } from "../../public/server_requests";
 
 
 function PasswordReset() {
@@ -21,13 +21,13 @@ function PasswordReset() {
       setMsg("Nieprawidłowy adres e-mail.");
       return;
     }
-
-    const response = ResetPasswordRequest(email);
-
-    if (response.return_code !== 0) {
-      setMsg(response.error_message ?? "Błąd resetowania hasła.");
-      return;
+    try {
+        resetPasswordRequest(email);
     }
+    catch(e){
+        setMsg((e as Error).message ?? "Błąd resetowania hasła.");
+    }
+
 
     setMsg("Tymczasowe hasło zostało wysłane na e-mail.");
   };

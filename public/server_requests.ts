@@ -17,7 +17,7 @@ import type {
  * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
  * @extends Error
  * */
-class RequestError extends Error{
+export class RequestError extends Error{
     /**
      * @constructor
      * @prop {cause} message - wiadomość błędu
@@ -35,7 +35,7 @@ class RequestError extends Error{
  * bądź token sesji nie zostanie znaleziony przy próbie realizacji zapytania go wymagającego
  * @extends RequestError
  * */
-class AccessDeniedError extends RequestError{
+export class AccessDeniedError extends RequestError{
     constructor(message: string, cause?:string) {
         cause = cause == undefined ? "Odmowa dostępu" : "Odmowa dostepu:"+cause
         super(message, cause , 500);
@@ -46,7 +46,7 @@ class AccessDeniedError extends RequestError{
  * lub serwer zwrócił kod 500 powołując się na błędne dane
  * @extends RequestError
  * */
-class InvalidRequestDataError extends RequestError{
+export class InvalidRequestDataError extends RequestError{
     /**
      * @constructor
      * @param {string} message - wiadomość błędu
@@ -55,7 +55,7 @@ class InvalidRequestDataError extends RequestError{
      * */
     constructor(message: string, isServerSide: boolean, cause?:string) {
         cause = cause == undefined ? "Niepoprawne dane" : "Niepoprawne dane:"+cause
-        let code = isServerSide ? 500 : undefined
+        const code = isServerSide ? 500 : undefined
         super(message, cause , code);
     }
 }
@@ -63,7 +63,7 @@ class InvalidRequestDataError extends RequestError{
  * Stosowany przy zapytaniach posiadających jednoznacznie zdefiniowany target poprzez id
  * w przypadku gdy obiekt o danym ID nie został odnaleziony przez bazę danych (kod 400)
  * */
-class TargetNotFoundError extends RequestError{
+export class TargetNotFoundError extends RequestError{
     constructor(message: string, cause?: string) {
         super(message, cause, 400);
 

@@ -31,7 +31,7 @@ const RentedBooksListView = lazy(() => import("./elements_admin/RentedBooksListV
 
 export default function App() {
   const auth = useContext(AuthContext);
-  const userType = auth?.session?.user.type ?? null;
+  const userType = auth?.session?.access ?? null;
 
   return (
     <AuthProvider>

@@ -4,10 +4,11 @@
  */
 
 import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { validators } from "../../public/validators";
 import { AuthContext } from "../../public/UserAuth";
-import { LoginRequest } from "../../public/server_requests";
+import {type Session} from '../../public/server_types'
+import { RequestError, loginRequest } from "../../public/server_requests";
 
 function Login() {
   const auth = useContext(AuthContext);
@@ -34,18 +35,20 @@ function Login() {
       setError("Hasło nie spełnia wymagań bezpieczeństwa.");
       return;
     }
-
-    const response = LoginRequest(email, password);
-
-    if (response.return_code !== 0 || !response.fetched_data) {
-      setError(response.error_message ?? "Błąd logowania.");
-      return;
+    let response;
+    try {
+        response = loginRequest(email, password);
+    }
+    catch(er: unknown){
+        const error = er as Error;
+        setError(error.message ?? "Błąd logowania.");
+        return;
     }
 
-    const { user, token } = response.fetched_data;
+    const { user, access, token }: Session = response;
 
-    auth.login(user, token);
-    navigate(user.type === "admin" ? "/admin" : "/catalog");
+    auth.login(user, access, token);
+    navigate(access === "admin" ? "/admin" : "/catalog");
   };
 
   return (
