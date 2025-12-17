@@ -11,7 +11,9 @@ export default defineConfig([
     files: ['**/*.{ts,tsx}'],
     rules: {
         '@typescript-eslint/no-unused-vars': 'off',
-        'react-refresh/only-export-components': 'off'
+        '@typescript-eslint/no-unused-imports': 'off',
+        'react-refresh/only-export-components': 'off',
+
     },
     extends: [
       js.configs.recommended,

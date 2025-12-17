@@ -14,17 +14,16 @@
 
 import {Component, useState} from "react";
 
-import type {FullUserInfo, User} from "../../public/server_types.ts";
+import type { User} from "../../public/server_types.ts";
 
 // import {} from '../../public/validators.ts' // poczekaj, aż zostanie przerobiony na typescript przez team regex
 import Popup from "../../public/custom_components/Popup.tsx";
 
 class ProfileInfoPanel extends Component{
     editMode: boolean
-    SetEditMode: (value:boolean)=>void
-    constructor({info}:{info: FullUserInfo}) {
+    constructor({info}:{info: User}) {
         super({});
-        [this.editMode, this.SetEditMode] = useState<boolean>(false)
+        this.editMode = false
     }
     render(){
         return <div></div>
