@@ -1,15 +1,81 @@
+.custom-select-trigger {
+    font-size: 90%;
+    display: inline-flex;
+    width: fit-content;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0.2em 1.0em;
+    min-height: 2.0em;
+    border-radius: 100em;
+    background-color: #ffe8ef;
+    color: #891e49;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: none;
+    user-select: none;
+}
+.custom-select-trigger:hover {
+    background-color: #ebc3cf;
+}
+.custom-select-trigger.filtered {
+    color: #ffe8ef;
+    background-color: #891e49;
+}
+
+.custom-select-trigger.filtered:hover {
+    background-color: #6b1737;
+}
+
+.custom-select-trigger > div {
+    font-size: 75%;
+    color: #976176;
+    margin-top: 2px;
+}
+.custom-select-trigger.filtered > div {
+    color: #f1b3c6;
+}
+
+.filter-reset-btn{
+    all:unset;
+
+    font-size: 90%;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    padding: 0.2em 1em;
+    min-height: 2em;
+    border-radius: 100em;
+    color: #FFE8EF;
+    background-color: #891E49;
+}
+
 .select-dropdown {
     position: fixed;
     z-index: 2001;
-    background-color: #891E49;
-    color: #FFF5F8;
+    background-color: #891e49;
+    color: #fff5f8;
     border-radius: 0.5em;
     box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.3);
-    padding: 1em;
+    padding: 1.0em;
     min-width: 220px;
     max-width: 90vw;
+    opacity: 0;
+    visibility: hidden;
     transform: translateY(-10px) scale(0.98);
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+#active-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    animation: slideDownFade 0.2s ease forwards;
 }
 .select-dropdown::after {
     content: '';
@@ -20,12 +86,19 @@
     border-width: 8px;
     border-style: solid;
     border-color: transparent transparent #891E49 transparent;
-    pointer-events: none;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+        visibility: hidden;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        visibility: visible;
+    }
 }
 
 .search-container {
@@ -56,7 +129,7 @@
 .search-input:focus,
 .search-input:active {
     outline: none;
-    box-shadow: none;
+    box-shadow:none;
 }
 
 
