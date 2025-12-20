@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 import type IFormComponent from '../../public/custom_components/IFormComponent.tsx'
 import '../style.css';
 import '../input.css';
-import type {SearchSort} from "../../public/server_types.ts";
+import type {IFilter, SearchSort} from "../../public/server_types.ts";
 
 /**
  * @type SearchPanelReturn Typ zwracany przez funkcję wyszukiwania.
@@ -17,25 +17,22 @@ import type {SearchSort} from "../../public/server_types.ts";
  *
  * @property search - Wpisana fraza wyszukiwania.
  * @property {SearchSort} [sorting] - Obiekt określający pole i kierunek sortowania.
- * @property [filter] - Tablica obiektów reprezentujących aktywne filtry.
+ * @property {IFilter} [filter] - Tablica obiektów reprezentujących aktywne filtry.
  */
 export interface SearchPanelReturn {
     search: string;
     sorting?: SearchSort
-    filter?: {
-        key: string;
-        values: string[];
-    }[];
+    filter?: IFilter;
 }
 
 /**
  * Właściwości (props) przyjmowane przez komponent SearchPanel.
  *
- * @property {ReactNode & IFormComponent<any>} children - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
+ * @property {Component & IFormComponent<any>} children - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
  * @property onSearch - Funkcja zwrotna (callback) wywoływana po zatwierdzeniu wyszukiwania (Enter lub przycisk).
  */
 interface SearchPanelProps {
-    children?: ReactNode & IFormComponent<any>;
+    children?: Component & IFormComponent<any>;
     onSearch?: (data: SearchPanelReturn) => void;
 }
 
