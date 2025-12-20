@@ -1,6 +1,6 @@
 /**
  * @file Plik implementuje zestaw komponentów okien modalnych: <Popup> oraz <Alert>.
- * * @author Dawid Filipek
+ * @author Dawid Filipek
  */
 
 import React, { createContext, type ReactNode, useContext, useState, useEffect, type JSX } from "react";
@@ -19,7 +19,7 @@ export const popupContext: React.Context<() => void> = createContext(() => {});
 
 /**
  * Hook pomocniczy do uzyskania dostępu do funkcji zamykającej modal.
- * @returns {() => void} Funkcja zamykająca modal.
+ * @returns {() => unknown} Funkcja zamykająca modal.
  */
 export const usePopupClose = () => useContext(popupContext);
 
@@ -70,7 +70,7 @@ export interface AlertProps {
 /**
  * Bazowy komponent strukturalny dla wszystkich okien modalnych.
  * Obsługuje Portal, tło (backdrop), zamykanie klawiszem ESC oraz warunkowe renderowanie ikony.
- * * @private
+ * @private
  * @param {Object} props - Właściwości komponentu.
  * @param {ReactNode} props.children - Zawartość okna.
  * @param {string} props.title - Tytuł nagłówka.
@@ -92,7 +92,7 @@ function _BaseModal({ children, title, icon, isOpen, handleClose }: any) {
             <popupContext.Provider value={handleClose}>
                 <div className="popup-window">
                     <div className="popup-header">
-                        {/* Renderowanie ikony tylko jeśli string nie jest pusty */}
+                        {/* Renderowanie ikony, tylko jeśli string nie jest pusty */}
                         {icon && icon.trim() !== "" && (
                             <img src={icon} alt="" className="popup-icon" />
                         )}
@@ -113,8 +113,8 @@ function _BaseModal({ children, title, icon, isOpen, handleClose }: any) {
 /**
  * Komponent Popup.
  * Uniwersalny kontener modalny, który sam zarządza swoim stanem otwarcia.
- * Zamyka się po kliknięciu w tło, klawiszu ESC lub wywołaniu funkcji z kontekstu.
- * * @param {PopupProps} props - Parametry konfiguracyjne popupu.
+ * Zamyka się po kliknięciu, w tło klawiszu ESC lub wywołaniu funkcji z kontekstu.
+ * @param {PopupProps} props — Parametry konfiguracyjne popupu.
  * @returns {JSX.Element | null}
  */
 export default function Popup({ title, icon, children, onClose }: PopupProps): JSX.Element | null {
@@ -136,7 +136,7 @@ export default function Popup({ title, icon, children, onClose }: PopupProps): J
  * Komponent Alert.
  * Specjalizowana wersja okna modalnego służąca do potwierdzania akcji.
  * Posiada predefiniowany układ z wiadomością tekstową oraz dwoma przyciskami akcji.
- * * @param {AlertProps} props - Parametry konfiguracyjne alertu.
+ * @param {AlertProps} props - Parametry konfiguracyjne alertu.
  * @returns {JSX.Element | null}
  */
 export function Alert({ 
