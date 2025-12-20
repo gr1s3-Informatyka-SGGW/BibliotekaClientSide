@@ -1,6 +1,5 @@
 /**
- * @file CustomSelect.tsx
- * @description Implementacja niestandardowego komponentu wyboru (Select)
+ * @file Implementacja niestandardowego komponentu wyboru (Select)
  * @author Karol Dziuba
  */
 
@@ -13,12 +12,6 @@ import '../../src/style.css';
 
 /**
  * Komponent prezentacyjny wyświetlający ikonę wyszukiwania (lupę).
- *
- * Szczegóły implementacyjne:
- * - **Kolorowanie**: Używa zaawansowanego filtra CSS (`filter`), aby narzucić konkretny kolor
- * na plik SVG bez konieczności jego fizycznej edycji.
- * - **Dostępność**: Pusty atrybut `alt=""` oznacza, że ikona jest traktowana jako element dekoracyjny
- * i zostanie pominięta przez czytniki ekranowe (screen readers).
  *
  * @param {object} props - Właściwości komponentu.
  * @param {string} [props.className=""] - Opcjonalna klasa CSS, zazwyczaj używana do ustalenia
@@ -37,9 +30,10 @@ const SearchIcon = ({ className = "" }: { className?: string }) => (
 /**
  * Przycisk służący do resetowania wszystkich wybranych filtrów.
  * Wyświetla etykietę oraz liczbę aktywnych filtrów.
- * @param activeCount - liczba aktywnych filtrów
- * @param onReset - funkcja wywołania po kliknięciu
- * @param label - Tekst wyświetlany na przycisku
+ * @param param
+ * @param {number} [param.activeCount] - liczba aktywnych filtrów
+ * @param {()=> void} param.onReset - funkcja wywołania po kliknięciu
+ * @param {string} [param.label] - Tekst wyświetlany na przycisku
  */
 export const FilterResetButton = ({ activeCount = 0, onReset, label = "Wyczyść filtry" }: { activeCount?: number; onReset: () => void; label?: string; }) => (
     <button
@@ -52,7 +46,7 @@ export const FilterResetButton = ({ activeCount = 0, onReset, label = "Wyczyść
 );
 
 /**
- * Kontekst zapewniający komunikację między komponentem CustomSelect a jego opcjami.
+ * @type SelectContextType Kontekst zapewniający komunikację między komponentem CustomSelect a jego opcjami.
  */
 
 interface SelectContextType {
@@ -68,12 +62,12 @@ const SelectContext = React.createContext<SelectContextType | undefined>(undefin
 
 
 /**
- * Typ właściwości dla pojedynczej opcji wyboru
+ * @type CustomOptionProps Typ właściwości dla pojedynczej opcji wyboru
  * @property value - Unikalna wartość opcji
  * @property children - Wyświetlana etykieta lub element
  * @property className - Dodatkowa klasa CSS
  * @property index - Indeks elementu
- * @property onClick - opcjonalna funkcja wywołania po kliknięciu w opcje.
+ * @property onClick - opcjonalna funkcja wywołania po kliknięciu, w opcje.
  */
 
 export interface CustomOptionProps {
@@ -96,7 +90,7 @@ export interface CustomOptionProps {
 }
 
 /**
- * Typ właściwości dla głównego komponentu Select
+ * @type CustomOptionProps Typ właściwości dla głównego komponentu Select
  * @property label - Etykieta przycisku otwierającego listę
  * @property allow_multiple - Czy pozwala na wybór wielu opcji (domyślnie false)
  * @property searchable - Czy lista ma pole wyszukiwania
@@ -124,7 +118,7 @@ export interface CustomSelectProps {
  * @property labelMap - Mapa mapująca wartości na etykiety
  * @property searchQuery - Aktualna fraza wyszukiwania
  * @property focusedIndex - Indeks aktualnie podświetlonego elementu (nawigacja klawiaturą)
- * @property position - Obliczona pozycja dropdowna względem przycisku aktywacji
+ * @property position - Obliczona pozycja dropdown'a względem przycisku aktywacji
  */
 
 interface CustomSelectState {
@@ -139,6 +133,8 @@ interface CustomSelectState {
 /**
  * Komponent reprezentujący pojedynczą opcję na liście rozwijanej.
  * Rejestruje się w kontekście rodzica i obsługuje interakcje myszką.
+ * @extends Component
+ * @prop {CustomOptionProps} Props
  */
 export class CustomOption extends Component<CustomOptionProps> {
     private elementRef = createRef<HTMLButtonElement>();
@@ -184,7 +180,7 @@ export class CustomOption extends Component<CustomOptionProps> {
      * standardowy wybór (onSelect) jest pomijany.
      * 3. W przeciwnym razie wykonuje standardową logikę wyboru i zatrzymuje propagację.
      *
-     * @param e - Obiekt zdarzenia myszy.
+     * @param {React.MouseEvent<HTMLButtonElement>} e - Obiekt zdarzenia myszy.
      */
     handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 
@@ -236,6 +232,11 @@ export class CustomOption extends Component<CustomOptionProps> {
 /**
  * Komponent główny listy rozwijanej.
  * Obsługuje logikę otwierania/zamykania, pozycjonowania, filtrowania opcji i zarządzania stanem wyboru.
+ * @extends Component
+ * @implements IFormComponent<string[]>
+ *
+ * @prop {CustomSelectProps} Props
+ * @prop {CustomSelectState} state
  */
 export class CustomSelect extends Component<CustomSelectProps, CustomSelectState> implements IFormComponent<string[]> {
     private triggerRef = createRef<HTMLDivElement>();
@@ -259,8 +260,8 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
      * W tym komponencie odpowiada za logikę efektów ubocznych:
      *
      * 1. **Synchronizacja danych:** Aktualizuje stan `selectedValues`, jeśli rodzic przekaże nowe `initialValues`.
-     * 2. **Zarządzanie zdarzeniami:** Dodaje globalne event listenery w momencie otwarcia listy i usuwa je po jej zamknięciu.
-     * 3. **Pozycjonowanie i Focus:** Przelicza pozycję dropdownu oraz ustawia focus na polu wyszukiwania po otwarciu.
+     * 2. **Zarządzanie zdarzeniami:** Dodaje globalne event listener'y w momencie otwarcia listy i usuwa je po jej zamknięciu.
+     * 3. **Pozycjonowanie i Focus:** Przelicza pozycję dropdown'u oraz ustawia focus na polu wyszukiwania po otwarciu.
      * 4. **Czyszczenie:** Resetuje frazę wyszukiwania po zamknięciu listy.
      *
      * @param prevProps - Właściwości komponentu przed aktualizacją.
@@ -607,6 +608,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
 }
 
 /**
+ * @type DateRangePanelProps
  * Definicja właściwości (props) dla komponentu `DateRangePanel`.
  */
 
