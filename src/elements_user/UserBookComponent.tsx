@@ -5,7 +5,8 @@
 import { Component, type JSX } from "react";
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import bookIcon from '../assets/book.svg'
-import {type BookUser} from "../../public/server_types.ts"
+import { type BookUser } from "../../public/server_types.ts"
+import { rentBookRequest, reserveBookRequest } from "../../public/server_requests.ts";
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.
@@ -78,7 +79,7 @@ class UserBookComponent extends Component<Props, State> {
      * @returns {void}
      */
     onRentBookPressed = (): void => {
-        alert(`naciśnięto wypożycz dla „${this.props.book_info.title}”`)
+        rentBookRequest(this.props.book_info.book_id);
     }
 
     /**
@@ -86,7 +87,7 @@ class UserBookComponent extends Component<Props, State> {
      * @returns {void}
      */
     onReserveBookPressed = (): void => {
-        alert(`naciśnięto zarezerwuj dla „${this.props.book_info.title}”`)
+        reserveBookRequest(this.props.book_info.book_id);
     }
 
 }
