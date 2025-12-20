@@ -183,8 +183,13 @@ export function fetchAdminCatalogRequest(search_bar?:string, sort?: SearchSort, 
     throw Error("Not implemented exception")
 }
 
-export function editBookRequest(data: Book): void{
-    throw Error("Not implemented exception")
+export async function editBookRequest(book:Book){
+    const r = await fetch("/api/book/update", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(book)
+    })
+    if (!r.ok) throw Error()
 }
 export function removeBookRequest(book_id: number): void{
     throw Error("Not implemented exception")
@@ -206,8 +211,13 @@ export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, fil
     throw Error("Not implemented exception")
 }
 // Add Book View
-export function addBookRequest(data: Book): void{
-    throw Error("Not implemented exception")
+export async function addBookRequest(book:Book){
+    const r = await fetch("/api/book/add", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(book)
+    })
+    if (!r.ok) throw Error()
 }
 // Rent log
 export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
