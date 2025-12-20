@@ -142,25 +142,58 @@ export class AddBookForm
                 {/* RZĄD 2: Autorzy */}
                 <div className="form-group">
                     <label>Autorzy:</label>
-                    <DynamicSelect
-                        {...{children: b?.authors, allow_multiple: true, id:"authors"}}
-                    />
+                    <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
+                        <DynamicSelect
+                            {...{children: b?.authors, allow_multiple: true, id:"authors"}}
+                        />
+                        <button
+                            type="button"
+                            onClick={()=>{
+                                const input = document.querySelector("#authors input") as HTMLInputElement
+                                if (input) input.focus()
+                            }}
+                        >
+                            Dodaj
+                        </button>
+                    </div>
                 </div>
 
                 {/* RZĄD 3: Gatunki */}
                 <div className="form-group">
                     <label>Gatunki:</label>
-                    <DynamicSelect
-                        {...{children: b?.genre, allow_multiple: true, id:"genre"}}
-                    />
+                    <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
+                        <DynamicSelect
+                            {...{children: b?.genre, allow_multiple: true, id:"genre"}}
+                        />
+                        <button
+                            type="button"
+                            onClick={()=>{
+                                const input = document.querySelector("#genre input") as HTMLInputElement
+                                if (input) input.focus()
+                            }}
+                        >
+                            Dodaj
+                        </button>
+                    </div>
                 </div>
 
                 {/* RZĄD 4: Tagi */}
                 <div className="form-group">
-                    <label>Słowa kluczowe:</label>
-                    <DynamicSelect
-                        {...{children: b?.keywords, allow_multiple: true, id:"keywords"}}
-                    />
+                    <label>Tagi:</label>
+                    <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
+                        <DynamicSelect
+                            {...{children: b?.keywords, allow_multiple: true, id:"keywords"}}
+                        />
+                        <button
+                            type="button"
+                            onClick={()=>{
+                                const input = document.querySelector("#keywords input") as HTMLInputElement
+                                if (input) input.focus()
+                            }}
+                        >
+                            Dodaj
+                        </button>
+                    </div>
                 </div>
 
                 {/* RZĄD 5: Rok wydania + długość */}
