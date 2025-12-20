@@ -192,7 +192,7 @@ export function removeBookRequest(book_id: number): void{
 export function removeBookInstanceRequest(instance_id: number):void{
     throw Error("Not implemented exception")
 }
-export function markDamegedBookInstanceRequest(instance_id: number): void{
+export function markDamagedBookInstanceRequest(instance_id: number): void{
     throw Error("Not implemented exception")
 }
 export function markMendedBookInstanceRequest(instance_id: number): void{
