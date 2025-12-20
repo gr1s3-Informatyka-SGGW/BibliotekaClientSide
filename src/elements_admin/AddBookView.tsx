@@ -10,6 +10,7 @@ import {validators} from "../../public/validators.ts";
 import {addBookRequest, editBookRequest} from "../../public/server_requests.ts";
 import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
+import "./add_book.css";
 
 /**
  * Pełen widok książki, z paskiem nawigacyjnym i formularzem dodawania książki
@@ -117,78 +118,86 @@ export class AddBookForm
         this.props.onSubmit(data)
     }
 
-render() {
-    const b = this.info;
+    render() {
+        const b = this.info;
 
-    return (
-        <form className="form-grid" onSubmit={this.submit}>
+        return (
+            <form className="form-grid" onSubmit={this.submit}>
 
-            {/* Rząd 1: Tytuł i ISBN */}
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Tytuł:</label>
-                    <input id="title" type="text" defaultValue={b?.title} />
-                </div>
+                {/* RZĄD 1: Tytuł + ISBN */}
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Tytuł:</label>
+                        <input id="title" type="text" defaultValue={b?.title}/>
+                    </div>
 
-                <div className="form-group">
-                    <label>ISBN:</label>
-                    <div id="isbn-container">
-                        <input id="isbn" type="text" defaultValue={b?.isbn_number} />
+                    <div className="form-group">
+                        <label>ISBN:</label>
+                        <div id="isbn-container">
+                            <input id="isbn" type="text" defaultValue={b?.isbn_number}/>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Rząd 2: Autorzy, Gatunki, Słowa kluczowe (kolumna) */}
-            <div className="form-row column-layout">
+                {/* RZĄD 2: Autorzy */}
                 <div className="form-group">
                     <label>Autorzy:</label>
-                    <DynamicSelect {...{ children: b?.authors, allow_multiple: true }} />
+                    <DynamicSelect
+                        {...{children: b?.authors, allow_multiple: true, id:"authors"}}
+                    />
                 </div>
 
+                {/* RZĄD 3: Gatunki */}
                 <div className="form-group">
-                    <label>Gatunek:</label>
-                    <DynamicSelect {...{ children: b?.genre, allow_multiple: true }} />
+                    <label>Gatunki:</label>
+                    <DynamicSelect
+                        {...{children: b?.genre, allow_multiple: true, id:"genre"}}
+                    />
                 </div>
 
+                {/* RZĄD 4: Tagi */}
                 <div className="form-group">
                     <label>Słowa kluczowe:</label>
-                    <DynamicSelect {...{ children: b?.keywords, allow_multiple: true }} />
-                </div>
-            </div>
-
-            {/* Rząd 3: Rok wydania i liczba stron */}
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Rok wydania:</label>
-                    <input id="publish_year" type="number" defaultValue={b?.publish_year} />
+                    <DynamicSelect
+                        {...{children: b?.keywords, allow_multiple: true, id:"keywords"}}
+                    />
                 </div>
 
-                <div className="form-group">
-                    <label>Liczba stron:</label>
-                    <input id="length" type="number" defaultValue={b?.length} />
+                {/* RZĄD 5: Rok wydania + długość */}
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Rok wydania:</label>
+                        <input id="publish_year" type="number" defaultValue={b?.publish_year}/>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Liczba stron:</label>
+                        <input id="length" type="number" defaultValue={b?.length}/>
+                    </div>
                 </div>
-            </div>
 
-            {/* Rząd 4: Wydawca i Język */}
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Wydawca:</label>
-                    <DynamicSelect {...{ children: b ? [b.publisher] : [], allow_multiple: false }} />
+                {/* RZĄD 6: Wydawca + język */}
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Wydawca:</label>
+                        <DynamicSelect
+                            {...{children: b ? [b.publisher] : [], allow_multiple: false, id:"publisher"}}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Język:</label>
+                        <input id="language" type="text" defaultValue={b?.language}/>
+                    </div>
                 </div>
 
-                <div className="form-group">
-                    <label>Język:</label>
-                    <input id="language" type="text" defaultValue={b?.language} />
+                <div className="add-container">
+                    <button type="submit">
+                        {this.mode === "edit" ? "Zapisz zmiany" : "Dodaj książkę"}
+                    </button>
                 </div>
-            </div>
 
-            <div className="add-container">
-                <button type="submit">
-                    {this.mode === "edit" ? "Zapisz zmiany" : "Dodaj książkę"}
-                </button>
-            </div>
-        </form>
-    );
-}
-
+            </form>
+        );
+    }
 }
