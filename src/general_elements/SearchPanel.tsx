@@ -1,6 +1,5 @@
 /**
- * @file SearchPanel.tsx
- * @description Implementuje główny panel wyszukiwania, który agreguje dane z pola tekstowego
+ * @file Implementuje główny panel wyszukiwania, który agreguje dane z pola tekstowego
  * oraz dynamicznie przekazywanych komponentów filtrujących.
  * @author Karol Dziuba
  */
@@ -10,21 +9,19 @@ import type { ReactNode } from 'react';
 import type IFormComponent from '../../public/custom_components/IFormComponent.tsx'
 import '../style.css';
 import '../input.css';
+import type {SearchSort} from "../../public/server_types.ts";
 
 /**
- * Typ zwracany przez funkcję wyszukiwania.
+ * @type SearchPanelReturn Typ zwracany przez funkcję wyszukiwania.
  * Zawiera zagregowane dane z paska wyszukiwania oraz wszystkich aktywnych filtrów.
  *
  * @property search - Wpisana fraza wyszukiwania.
- * @property sorting - Obiekt określający pole i kierunek sortowania.
- * @property filter - Tablica obiektów reprezentujących aktywne filtry.
+ * @property {SearchSort} [sorting] - Obiekt określający pole i kierunek sortowania.
+ * @property [filter] - Tablica obiektów reprezentujących aktywne filtry.
  */
 export interface SearchPanelReturn {
     search: string;
-    sorting?: {
-        by: string;
-        order: 'ASC' | 'DSC';
-    };
+    sorting?: SearchSort
     filter?: {
         key: string;
         values: string[];
@@ -34,11 +31,11 @@ export interface SearchPanelReturn {
 /**
  * Właściwości (props) przyjmowane przez komponent SearchPanel.
  *
- * @property children - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
+ * @property {ReactNode & IFormComponent<any>} children - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
  * @property onSearch - Funkcja zwrotna (callback) wywoływana po zatwierdzeniu wyszukiwania (Enter lub przycisk).
  */
 interface SearchPanelProps {
-    children?: ReactNode;
+    children?: ReactNode & IFormComponent<any>;
     onSearch?: (data: SearchPanelReturn) => void;
 }
 
@@ -56,12 +53,14 @@ interface SearchPanelState {
  * Zarządza stanem inputa oraz iteruje po komponentach podrzędnych (filtrach),
  * aby zebrać kompletny zestaw danych do zapytania.
  *
- * Implementuje interfejs IFormComponent, zwracając typ SearchPanelReturn.
+ * @implements IFormComponent<SearchPanelReturn>
+ * @extends Component
+ * @prop {SearchPanelProps} Props
  */
 export default class SearchPanel extends Component<SearchPanelProps, SearchPanelState> implements IFormComponent<SearchPanelReturn> {
 
     /**
-     * Tablica przechowywująca referencje do instancji komponentów podrzędnych (filtrów).
+     * Tablica przechowująca referencje do instancji komponentów podrzędnych (filtrów).
      * Umożliwia wywołanie metody getValue() na każdym z dzieci.
      * @private
      */
@@ -69,7 +68,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
 
     /**
      * Inicjalizuje komponent z domyślnym pustym stanem wyszukiwania.
-     * @param props Właściwości przekazane do komponentu.
+     * @param {SearchPanelProps} props Właściwości przekazane do komponentu.
      */
     constructor(props: SearchPanelProps) {
         super(props);
@@ -110,7 +109,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
     }
 
     /**
-     * Obsługuje kliknięcie w przycisk lupy (szukaj).
+     * Obsługuje kliknięcie, w przycisk lupy (szukaj).
      * Wywołuje prop onSearch z aktualnymi danymi.
      * @private
      */
@@ -134,7 +133,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
 
     /**
      * Aktualizuje stan lokalny komponentu po wpisaniu tekstu.
-     * @param e Zdarzenie zmiany inputa.
+     * @param {React.ChangeEvent<HTMLInputElement>} e Zdarzenie zmiany inputa.
      * @private
      */
     private handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +147,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
      *
      * @returns {ReactNode} Wyrenderowany element JSX.
      */
-    render() {
+    render(): ReactNode {
         const { children } = this.props;
         const { searchValue } = this.state;
 
@@ -157,7 +156,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
         /**
          * Przetwarza przekazane komponenty podrzędne (dzieci), dodając do nich mechanizm referencji.
          * * Wykorzystuje `React.Children.map` oraz `React.cloneElement`, aby "wstrzyknąć" funkcję `ref`
-         * do każdego poprawnego elementu Reacta. Callback ten rejestruje instancję komponentu
+         * do każdego poprawnego elementu React. Callback ten rejestruje instancję komponentu
          * w tablicy `this.childComponents`.
          * * Jest to kluczowe, aby rodzic (SearchPanel) mógł wywołać metodę `getValue()` na dzieciach
          * i zebrać dane o filtrach.
