@@ -115,7 +115,12 @@ export interface CreditCardInfo{
     exp_date: string
     cvv: string
 }
+/**
+ * @interface IFilter - jest implementowany przez wszystkie typy filtrowania aplikacji co ułatwia generalizacje filtrowania
+ * */
+export interface IFilter{
 
+}
 /**
  * @type BookSearchFilter - typ zbierający informacje o filtrach nałożonych na wyświetlaną listę
  * @prop {string[]|undefined} author - Lista dozwolonych autorów
@@ -126,8 +131,9 @@ export interface CreditCardInfo{
  * @prop {object|undefined} release_date - zakres dat wydania
  * @prop {Date} release_date.from - dolna granica
  * @prop {Date} release_date.to - górna granica
+ * @extends IFilter
  * */
-export interface BookSearchFilter{
+export interface BookSearchFilter extends IFilter{
     author?: string[]
     genre?: string[]
     publisher?: string[]
@@ -138,7 +144,22 @@ export interface BookSearchFilter{
         to: Date
     }
 }
-
+/**
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * */
+export interface RentLogSearchFilter extends IFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
+}
+/**
+ * @type UserListSearchFilter - nakłada filtr na wynik wyszukiwania na stronie /users-view
+ * @prop {('user'|'admin'|'blocked')[]|undefined} status - jaki status ma użytkownika zostanie wyświetlony
+ * */
+export interface UserListSearchFilter extends IFilter{
+    status?: ('user'|'admin'|'blocked')[]
+}
 /**
  * @type SearchSort
  * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
@@ -148,13 +169,7 @@ export interface SearchSort{
     key: string
     direction: 'DESC'|'ASC'
 }
-/**
- * @type UserListSearchFilter - nakłada filtr na wynik wyszukiwania na stronie /users-view
- * @prop {('user'|'admin'|'blocked')[]|undefined} status - jaki status ma użytkownika zostanie wyświetlony
- * */
-export interface UserListSearchFilter{
-    status?: ('user'|'admin'|'blocked')[]
-}
+
 
 /**
  * @type UserInfo - informacje pobierane o użytkowniku na rzecz widoku /users-view dla administratora
@@ -174,15 +189,7 @@ export interface UserInfo{
     currently_reserved: Reservation[]
 }
 
-/**
- * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
- * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
- * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
- * */
-export interface RentLogSearchFilter{
-    states?: 'active'|'returned'|'un-payed'
-    isOverdue?: boolean
-}
+
 /**
  * @type RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
  * @param {User} user - użytkownik, który wypożyczył książkę
