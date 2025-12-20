@@ -73,10 +73,41 @@
   color: #2e7d32;
 }
 
-.status-busy {
-  color: #c62828;
+.status-rented {
+  color: #cc441b;
 }
 
-.status-destroyed {
-  color: #c62828;
+.status-reserved {
+  color: #e08700;
+}
+
+.status-damaged {
+  color: #d11313;
+}
+
+.librarian-actions>button {
+  padding: 0;
+}
+
+.librarian-actions .custom-select-trigger{
+  color:white;
+  background-color: transparent;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75em;
+
+  background-color: transparent;
+}
+
+.librarian-actions .custom-select-trigger:hover{
+  background-color: transparent;
+}
+
+.librarian-actions .custom-select-trigger div {
+  display: none;
+}
+
+.options-list .selected:not(:hover) {
+  background-color: transparent;
 }
