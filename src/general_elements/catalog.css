@@ -108,6 +108,17 @@
   display: none;
 }
 
-.options-list .selected:not(:hover) {
-  background-color: transparent;
+.search > *:not(:nth-child(1)) {
+  flex: 0 0 auto;
+  min-height: 2.5em;
+}
+
+.search > :nth-child(1) {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+.search {
+  flex-direction: row;
+  flex-wrap: wrap;
 }
