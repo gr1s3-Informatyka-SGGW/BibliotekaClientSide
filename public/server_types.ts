@@ -140,6 +140,18 @@ export interface BookSearchFilter{
 }
 
 /**
+ * @type CatalogResponse - generyczny interfejs odpowiedzi serwera dla widoku katalogu
+ * @prop {T[]} books - lista obiektów książek (BookUser[] lub BookAdmin[]) zwrócona dla bieżącej strony
+ * @prop {number} totalPages - całkowita liczba stron dostępnych dla wybranych kryteriów wyszukiwania
+ * @prop {number} totalBooks - łączna liczba wszystkich książek w bazie danych spełniających nałożone filtry
+ * */
+export interface CatalogResponse<T extends Book> {
+    books: T[];
+    totalPages: number;
+    totalBooks: number;
+}
+
+/**
  * @type SearchSort
  * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
  * @prop {'DESC'|'ASC'} direction - czy sortowanie będzie się odbywać rosnąco (ASC) czy malejąco (DESC)

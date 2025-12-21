@@ -2,6 +2,9 @@
  * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
  * */
 
+import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "./fake_catalog_data.ts";
+import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data.ts";
+
 import type {
     Book,
     BookAdmin,
@@ -10,7 +13,8 @@ import type {
     BookUser,
     CreditCardInfo,
     Session,
-    User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo
+    User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
+    CatalogResponse
 } from "./server_types.ts";
 
 /**
@@ -166,12 +170,51 @@ export function fetchBorrowedBooksRequest(): Book[]{
     throw Error("Not implemented exception")
 }
 
+// Katalog - Ogólne
 
+export const fetchAuthors = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_AUTHORS;
+};
+
+export const fetchTags = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_TAGS;
+};
+
+export const fetchGenres = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_GENRES;
+};
+
+export const fetchPublishers = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_PUBLISHERS;
+};
+
+export const fetchLanguages = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_LANGUAGES;
+};
 
 // Katalog - User
-export function fetchUserCatalogRequest(search_bar: string ,sort?: SearchSort, filter?: BookSearchFilter): BookUser[]{
-    throw Error("Not implemented exception")
-}
+export const fetchUserCatalogRequest = async (
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
+): Promise<CatalogResponse<BookUser>> => {
+    await wait(randDelay());
+
+    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
+    results = applySort(results, sort);
+
+    const { items, totalPages } = paginate(results, page, 10);
+    const totalBooks = results.length;
+    const userBooks = (items as BookAdmin[]).map(toBookUser);
+    return { books: userBooks, totalPages, totalBooks };
+};
+
 export function rentBookRequest(book_id: number): void{
     throw Error("Not implemented exception")
 }
@@ -179,9 +222,21 @@ export function reserveBookRequest(book_id: number): void{
     throw Error("Not implemented exception")
 }
 // Katalog - Admin
-export function fetchAdminCatalogRequest(search_bar?:string, sort?: SearchSort, filter?: BookSearchFilter): BookAdmin[]{
-    throw Error("Not implemented exception")
-}
+export const fetchAdminCatalogRequest = async (
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
+): Promise<CatalogResponse<BookAdmin>> => {
+    await wait(randDelay());
+
+    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
+    results = applySort(results, sort);
+
+    const { items, totalPages } = paginate(results, page, 10);
+    const totalBooks = results.length;
+    return { books: items as BookAdmin[], totalPages, totalBooks };
+};
 
 export function editBookRequest(data: Book): void{
     throw Error("Not implemented exception")
