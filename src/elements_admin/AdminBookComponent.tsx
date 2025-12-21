@@ -70,21 +70,37 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
      * @event addInstance Obsługuje zdarzenie kliknięcia opcji 'Dodaj egzemplarz'
      * @returns {void}
      */
-    addInstance(): void {
-        addBookInstanceRequest(this.props.book_info.book_id);
+    addInstance = (): void => {
+        if (this.props.book_info.book_id === undefined) {
+            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
+            return;
+        }
+        try {
+            addBookInstanceRequest(this.props.book_info.book_id);
+        } catch(e) {
+            console.error(`${e}`);
+        }
     }
 
     /**
      * @event removeBook Obsługuje zdarzenie kliknięcie opcji 'Usuń książkę z systemu'
      * @returns {void}
      */
-    removeBook(): void {
-        removeBookRequest(this.props.book_info.book_id);
+    removeBook = (): void => {
+        if (this.props.book_info.book_id === undefined) {
+            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
+            return;
+        }
+        try {
+            removeBookRequest(this.props.book_info.book_id);
+        } catch(e) {
+            console.error(`${e}`);
+        }
     }
     /**
      * @event editBook Obsługuje zdarzenie wybrania opcji 'Edytuj książkę'. Wywołuje komponent <AddBookForm> i wysyła jego wynik do serwera
      * */
-    editBook(): void {
+    editBook = (): void => {
         const editForm = new AddBookForm();
         return <Popup><>{editForm}</></Popup>
     }

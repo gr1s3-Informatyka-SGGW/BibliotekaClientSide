@@ -79,7 +79,15 @@ class UserBookComponent extends Component<Props, State> {
      * @returns {void}
      */
     onRentBookPressed = (): void => {
-        rentBookRequest(this.props.book_info.book_id);
+        if (this.props.book_info.book_id === undefined) {
+            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
+            return;
+        }
+        try {
+            rentBookRequest(this.props.book_info.book_id);
+        } catch(e) {
+            console.error(`${e}`);
+        }
     }
 
     /**
@@ -87,7 +95,15 @@ class UserBookComponent extends Component<Props, State> {
      * @returns {void}
      */
     onReserveBookPressed = (): void => {
-        reserveBookRequest(this.props.book_info.book_id);
+        if (this.props.book_info.book_id === undefined) {
+            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
+            return;
+        }
+        try {
+            reserveBookRequest(this.props.book_info.book_id);
+        } catch(e) {
+            console.error(`${e}`);
+        }
     }
 
 }
