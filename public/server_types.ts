@@ -28,7 +28,7 @@ export interface Session{
  * @prop {string[]} genre
  * */
 export interface Book{
-    book_id?: string;
+    book_id?: number;
     title: string;
     authors: string[];
 

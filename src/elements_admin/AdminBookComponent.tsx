@@ -10,6 +10,8 @@ import InstanceQR from "./InstanceQR.tsx";
 import bookIcon from '../assets/book.svg'
 import scannerIcon from '../assets/qr_code_scanner.svg'
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
+import {AddBookForm} from "./AddBookView.tsx";
+import Popup from "../../public/custom_components/Popup.tsx";
 
 /**
  * Komponent klasowy wyświetlający szczegółowe informacje o książce w widoku administratora.
@@ -33,13 +35,10 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
                 </h3>
                 <div className="flex-row librarian-actions">
                     <button>
-                        <CustomSelect label="Pokaż działania" onChange={this.onActionSelected}>
-                            <div className="text-center w-full font-bold">
-                                <p className="text-white">Zarządzanie książką</p>
-                            </div>
-                            <CustomOption value="add">Dodaj egzemplarz</CustomOption>
-                            <CustomOption value="edit">Edytuj dane książki</CustomOption>
-                            <CustomOption value="delete">Usuń książkę z systemu</CustomOption>
+                        <CustomSelect label="Pokaż działania">
+                            <CustomOption value="add" onClick={this.addInstance}>Dodaj egzemplarz</CustomOption>
+                            <CustomOption value="edit" onClick={this.editBook}>Edytuj dane książki</CustomOption>
+                            <CustomOption value="delete" onClick={this.removeBook}>Usuń książkę z systemu</CustomOption>
                         </CustomSelect>
                     </button>
                 </div>
@@ -67,35 +66,43 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
         </div>
     }
 
-    onActionSelected = (values: string[]): void => {
-        if (values[0] === "add") {
-            this.addInstance();
-        } else if (values[0] === "edit") {
-            this.editBook();
-        } else if (values[0] === "delete") {
-            this.removeBook();
-        }
-    }
-
     /**
      * @event addInstance Obsługuje zdarzenie kliknięcia opcji 'Dodaj egzemplarz'
      * @returns {void}
      */
-    addInstance(): void {
-        addBookInstanceRequest(this.props.book_info.book_id);
+    addInstance = (): void => {
+        if (this.props.book_info.book_id === undefined) {
+            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
+            return;
+        }
+        try {
+            addBookInstanceRequest(this.props.book_info.book_id);
+        } catch(e) {
+            console.error(`${e}`);
+        }
     }
 
     /**
      * @event removeBook Obsługuje zdarzenie kliknięcie opcji 'Usuń książkę z systemu'
      * @returns {void}
      */
-    removeBook(): void {
-        removeBookRequest(this.props.book_info.book_id);
+    removeBook = (): void => {
+        if (this.props.book_info.book_id === undefined) {
+            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
+            return;
+        }
+        try {
+            removeBookRequest(this.props.book_info.book_id);
+        } catch(e) {
+            console.error(`${e}`);
+        }
     }
     /**
      * @event editBook Obsługuje zdarzenie wybrania opcji 'Edytuj książkę'. Wywołuje komponent <AddBookForm> i wysyła jego wynik do serwera
      * */
-    editBook(): void {
+    editBook = (): void => {
+        const editForm = new AddBookForm();
+        return <Popup><>{editForm}</></Popup>
     }
 }
 
