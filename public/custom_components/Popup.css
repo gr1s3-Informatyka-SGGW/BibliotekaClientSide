@@ -57,26 +57,24 @@
 
 .alert-actions {
     display: flex;
-    flex-direction: row-reverse;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: flex-end;
+    gap: 10px;                 
     margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
+    width: 100%;               
 }
 
 .alert-actions button {
+    width: calc(50% - 5px); 
+    padding: 10px;
     border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-    flex-grow: 1;
+    font-weight: 600;
+    border: 1px solid #801840;
+    transition: background-color 0.2s;
 }
 
 .save-button {
     --accent-color: #791a45;
-    
     background-color: var(--accent-color);
     color: white;
     border: 1px solid var(--accent-color);
@@ -92,4 +90,13 @@
 
 .save-button:hover {
     background-color: #6B1737;
+}
+
+.cancel-button {
+    background-color: white;
+    color: #801840;
+}
+
+.cancel-button:hover {
+    background-color: #f8f0f3;
 }

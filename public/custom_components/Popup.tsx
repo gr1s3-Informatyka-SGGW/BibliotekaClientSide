@@ -1,40 +1,17 @@
 /**
- * @file Plik implementuje zestaw komponentów okien modalnych: <Popup> oraz <Alert>.
+ * @file Implementacja stanowych komponentów <Popup> i <Alert>.
  * @author Dawid Filipek
  */
-
 import React, { createContext, type ReactNode, useContext, useState, useEffect, type JSX } from "react";
 import { createPortal } from "react-dom";
 import './Popup.css';
 
-// ----------------------------------------------------------------------
-// KONTEKST I HOOKI
-// ----------------------------------------------------------------------
-
-/**
- * Kontekst przechowujący funkcję zamykającą aktualnie otwarte okno modalne.
- * Pozwala komponentom zagnieżdżonym głęboko w `children` na wywołanie zamknięcia.
- */
+// --- Kontekst ---
 export const popupContext: React.Context<() => void> = createContext(() => {});
-
-/**
- * Hook pomocniczy do uzyskania dostępu do funkcji zamykającej modal.
- * @returns {() => unknown} Funkcja zamykająca modal.
- */
 export const usePopupClose = () => useContext(popupContext);
 
-// ----------------------------------------------------------------------
-// INTERFEJSY
-// ----------------------------------------------------------------------
+// --- Interfejsy ---
 
-/**
- * @interface PopupProps
- * @description Właściwości dla ogólnego komponentu Popup.
- * @property {string} title - Tekst wyświetlany w nagłówku okna.
- * @property {string} [icon] - Opcjonalna ścieżka do pliku graficznego ikony nagłówka.
- * @property {ReactNode} children - Zawartość renderowana wewnątrz sekcji body modala.
- * @property {() => void} [onClose] - Callback wykonywany w momencie zamykania komponentu.
- */
 export interface PopupProps {
     title: string;
     icon?: string;
@@ -44,40 +21,21 @@ export interface PopupProps {
 
 /**
  * @interface AlertProps
- * @description Właściwości dla uproszczonego okna dialogowego typu Alert.
- * @property {string} title - Tekst nagłówka.
- * @property {string} message - Główna treść komunikatu.
- * @property {string} [icon] - Opcjonalna ścieżka do ikony nagłówka.
- * @property {() => void} [onClose] - Callback wywoływany przy anulowaniu lub zamknięciu.
- * @property {() => void} [onAccept] - Callback wywoływany po kliknięciu przycisku akceptacji.
- * @property {string} [acceptText] - Tekst na przycisku potwierdzenia (domyślnie 'Tak').
- * @property {string} [cancelText] - Tekst na przycisku anulowania (domyślnie 'Nie').
+ * @property {onCancel} - Zmieniono nazwę z onClose. Wywoływane przy rezygnacji/zamknięciu.
+ * @property {onAccept} - Wywoływane przy akceptacji. NIE zamyka już automatycznie komponentu.
  */
 export interface AlertProps {
     title: string;
     message: string;
     icon?: string;
-    onClose?: () => void;
+    onCancel?: () => void; 
     onAccept?: () => void;
     acceptText?: string;
     cancelText?: string;
 }
 
-// ----------------------------------------------------------------------
-// KOMPONENTY WEWNĘTRZNE
-// ----------------------------------------------------------------------
+// --- Komponent Pomocniczy ---
 
-/**
- * Bazowy komponent strukturalny dla wszystkich okien modalnych.
- * Obsługuje Portal, tło (backdrop), zamykanie klawiszem ESC oraz warunkowe renderowanie ikony.
- * @private
- * @param {Object} props - Właściwości komponentu.
- * @param {ReactNode} props.children - Zawartość okna.
- * @param {string} props.title - Tytuł nagłówka.
- * @param {string} [props.icon] - Ścieżka do ikony.
- * @param {boolean} props.isOpen - Czy okno jest obecnie zamontowane.
- * @param {() => void} props.handleClose - Funkcja wyzwalająca proces zamykania.
- */
 function _BaseModal({ children, title, icon, isOpen, handleClose }: any) {
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
@@ -92,10 +50,7 @@ function _BaseModal({ children, title, icon, isOpen, handleClose }: any) {
             <popupContext.Provider value={handleClose}>
                 <div className="popup-window">
                     <div className="popup-header">
-                        {/* Renderowanie ikony, tylko jeśli string nie jest pusty */}
-                        {icon && icon.trim() !== "" && (
-                            <img src={icon} alt="" className="popup-icon" />
-                        )}
+                        {icon && icon.trim() !== "" && <img src={icon} alt="" className="popup-icon" />}
                         <h3 className="popup-title">{title}</h3>
                     </div>
                     <div className="popup-content">{children}</div>
@@ -106,25 +61,14 @@ function _BaseModal({ children, title, icon, isOpen, handleClose }: any) {
     ); 
 }
 
-// ----------------------------------------------------------------------
-// KOMPONENTY EKSPORTOWANE
-// ----------------------------------------------------------------------
+// --- Główne Komponenty ---
 
-/**
- * Komponent Popup.
- * Uniwersalny kontener modalny, który sam zarządza swoim stanem otwarcia.
- * Zamyka się po kliknięciu, w tło klawiszu ESC lub wywołaniu funkcji z kontekstu.
- * @param {PopupProps} props — Parametry konfiguracyjne popupu.
- * @returns {JSX.Element | null}
- */
 export default function Popup({ title, icon, children, onClose }: PopupProps): JSX.Element | null {
     const [isOpen, setIsOpen] = useState(true);
-
     const handleClose = () => {
         setIsOpen(false);
         if (onClose) onClose();
     };
-
     return (
         <_BaseModal title={title} icon={icon} isOpen={isOpen} handleClose={handleClose}>
             {children}
@@ -133,40 +77,47 @@ export default function Popup({ title, icon, children, onClose }: PopupProps): J
 }
 
 /**
- * Komponent Alert.
- * Specjalizowana wersja okna modalnego służąca do potwierdzania akcji.
- * Posiada predefiniowany układ z wiadomością tekstową oraz dwoma przyciskami akcji.
- * @param {AlertProps} props - Parametry konfiguracyjne alertu.
- * @returns {JSX.Element | null}
+ * Komponent Alert z nową logiką onAccept / onCancel.
  */
 export function Alert({ 
-    title, message, icon, onClose, onAccept, 
-    acceptText = "Tak", cancelText = "Nie" 
+    title, message, icon, onCancel, onAccept, 
+    acceptText = "Tak", cancelText = "Ok" 
 }: AlertProps): JSX.Element | null {
     const [isOpen, setIsOpen] = useState(true);
 
-    const handleClose = () => {
+    /**
+     * Wewnętrzna funkcja zamykająca modal.
+     */
+    const closeInternal = () => {
         setIsOpen(false);
-        if (onClose) onClose();
     };
 
     /**
-     * Obsługuje kliknięcie przycisku akceptacji, wykonuje callback i zamyka okno.
+     * Obsługa przycisku Anuluj / Zamknij (Ok).
+     * Zamyka modal i informuje rodzica.
      */
-    const handleAccept = () => {
+    const handleCancel = () => {
+        closeInternal();
+        if (onCancel) onCancel();
+    };
+
+    /**
+     * Obsługa przycisku Akceptuj.
+     * Wykonuje tylko przekazaną akcję. Komponent NIE zamyka się sam.
+     */
+    const handleAcceptClick = () => {
         if (onAccept) onAccept();
-        handleClose();
     };
 
     return (
-        <_BaseModal title={title} icon={icon} isOpen={isOpen} handleClose={handleClose}>
+        <_BaseModal title={title} icon={icon} isOpen={isOpen} handleClose={handleCancel}>
             <div className="alert-message">{message}</div>
             <div className="alert-actions">
-                {/* Kolejność: Przycisk akceptacji po lewej, Anuluj po prawej */}
                 {onAccept && (
-                    <button onClick={handleAccept} className="save-button">{acceptText}</button>
+                    <button onClick={handleAcceptClick} className="save-button">{acceptText}</button>
                 )}
-                <button onClick={handleClose} className="cancel-button">{cancelText}</button>
+                {/* Przycisk onCancel jest teraz zawsze po prawej stronie */}
+                <button onClick={handleCancel} className="cancel-button">{cancelText}</button>
             </div>
         </_BaseModal>
     );
