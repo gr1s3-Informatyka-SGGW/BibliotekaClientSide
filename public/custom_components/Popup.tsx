@@ -59,12 +59,32 @@ interface PopupState {
  * @class Popup
  * @extends {React.Component<PopupProps, PopupState>}
  * @description Uniwersalne okno modalne. Można je zamknąć poprzez tło, klawisz ESC 
- * lub wywołując publiczną metodę .close() przez referencję.
+ * lub wywołując publiczną metodę close() przez referencję.
+ * @prop {Popup} currentlyOpen statyczna referencja do obecnie otwartego okna
+ * @example
+ * // prosty popup z guzikiem, który go zamyka
+ * <Popup title="Szczegóły książki">
+ *     <button onClick={() => Popup.currentlyOpen?.close()}>
+ *         Zamknij tę zawartość
+ *     </button>
+ * </Popup>
  */
 export default class Popup extends React.Component<PopupProps, PopupState> {
+    /**
+     * Statyczny element umożliwiający łatwe odniesienie do obecnie otwartego popupu,
+     * aby użyć go w środku tego komponentu, należy umieścić go w funkcji lambda
+     * @example
+     * // onClick dla elementu w środku tego komponentu
+     * ()=> currentlyOpen.close()
+     * @static
+     * */
+    static currentlyOpen: Popup
+
     constructor(props: PopupProps) {
         super(props);
         this.state = { isOpen: true };
+        Popup.currentlyOpen?.close(); // zamknij, jeśli jakiś jest już otwarty
+        Popup.currentlyOpen = this
     }
 
     /**
@@ -73,6 +93,7 @@ export default class Popup extends React.Component<PopupProps, PopupState> {
      * @public
      */
     public close = () => {
+        console.log(this.state.isOpen)
         this.setState({ isOpen: false });
         if (this.props.onClose) this.props.onClose();
     };
