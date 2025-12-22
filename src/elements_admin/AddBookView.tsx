@@ -11,6 +11,7 @@ import {addBookRequest, editBookRequest} from "../../public/server_requests.ts";
 import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
 import "./add_book.css";
+import "../input.css";
 
 /**
  * Pełen widok książki, z paskiem nawigacyjnym i formularzem dodawania książki
@@ -30,9 +31,14 @@ export default function AddBookView(){
         try {
             await addBookRequest(book)
             setSuccess("Książka została pomyślnie dodana.")
+            showPopup("book_copies_added")
         } catch (e){
             setError("Wystąpił błąd przy dodawaniu książki.")
         }
+    }
+
+    function showPopup(id: string){
+        alert("Dodano książkę!")
     }
 
     return <>
@@ -98,9 +104,9 @@ export class AddBookForm
             book_id: this.info?.book_id,
             title: this.getVal("title"),
             isbn_number: this.getVal("isbn"),
-            publisher: this.getVal("publisher"),
+            publisher: (document.getElementById("publisher") as HTMLSelectElement).value,
             length: Number(this.getVal("length")),
-            language: this.getVal("language"),
+            language: (document.getElementById("language") as HTMLSelectElement).value,
             publish_year: Number(this.getVal("publish_year")),
             authors: (document.getElementById("authors") as any).chosen ?? [],
             keywords: (document.getElementById("keywords") as any).chosen ?? [],
@@ -164,14 +170,47 @@ export class AddBookForm
                 <div className="form-group">
                     <label>Autorzy:</label>
                     <div className="multi-select-container">
-                        <DynamicSelect {...{children: b?.authors, allow_multiple: true, id:"authors"}}/>
+
+                        {((document.getElementById("authors") as any)?.chosen ?? []).map(
+                            (a:string) => (
+                                <div className="chip" key={a}>
+                                    {a}
+                                    <span
+                                        className="chip-close"
+                                        onClick={()=>{
+                                            const ds = document.getElementById("authors") as any
+                                            ds.removeValue(a)
+                                            this.forceUpdate()
+                                        }}
+                                    >x</span>
+                                </div>
+                            )
+                        )}
+
+                        <DynamicSelect
+                            {...{
+                                id:"authors",
+                                children: b?.authors,
+                                allow_multiple: true,
+                                placeholder:"Wybierz lub wpisz nowego autora"
+                            }}
+                        />
+
                         <div
                             className="chip add"
                             onClick={()=>{
                                 const input = document.querySelector("#authors input") as HTMLInputElement
-                                if (input) input.focus()
+                                if (input && input.value.trim()) {
+                                    (document.getElementById("authors") as any).addValue(input.value.trim())
+                                    input.value = ""
+                                    this.forceUpdate()
+                                } else {
+                                    input?.focus()
+                                }
                             }}
-                        >Dodaj</div>
+                        >
+                            Dodaj
+                        </div>
                     </div>
                 </div>
 
@@ -179,14 +218,47 @@ export class AddBookForm
                 <div className="form-group">
                     <label>Gatunki:</label>
                     <div className="multi-select-container">
-                        <DynamicSelect {...{children: b?.genre, allow_multiple: true, id:"genre"}}/>
+
+                        {((document.getElementById("genres") as any)?.chosen ?? []).map(
+                            (g:string) => (
+                                <div className="chip" key={g}>
+                                    {g}
+                                    <span
+                                        className="chip-close"
+                                        onClick={()=>{
+                                            const ds = document.getElementById("genres") as any
+                                            ds.removeValue(g)
+                                            this.forceUpdate()
+                                        }}
+                                    >x</span>
+                                </div>
+                            )
+                        )}
+
+                        <DynamicSelect
+                            {...{
+                                id:"genres",
+                                children: b?.genre,
+                                allow_multiple: true,
+                                placeholder:"Wybierz lub wpisz gatunek"
+                            }}
+                        />
+
                         <div
                             className="chip add"
                             onClick={()=>{
-                                const input = document.querySelector("#genre input") as HTMLInputElement
-                                if (input) input.focus()
+                                const input = document.querySelector("#genres input") as HTMLInputElement
+                                if (input && input.value.trim()) {
+                                    (document.getElementById("genres") as any).addValue(input.value.trim())
+                                    input.value = ""
+                                    this.forceUpdate()
+                                } else {
+                                    input?.focus()
+                                }
                             }}
-                        >Dodaj</div>
+                        >
+                            Dodaj
+                        </div>
                     </div>
                 </div>
 
@@ -194,27 +266,71 @@ export class AddBookForm
                 <div className="form-group">
                     <label>Tagi:</label>
                     <div className="multi-select-container">
-                        <DynamicSelect {...{children: b?.keywords, allow_multiple: true, id:"keywords"}}/>
+
+                        {((document.getElementById("tags") as any)?.chosen ?? []).map(
+                            (t:string) => (
+                                <div className="chip" key={t}>
+                                    {t}
+                                    <span
+                                        className="chip-close"
+                                        onClick={()=>{
+                                            const ds = document.getElementById("tags") as any
+                                            ds.removeValue(t)
+                                            this.forceUpdate()
+                                        }}
+                                    >x</span>
+                                </div>
+                            )
+                        )}
+
+                        <DynamicSelect
+                            {...{
+                                id:"tags",
+                                children: b?.keywords,
+                                allow_multiple: true,
+                                placeholder:"Wybierz lub wpisz tag"
+                            }}
+                        />
+
                         <div
                             className="chip add"
                             onClick={()=>{
-                                const input = document.querySelector("#keywords input") as HTMLInputElement
-                                if (input) input.focus()
+                                const input = document.querySelector("#tags input") as HTMLInputElement
+                                if (input && input.value.trim()) {
+                                    (document.getElementById("tags") as any).addValue(input.value.trim())
+                                    input.value = ""
+                                    this.forceUpdate()
+                                } else {
+                                    input?.focus()
+                                }
                             }}
-                        >Dodaj</div>
+                        >
+                            Dodaj
+                        </div>
                     </div>
                 </div>
 
-                {/* RZĄD 5: Rok wydania + długość */}
+                {/* RZĄD 5: Rok wydania + ilośc */}
                 <div className="form-row">
                     <div className="form-group">
                         <label>Rok wydania:</label>
-                        <input id="publish_year" type="number" defaultValue={b?.publish_year}/>
+                        <input
+                            id="publish_year"
+                            type="number"
+                            min={1000}
+                            max={2100}
+                            defaultValue={b?.publish_year}
+                        />
                     </div>
 
                     <div className="form-group">
-                        <label>Liczba stron:</label>
-                        <input id="length" type="number" defaultValue={b?.length}/>
+                        <label>Liczba egzemplarzy:</label>
+                        <input
+                            id="length"
+                            type="number"
+                            min={1}
+                            defaultValue={b?.length ?? 1}
+                        />
                     </div>
                 </div>
 
@@ -222,20 +338,30 @@ export class AddBookForm
                 <div className="form-row">
                     <div className="form-group">
                         <label>Wydawca:</label>
-                        <DynamicSelect
-                            {...{children: b ? [b.publisher] : [], allow_multiple: false, id:"publisher"}}
-                        />
+                        <select id="publisher">
+                            <option value="">Wybierz lub wpisz nowego wydawcę</option>
+                            <option>Dodaj...</option>
+                            <option>Wydawca A</option>
+                            <option>Wydawca B</option>
+                            <option>Wydawca C</option>
+                        </select>
                     </div>
 
                     <div className="form-group">
                         <label>Język:</label>
-                        <input id="language" type="text" defaultValue={b?.language}/>
+                        <select id="language">
+                            <option value="">Wybierz lub wpisz nowy język</option>
+                            <option>Dodaj...</option>
+                            <option>senegalski</option>
+                            <option>mongolski</option>
+                            <option>peruwiański</option>
+                        </select>
                     </div>
                 </div>
 
                 <div className="add-container">
                     <button type="submit">
-                        {this.mode === "edit" ? "Zapisz zmiany" : "Dodaj książkę"}
+                        <img src="../assets/save.svg" /> Dodaj książkę
                     </button>
                 </div>
 
