@@ -23,6 +23,7 @@ export default function AddBookView(){
     const [success, setSuccess] = useState<string|null>(null)
 
     async function sendForm(book: Book){
+        console.log("Wysyłam:", book)
         setError(null)
         setSuccess(null)
 
@@ -35,9 +36,17 @@ export default function AddBookView(){
     }
 
     return <>
-        <h1>Dodaj książkę</h1>
+        <h1>
+            <img src="../assets/add_box.svg"></img>
+            Dodaj książkę
+        </h1>
 
         <div className="panel book-info">
+            <h3 className="header">
+                <img src="../assets/book.svg"></img>
+                Informacje o książce
+            </h3>
+
             <AddBookForm
                 mode="create"
                 onSubmit={sendForm}
@@ -134,7 +143,19 @@ export class AddBookForm
                     <div className="form-group">
                         <label>ISBN:</label>
                         <div id="isbn-container">
-                            <input id="isbn" type="text" defaultValue={b?.isbn_number}/>
+                            <input
+                                id="isbn"
+                                type="text"
+                                defaultValue={b?.isbn_number}
+                                onInput={(e)=>{
+                                    let val = e.currentTarget.value.replace(/[^0-9X]/gi, "")
+                                    val = val
+                                        .replace(/^(.{3})(.{1,7})(.{1,6})(.{1,1})$/, "$1-$2-$3-$4")
+                                        .replace(/--+/g,"-")
+                                        .replace(/-$/, "")
+                                    e.currentTarget.value = val
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
@@ -142,57 +163,45 @@ export class AddBookForm
                 {/* RZĄD 2: Autorzy */}
                 <div className="form-group">
                     <label>Autorzy:</label>
-                    <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
-                        <DynamicSelect
-                            {...{children: b?.authors, allow_multiple: true, id:"authors"}}
-                        />
-                        <button
-                            type="button"
+                    <div className="multi-select-container">
+                        <DynamicSelect {...{children: b?.authors, allow_multiple: true, id:"authors"}}/>
+                        <div
+                            className="chip add"
                             onClick={()=>{
                                 const input = document.querySelector("#authors input") as HTMLInputElement
                                 if (input) input.focus()
                             }}
-                        >
-                            Dodaj
-                        </button>
+                        >Dodaj</div>
                     </div>
                 </div>
 
                 {/* RZĄD 3: Gatunki */}
                 <div className="form-group">
                     <label>Gatunki:</label>
-                    <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
-                        <DynamicSelect
-                            {...{children: b?.genre, allow_multiple: true, id:"genre"}}
-                        />
-                        <button
-                            type="button"
+                    <div className="multi-select-container">
+                        <DynamicSelect {...{children: b?.genre, allow_multiple: true, id:"genre"}}/>
+                        <div
+                            className="chip add"
                             onClick={()=>{
                                 const input = document.querySelector("#genre input") as HTMLInputElement
                                 if (input) input.focus()
                             }}
-                        >
-                            Dodaj
-                        </button>
+                        >Dodaj</div>
                     </div>
                 </div>
 
                 {/* RZĄD 4: Tagi */}
                 <div className="form-group">
                     <label>Tagi:</label>
-                    <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
-                        <DynamicSelect
-                            {...{children: b?.keywords, allow_multiple: true, id:"keywords"}}
-                        />
-                        <button
-                            type="button"
+                    <div className="multi-select-container">
+                        <DynamicSelect {...{children: b?.keywords, allow_multiple: true, id:"keywords"}}/>
+                        <div
+                            className="chip add"
                             onClick={()=>{
                                 const input = document.querySelector("#keywords input") as HTMLInputElement
                                 if (input) input.focus()
                             }}
-                        >
-                            Dodaj
-                        </button>
+                        >Dodaj</div>
                     </div>
                 </div>
 
