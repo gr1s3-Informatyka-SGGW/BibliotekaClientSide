@@ -206,17 +206,25 @@ export class AddBookForm
                         <label>ISBN:</label>
                         <div id="isbn-container">
                             <input
-                                id="isbn"
-                                type="text"
-                                defaultValue={b?.isbn_number}
-                                onInput={(e)=>{
-                                    let val = e.currentTarget.value.replace(/[^0-9X]/gi, "")
-                                    val = val
-                                        .replace(/^(.{3})(.{1,7})(.{1,6})(.{1,1})$/, "$1-$2-$3-$4")
-                                        .replace(/--+/g,"-")
-                                        .replace(/-$/, "")
-                                    e.currentTarget.value = val
-                                }}
+                            id="isbn"
+                            type="text"
+                            defaultValue={b?.isbn_number}
+                            onInput={(e) => {
+                                let val = e.currentTarget.value.replace(/[^0-9Xx]/gi, "");
+
+                                if (val.length <= 9) {
+                                    // ISBN-10
+                                    val = val.replace(/^(\d{1,5})(\d{0,4})(\d{0,4})([\dXx]?)$/, "$1-$2-$3-$4");
+                                } else if (val.length === 13) {
+                                    // ISBN-13
+                                    val = val.replace(/^(\d{3})(\d{1,5})(\d{1,7})(\d{1,1})$/, "$1-$2-$3-$4");
+                                } else {
+                                    // wszystko inne
+                                    val = val.replace(/^(.{1,5})(.{1,7})(.{1,7})(.{1})$/, "$1-$2-$3-$4");
+                                }
+                                val = val.replace(/--+/g, "-").replace(/-$/, "");
+                                e.currentTarget.value = val;
+                            }}
                             />
                         </div>
                     </div>
