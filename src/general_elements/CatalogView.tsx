@@ -15,14 +15,13 @@
  */
 
 import { useContext, useEffect, useState, type JSX } from "react";
-import { type BookSearchFilter, type SearchSort, type CatalogResponse, type Book } from "../../public/server_types";
+import { type BookSearchFilter, type SearchSort, type CatalogResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
 import "./catalog.css";
 import "../style.css";
 import '../input.css';
 import NavSidebar from "./NavSidebar";
 import SearchPanel, { type SearchPanelReturn } from "./SearchPanel";
-import React from "react";
 import UserBookComponent from "../elements_user/UserBookComponent";
 import {
     fetchAdminCatalogRequest,
@@ -31,22 +30,16 @@ import {
     fetchGenres,
     fetchTags,
     fetchPublishers,
-    fetchLanguages
+    fetchLanguages,
+    reserveBookRequest,
+    rentBookRequest
 } from "../../public/server_requests.ts";
 import catalogIcon from "../assets/newsstand.svg"
 import { AuthContext } from "../../public/UserAuth";
 import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
 import { Pagination } from "../general_elements/Pagination.tsx";
-
-/**
- * Funkcja pomocnicza wybierająca odpowiedni konstruktor komponentu książki 
- * w zależności od uprawnień użytkownika.
- * * @param {boolean} isLibrarian - Czy aktualny użytkownik posiada uprawnienia administratora/bibliotekarza.
- * @returns {typeof React.Component} Komponent `AdminBookComponent` dla administratora lub `UserBookComponent` dla czytelnika.
- */
-const getBookComponent = (isLibrarian: boolean): typeof React.Component => {
-    return isLibrarian ? AdminBookComponent : UserBookComponent;
-};
+import Popup from "../../public/custom_components/Popup.tsx";
+import iconError from "../assets/error.svg"
 
 /**
  * Wykonuje żądanie do API w celu pobrania listy książek na podstawie parametrów wyszukiwania.
@@ -81,7 +74,6 @@ const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: Se
 function CatalogView(): JSX.Element {
     const auth = useContext(AuthContext);
     const isLibrarian = auth?.session?.access === 'admin';
-    const BookComponent = getBookComponent(isLibrarian);
 
     const [search, setSearch] = useState<SearchPanelReturn | undefined>(undefined);
     const [books, setBooks] = useState<Book[]>([]);
@@ -116,6 +108,9 @@ function CatalogView(): JSX.Element {
         key: "title",
         direction: "ASC"
     });
+
+    const [shownPopup, setShownPopup] = useState<undefined | "rentConfirm" | "reserveConfirm" | "rentSuccess" | "reserveSuccess" | "rentError" | "reserveError">(undefined);
+    const [popupData, setPopupData] = useState<any>(undefined);
 
     // Pobieranie wszystkich dostępnych filtrów na starcie
     useEffect(() => {
@@ -166,7 +161,7 @@ function CatalogView(): JSX.Element {
 
             setBooks(result.books);
             setTotalPages(result.totalPages);
-            setTotalBookCount(result.totalPages);
+            setTotalBookCount(result.totalBooks);
         })()
 
         window.scrollTo({
@@ -207,14 +202,143 @@ function CatalogView(): JSX.Element {
         return "Katalog jest obecnie pusty.";
     })();
 
+    const onRentBookPressed = (book: BookUser) => {
+        setShownPopup("rentConfirm");
+        setPopupData(book);
+    }
+
+    const onReserveBookPressed = (book: BookUser) => {
+        setShownPopup("reserveConfirm");
+        setPopupData(book);
+    }
+
+    const hidePopups = () => {
+        setShownPopup(undefined);
+        setPopupData(undefined);
+    }
+
+    const handleBookReserve = (book: BookUser) => {
+        hidePopups();
+
+        if (!book.book_id) {
+            setPopupData({ book: book, error: "Pole book_id jest undefined" });
+            setShownPopup("reserveError");
+            return;
+        }
+        try {
+            reserveBookRequest(book.book_id);
+            setPopupData(book);
+            setShownPopup("reserveSuccess");
+            return;
+        } catch (e) {
+            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            setPopupData({ book: book, error: msg });
+            setShownPopup("reserveError");
+            return;
+        }
+    }
+
+    const handleBookRent = (book: BookUser) => {
+        hidePopups();
+
+        if (!book.book_id) {
+            setPopupData({ book: book, error: "Pole book_id jest undefined" });
+            setShownPopup("rentError");
+            return;
+        }
+
+        try {
+            rentBookRequest(book.book_id);
+            setPopupData(book);
+            setShownPopup("rentSuccess");
+            return;
+        } catch (e) {
+            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            setPopupData({ book: book, error: msg });
+            setShownPopup("rentError");
+            return;
+        }
+    }
+
     return <>
+        {shownPopup === "rentConfirm" &&
+            <Popup title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
+                <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>?</p>
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Nie</button>
+                    <button onClick={() => { handleBookRent(popupData) }}>Tak, wypożycz</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "rentError" &&
+            <Popup title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
+                <p className="text-justify">
+                    Nie udało się wypożyczyć książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+                <p className="text-justify italic">
+                    {popupData.error}
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "rentSuccess" &&
+            <Popup title="Książka wypożyczona" onClose={hidePopups}>
+                <p className="text-justify">
+                    Pomyślnie wypożyczono książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>.
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "reserveConfirm" &&
+            <Popup title="Potwierdzenie rezerwacji" onClose={hidePopups}>
+                <p className="text-justify">
+                    Czy na pewno chcesz zarezerwować książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>?
+                </p>
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Nie</button>
+                    <button onClick={() => { handleBookReserve(popupData) }}>Tak, zarezerwuj</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "reserveError" &&
+            <Popup title="Błąd rezerwacji" icon={iconError} onClose={hidePopups}>
+                <p className="text-justify">
+                    Nie udało się zarezerwować książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+                <p className="text-justify italic">
+                    {popupData.error}
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "reserveSuccess" &&
+            <Popup title="Potwierdzenie rezerwacji" onClose={hidePopups}>
+                <p className="text-justify">
+                    Dziękujemy za rezerwację książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+
         <h1 className="mb-14"><img src={catalogIcon} alt="icon" /> Katalog</h1>
         <main>
             <NavSidebar></NavSidebar>
             <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
 
-                <CustomSelectSort label="Sortuj" initialValues={["Tytuł (A-Z)"]}
+                <CustomSelect label="Sortuj" initialValues={["Tytuł (A-Z)"]}
                     onChange={(v: string[]) => {
                         switch (v[0]) {
                             case "Tytuł (A-Z)": {
@@ -242,39 +366,39 @@ function CatalogView(): JSX.Element {
                     <CustomOption value="Tytuł (Z-A)">Tytuł (Z-A)</CustomOption>
                     <CustomOption value="Rok wydania (rosnąco)">Rok wydania (rosnąco)</CustomOption>
                     <CustomOption value="Rok wydania (malejąco)">Rok wydania (malejąco)</CustomOption>
-                </CustomSelectSort>
+                </CustomSelect>
 
-                <CustomSelectFilter label="Autor" searchable allow_multiple
+                <CustomSelect label="Autor" searchable allow_multiple
                     key={`author-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, author: v }) }}>
                     {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
-                </CustomSelectFilter>
+                </CustomSelect>
 
-                <CustomSelectFilter label="Tagi" searchable allow_multiple
+                <CustomSelect label="Tagi" searchable allow_multiple
                     key={`tags-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
                     {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
-                </CustomSelectFilter>
+                </CustomSelect>
 
-                <CustomSelectFilter label="Gatunek" searchable allow_multiple
+                <CustomSelect label="Gatunek" searchable allow_multiple
                     key={`genre-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, genre: v }) }}>
                     {allFilters.genre?.map(g => <CustomOption key={g} value={g}>{g}</CustomOption>)}
-                </CustomSelectFilter>
+                </CustomSelect>
 
-                <CustomSelectFilter label="Wydawca" searchable allow_multiple
+                <CustomSelect label="Wydawca" searchable allow_multiple
                     key={`publisher-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, publisher: v }) }}>
                     {allFilters.publisher?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
-                </CustomSelectFilter>
+                </CustomSelect>
 
-                <CustomSelectFilter label="Język" searchable allow_multiple
+                <CustomSelect label="Język" searchable allow_multiple
                     key={`language-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, language: v }) }}>
                     {allFilters.language?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
-                </CustomSelectFilter>
+                </CustomSelect>
 
-                <CustomSelectFilter label="Data wydania" allowCustomRange
+                <CustomSelect label="Data wydania" allowCustomRange
                     key={`release_date-${resetToken}`}
                     onChange={(v: string[]) => {
                         const [from, to] = v[0].split('-').map(year => new Date(Number(year), 0, 1));
@@ -284,7 +408,7 @@ function CatalogView(): JSX.Element {
                         });
                     }}>
                     <CustomOption value="release_date:custom">Zakres</CustomOption>
-                </CustomSelectFilter>
+                </CustomSelect>
             </SearchPanel>
 
             <div className="books">
@@ -294,8 +418,17 @@ function CatalogView(): JSX.Element {
                         <a onClick={handleResetFilters}>Pokaż cały katalog</a>
                     </div>
                 )}
-                {books.map((book, index) => (
-                    <BookComponent book_info={book} key={book.book_id || index} />
+                {!isLibrarian && books.map((book, index) => (
+                    <UserBookComponent
+                        book_info={book as BookUser} key={book.book_id || index}
+                        onRentBookPressed={onRentBookPressed}
+                        onReserveBookPressed={onReserveBookPressed}
+                    />
+                ))}
+                {isLibrarian && books.map((book, index) => (
+                    <AdminBookComponent
+                        book_info={book as BookAdmin} key={book.book_id || index}
+                    />
                 ))}
             </div>
 
@@ -308,32 +441,6 @@ function CatalogView(): JSX.Element {
             )}
         </main>
     </>
-}
-
-/**
- * Specjalistyczna klasa rozszerzająca `CustomSelect` na potrzeby sortowania.
- * Formatuje wybraną wartość do struktury oczekiwanej przez logikę sortowania katalogu.
- * * @extends {CustomSelect}
- */
-export class CustomSelectSort extends CustomSelect {
-    getValue(): any {
-        const val = super.getValue();
-        if (Array.isArray(val) && val.length > 0) {
-            return { sorting: val[0] };
-        }
-        return { sorting: "" };
-    }
-}
-
-/**
- * Specjalistyczna klasa rozszerzająca `CustomSelect` na potrzeby filtrowania.
- * Formatuje wybraną wartość do struktury oczekiwanej przez logikę filtrowania katalogu.
- * * @extends {CustomSelect}
- */
-export class CustomSelectFilter extends CustomSelect {
-    getValue(): any {
-        return { filter: super.getValue() };
-    }
 }
 
 export default CatalogView;

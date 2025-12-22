@@ -12,7 +12,11 @@ import { rentBookRequest, reserveBookRequest } from "../../public/server_request
  * Właściwości (props) dla komponentu UserBookComponent.
  * @property {Book} book_info - Obiekt zawierający szczegółowe informacje o książce.
  */
-type Props = { book_info: BookUser };
+type Props = { 
+    book_info: BookUser,
+    onRentBookPressed?: (book_info: BookUser) => any,
+    onReserveBookPressed?: (book_info: BookUser) => any,
+};
 
 /**
  * Stan komponentu UserBookComponent (obecnie pusty).
@@ -32,6 +36,8 @@ class UserBookComponent extends Component<Props, State> {
      */
     render(): JSX.Element {
         const b = this.props.book_info;
+        const rent = this.props.onRentBookPressed;
+        const reserve = this.props.onReserveBookPressed;
         const authors = b.authors.join(", ");
         const genres = b.genre.join(", ");
         const instances = (() => {
@@ -52,8 +58,8 @@ class UserBookComponent extends Component<Props, State> {
                     <img src={bookIcon} alt="icon" /> „{b.title}” — {authors}
                 </h3>
                 <div className="flex-row reader-actions">
-                    <button onClick={this.onRentBookPressed} disabled={disableRentButton}>Wypożycz</button>
-                    <button onClick={this.onReserveBookPressed} disabled={disableReserveButton}>Zarezerwuj</button>
+                    <button onClick={() => {rent && rent(b)}} disabled={disableRentButton}>Wypożycz</button>
+                    <button onClick={() => {reserve && reserve(b)}} disabled={disableReserveButton}>Zarezerwuj</button>
                 </div>
             </div>
 
@@ -73,39 +79,6 @@ class UserBookComponent extends Component<Props, State> {
             </Collapsible>
         </div>
     }
-
-    /**
-     * Obsługuje zdarzenie kliknięcia przycisku "Wypożycz".
-     * @returns {void}
-     */
-    onRentBookPressed = (): void => {
-        if (this.props.book_info.book_id === undefined) {
-            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
-            return;
-        }
-        try {
-            rentBookRequest(this.props.book_info.book_id);
-        } catch(e) {
-            console.error(`${e}`);
-        }
-    }
-
-    /**
-     * Obsługuje zdarzenie kliknięcia przycisku "Zarezerwuj".
-     * @returns {void}
-     */
-    onReserveBookPressed = (): void => {
-        if (this.props.book_info.book_id === undefined) {
-            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
-            return;
-        }
-        try {
-            reserveBookRequest(this.props.book_info.book_id);
-        } catch(e) {
-            console.error(`${e}`);
-        }
-    }
-
 }
 
 export default UserBookComponent;
