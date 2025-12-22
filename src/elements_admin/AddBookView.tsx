@@ -1,7 +1,8 @@
 /**
  * @file Plik implementujący możliwość edycji i dodawania nowych książek do systemu.
- * Implementuje stronę /add-book oraz specjalny formularz używany na tej stronie oraz
+ * Implementuje stronę /add-book oraz specjalny formularz używany na tej stronie, oraz
  * w widoku edycji na stronie /catalog
+ * @author Szymon Doba
  */
 import {useState, Component, type FormEvent} from "react";
 
@@ -13,9 +14,7 @@ import type IFormComponent from "../../public/custom_components/IFormComponent.t
 import AddBoxIcon from "../assets/add_box.svg";
 import BookIcon from "../assets/book.svg";
 import SaveIcon from "../assets/save.svg";
-import "../style.css";
 import "./add_book.css";
-import "../input.css";
 
 /**
  * Pełen widok książki, z paskiem nawigacyjnym i formularzem dodawania książki
@@ -47,13 +46,13 @@ export default function AddBookView(){
 
     return <>
         <h1>
-            <img src={AddBoxIcon}></img>
+            <img src={AddBoxIcon} alt=''/>
             Dodaj książkę
         </h1>
 
         <div className="panel book-info">
             <h3 className="header">
-                <img src={BookIcon}></img>
+                <img src={BookIcon} alt=''/>
                 Informacje o książce
             </h3>
 
@@ -74,8 +73,9 @@ export default function AddBookView(){
 *  @extends Component
  * @implements IFormComponent<Book>
  *
- * @property {Book|undefined} info - informacje o książce podane przy tworzeniu obiektu w trybie edycji. Komponent automatycznie wypełnia nimi formularz przy renderowaniu
- * @property {'edit'|'create'} mode - sygnalizuje czy formularz jest w trybie edycji, czy dodawania nowej książki
+ * @property {Book} [props.info] - informacje o książce podane przy tworzeniu obiektu w trybie edycji. Komponent automatycznie wypełnia nimi formularz przy renderowaniu
+ * @property {'edit'|'create'} props.mode - sygnalizuje czy formularz jest w trybie edycji, czy dodawania nowej książki
+ * @property {(b:Book)=>void} props.onSubmit -
 * */
 export class AddBookForm
     extends Component<{
@@ -85,7 +85,7 @@ export class AddBookForm
     }>
     implements IFormComponent<Book>
 {
-    info: Book|undefined
+    info?: Book
     mode: 'edit'|'create'
 
     authors: string[];
@@ -96,10 +96,10 @@ export class AddBookForm
     genreInput: string;
     tagInput: string;
 
-    constructor(props:any) {
+    constructor(props: {info?: Book, mode: "create"|"edit", onSubmit: (b:Book)=>void }) {
         super(props)
 
-        //info i mode
+        // info i mode
         this.info = props.info;
         this.mode = props.mode;
 
@@ -114,43 +114,43 @@ export class AddBookForm
     }
 
     // Funkcje dodawania/usuwania
-    addAuthor = () => {
+    private addAuthor = () => {
         const val = this.authorInput.trim();
         if (!val || this.authors.includes(val)) return;
         this.authors.push(val);
         this.authorInput = "";
         this.forceUpdate();
     }
-    removeAuthor = (v:string) => {
+    private removeAuthor = (v:string) => {
         this.authors = this.authors.filter(a => a !== v);
         this.forceUpdate();
     }
 
-    addGenre = () => {
+    private addGenre = () => {
         const val = this.genreInput.trim();
         if (!val || this.genres.includes(val)) return;
         this.genres.push(val);
         this.genreInput = "";
         this.forceUpdate();
     }
-    removeGenre = (v:string) => {
+    private removeGenre = (v:string) => {
         this.genres = this.genres.filter(g => g !== v);
         this.forceUpdate();
     }
 
-    addTag = () => {
+    private addTag = () => {
         const val = this.tagInput.trim();
         if (!val || this.tags.includes(val)) return;
         this.tags.push(val);
         this.tagInput = "";
         this.forceUpdate();
     }
-    removeTag = (v:string) => {
+    private removeTag = (v:string) => {
         this.tags = this.tags.filter(t => t !== v);
         this.forceUpdate();
     }
 
-    getVal(id:string){
+    private getVal(id:string){
         return (document.getElementById(id) as HTMLInputElement).value.trim()
     }
 
@@ -174,7 +174,7 @@ export class AddBookForm
         }
     }
 
-    validate(b:Book):string|null{
+    private validate(b:Book):string|null{
         if (!validators.title(b.title).ok) return "Niepoprawny tytuł"
         if (!validators.isbn(b.isbn_number).ok) return "Niepoprawny ISBN"
         if (!validators.publisher(b.publisher).ok) return "Niepoprawny wydawca"
@@ -182,7 +182,7 @@ export class AddBookForm
         return null
     }
 
-    submit = (e:FormEvent)=>{
+    private submit = (e:FormEvent)=>{
         e.preventDefault()
         const data = this.getValue()
         const valid = this.validate(data)
@@ -345,7 +345,7 @@ export class AddBookForm
 
                 <div className="add-container">
                     <button type="submit">
-                        <img src={SaveIcon}></img> Dodaj książkę
+                        <img src={SaveIcon} alt=''/> Dodaj książkę
                     </button>
                 </div>
 
