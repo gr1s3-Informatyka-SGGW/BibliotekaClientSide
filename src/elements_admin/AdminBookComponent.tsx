@@ -14,6 +14,18 @@ import {AddBookForm} from "./AddBookView.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
 
 /**
+ * Właściwości (props) dla komponentu AdminBookComponent.
+ * @property {BookAdmin} book_info - Obiekt zawierający szczegółowe informacje o książce.
+ */
+type Props = { 
+    book_info: BookAdmin,
+    onAddInstancePressed?: (book_info: BookAdmin) => any,
+    onEditBookPressed?: (book_info: BookAdmin) => any,
+    onRemoveBookPressed?: (book_info: BookAdmin) => any,
+};
+
+
+/**
  * Komponent klasowy wyświetlający szczegółowe informacje o książce w widoku administratora.
  * Zawiera nagłówek z tytułem i akcjami oraz zwijaną sekcję ze szczegółami.
  * @extends React.Component
@@ -22,11 +34,15 @@ import Popup from "../../public/custom_components/Popup.tsx";
  * @prop {BookAdmin} props.book_info - Obiekt zawierający szczegółowe informacje o książce.
  * */
 
-export default class AdminBookComponent extends React.Component<{ book_info: BookAdmin }, {}> {
+export default class AdminBookComponent extends React.Component<Props, {}> {
     render(): JSX.Element {
         const b = this.props.book_info;
         const authors = b.authors.join(", ");
         const genres = b.genre.join(", ");
+
+        const addInstance = this.props.onAddInstancePressed ?? ((b: BookAdmin) => {});
+        const editBook = this.props.onEditBookPressed ?? ((b: BookAdmin) => {});
+        const removeBook = this.props.onRemoveBookPressed ?? ((b: BookAdmin) => {});
 
         return <div className="book">
             <div className="header-actions">
@@ -36,9 +52,9 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
                 <div className="flex-row librarian-actions">
                     <button>
                         <CustomSelect label="Pokaż działania">
-                            <CustomOption value="add" onClick={this.addInstance}>Dodaj egzemplarz</CustomOption>
-                            <CustomOption value="edit" onClick={this.editBook}>Edytuj dane książki</CustomOption>
-                            <CustomOption value="delete" onClick={this.removeBook}>Usuń książkę z systemu</CustomOption>
+                            <CustomOption value="add" onClick={() => {addInstance(b)}}>Dodaj egzemplarz</CustomOption>
+                            <CustomOption value="edit" onClick={() => {editBook(b)}}>Edytuj dane książki</CustomOption>
+                            <CustomOption value="delete" onClick={() => {removeBook(b)}}>Usuń książkę z systemu</CustomOption>
                         </CustomSelect>
                     </button>
                 </div>
@@ -64,45 +80,6 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
                 </div>
             </Collapsible>
         </div>
-    }
-
-    /**
-     * @event addInstance Obsługuje zdarzenie kliknięcia opcji 'Dodaj egzemplarz'
-     * @returns {void}
-     */
-    addInstance = (): void => {
-        if (this.props.book_info.book_id === undefined) {
-            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
-            return;
-        }
-        try {
-            addBookInstanceRequest(this.props.book_info.book_id);
-        } catch(e) {
-            console.error(`${e}`);
-        }
-    }
-
-    /**
-     * @event removeBook Obsługuje zdarzenie kliknięcie opcji 'Usuń książkę z systemu'
-     * @returns {void}
-     */
-    removeBook = (): void => {
-        if (this.props.book_info.book_id === undefined) {
-            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
-            return;
-        }
-        try {
-            removeBookRequest(this.props.book_info.book_id);
-        } catch(e) {
-            console.error(`${e}`);
-        }
-    }
-    /**
-     * @event editBook Obsługuje zdarzenie wybrania opcji 'Edytuj książkę'. Wywołuje komponent <AddBookForm> i wysyła jego wynik do serwera
-     * */
-    editBook = (): void => {
-        const editForm = new AddBookForm();
-        return <Popup><>{editForm}</></Popup>
     }
 }
 
