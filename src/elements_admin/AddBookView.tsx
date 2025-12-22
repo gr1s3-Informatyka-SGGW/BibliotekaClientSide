@@ -84,10 +84,66 @@ export class AddBookForm
     info: Book|undefined
     mode: 'edit'|'create'
 
+    authors: string[];
+    genres: string[];
+    tags: string[];
+
+    authorInput: string;
+    genreInput: string;
+    tagInput: string;
+
     constructor(props:any) {
         super(props)
-        this.info = props.info
-        this.mode = props.mode
+
+        //info i mode
+        this.info = props.info;
+        this.mode = props.mode;
+
+        //chipy na podstawie info
+        this.authors = this.info?.authors ?? [];
+        this.genres = this.info?.genre ?? [];
+        this.tags = this.info?.keywords ?? [];
+
+        this.authorInput = "";
+        this.genreInput = "";
+        this.tagInput = "";
+    }
+
+    // Funkcje dodawania/usuwania
+    addAuthor = () => {
+        const val = this.authorInput.trim();
+        if (!val || this.authors.includes(val)) return;
+        this.authors.push(val);
+        this.authorInput = "";
+        this.forceUpdate();
+    }
+    removeAuthor = (v:string) => {
+        this.authors = this.authors.filter(a => a !== v);
+        this.forceUpdate();
+    }
+
+    addGenre = () => {
+        const val = this.genreInput.trim();
+        if (!val || this.genres.includes(val)) return;
+        this.genres.push(val);
+        this.genreInput = "";
+        this.forceUpdate();
+    }
+    removeGenre = (v:string) => {
+        this.genres = this.genres.filter(g => g !== v);
+        this.forceUpdate();
+    }
+
+    addTag = () => {
+        const val = this.tagInput.trim();
+        if (!val || this.tags.includes(val)) return;
+        this.tags.push(val);
+        this.tagInput = "";
+        this.forceUpdate();
+    }
+    removeTag = (v:string) => {
+        this.tags = this.tags.filter(t => t !== v);
+        this.forceUpdate();
     }
 
     getVal(id:string){
@@ -108,9 +164,9 @@ export class AddBookForm
             length: Number(this.getVal("length")),
             language: (document.getElementById("language") as HTMLSelectElement).value,
             publish_year: Number(this.getVal("publish_year")),
-            authors: (document.getElementById("authors") as any).chosen ?? [],
-            keywords: (document.getElementById("keywords") as any).chosen ?? [],
-            genre: (document.getElementById("genre") as any).chosen ?? []
+            authors: this.authors,
+            keywords: this.tags,
+            genre: this.genres
         }
     }
 
@@ -168,145 +224,61 @@ export class AddBookForm
 
                 {/* RZĄD 2: Autorzy */}
                 <div className="form-group">
-                    <label>Autorzy:</label>
+                <label>Autorzy:</label>
                     <div className="multi-select-container">
-
-                        {((document.getElementById("authors") as any)?.chosen ?? []).map(
-                            (a:string) => (
-                                <div className="chip" key={a}>
-                                    {a}
-                                    <span
-                                        className="chip-close"
-                                        onClick={()=>{
-                                            const ds = document.getElementById("authors") as any
-                                            ds.removeValue(a)
-                                            this.forceUpdate()
-                                        }}
-                                    >x</span>
-                                </div>
-                            )
-                        )}
-
-                        <DynamicSelect
-                            {...{
-                                id:"authors",
-                                children: b?.authors,
-                                allow_multiple: true,
-                                placeholder:"Wybierz lub wpisz nowego autora"
-                            }}
-                        />
-
-                        <div
-                            className="chip add"
-                            onClick={()=>{
-                                const input = document.querySelector("#authors input") as HTMLInputElement
-                                if (input && input.value.trim()) {
-                                    (document.getElementById("authors") as any).addValue(input.value.trim())
-                                    input.value = ""
-                                    this.forceUpdate()
-                                } else {
-                                    input?.focus()
-                                }
-                            }}
-                        >
-                            Dodaj
+                        {this.authors.map(v => (
+                        <div key={v} className="chip">
+                            {v} <span className="chip-close" onClick={() => this.removeAuthor(v)}>x</span>
                         </div>
+                        ))}
+                        <input
+                        type="text"
+                        value={this.authorInput}
+                        placeholder="Dodaj autora"
+                        onChange={e => { this.authorInput = e.currentTarget.value; this.forceUpdate(); }}
+                        onKeyDown={e => e.key === "Enter" && this.addAuthor()}
+                        />
+                        <div className="chip add" onClick={this.addAuthor}>Dodaj</div>
                     </div>
                 </div>
 
                 {/* RZĄD 3: Gatunki */}
                 <div className="form-group">
-                    <label>Gatunki:</label>
+                <label>Gatunki:</label>
                     <div className="multi-select-container">
-
-                        {((document.getElementById("genres") as any)?.chosen ?? []).map(
-                            (g:string) => (
-                                <div className="chip" key={g}>
-                                    {g}
-                                    <span
-                                        className="chip-close"
-                                        onClick={()=>{
-                                            const ds = document.getElementById("genres") as any
-                                            ds.removeValue(g)
-                                            this.forceUpdate()
-                                        }}
-                                    >x</span>
-                                </div>
-                            )
-                        )}
-
-                        <DynamicSelect
-                            {...{
-                                id:"genres",
-                                children: b?.genre,
-                                allow_multiple: true,
-                                placeholder:"Wybierz lub wpisz gatunek"
-                            }}
-                        />
-
-                        <div
-                            className="chip add"
-                            onClick={()=>{
-                                const input = document.querySelector("#genres input") as HTMLInputElement
-                                if (input && input.value.trim()) {
-                                    (document.getElementById("genres") as any).addValue(input.value.trim())
-                                    input.value = ""
-                                    this.forceUpdate()
-                                } else {
-                                    input?.focus()
-                                }
-                            }}
-                        >
-                            Dodaj
+                        {this.genres.map(v => (
+                        <div key={v} className="chip">
+                            {v} <span className="chip-close" onClick={() => this.removeGenre(v)}>x</span>
                         </div>
+                        ))}
+                        <input
+                        type="text"
+                        value={this.genreInput}
+                        placeholder="Dodaj gatunek"
+                        onChange={e => { this.genreInput = e.currentTarget.value; this.forceUpdate(); }}
+                        onKeyDown={e => e.key === "Enter" && this.addGenre()}
+                        />
+                        <div className="chip add" onClick={this.addGenre}>Dodaj</div>
                     </div>
                 </div>
 
                 {/* RZĄD 4: Tagi */}
                 <div className="form-group">
-                    <label>Tagi:</label>
+                <label>Tagi:</label>
                     <div className="multi-select-container">
-
-                        {((document.getElementById("tags") as any)?.chosen ?? []).map(
-                            (t:string) => (
-                                <div className="chip" key={t}>
-                                    {t}
-                                    <span
-                                        className="chip-close"
-                                        onClick={()=>{
-                                            const ds = document.getElementById("tags") as any
-                                            ds.removeValue(t)
-                                            this.forceUpdate()
-                                        }}
-                                    >x</span>
-                                </div>
-                            )
-                        )}
-
-                        <DynamicSelect
-                            {...{
-                                id:"tags",
-                                children: b?.keywords,
-                                allow_multiple: true,
-                                placeholder:"Wybierz lub wpisz tag"
-                            }}
-                        />
-
-                        <div
-                            className="chip add"
-                            onClick={()=>{
-                                const input = document.querySelector("#tags input") as HTMLInputElement
-                                if (input && input.value.trim()) {
-                                    (document.getElementById("tags") as any).addValue(input.value.trim())
-                                    input.value = ""
-                                    this.forceUpdate()
-                                } else {
-                                    input?.focus()
-                                }
-                            }}
-                        >
-                            Dodaj
+                        {this.tags.map(v => (
+                        <div key={v} className="chip">
+                            {v} <span className="chip-close" onClick={() => this.removeTag(v)}>x</span>
                         </div>
+                        ))}
+                        <input
+                        type="text"
+                        value={this.tagInput}
+                        placeholder="Dodaj tag"
+                        onChange={e => { this.tagInput = e.currentTarget.value; this.forceUpdate(); }}
+                        onKeyDown={e => e.key === "Enter" && this.addTag()}
+                        />
+                        <div className="chip add" onClick={this.addTag}>Dodaj</div>
                     </div>
                 </div>
 
