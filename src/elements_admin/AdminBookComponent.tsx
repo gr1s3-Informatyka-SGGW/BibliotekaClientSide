@@ -15,7 +15,10 @@ import Popup from "../../public/custom_components/Popup.tsx";
 
 /**
  * Właściwości (props) dla komponentu AdminBookComponent.
- * @property {BookAdmin} book_info - Obiekt zawierający szczegółowe informacje o książce.
+ * * @property {BookAdmin} book_info - Obiekt zawierający rozszerzone informacje o książce przeznaczone dla panelu administratora.
+ * @property {function} [onAddInstancePressed] - Opcjonalna funkcja wywoływana w celu dodania nowego egzemplarza książki.
+ * @property {function} [onEditBookPressed] - Opcjonalna funkcja wywoływana w celu edycji danych istniejącej książki.
+ * @property {function} [onRemoveBookPressed] - Opcjonalna funkcja wywoływana w celu usunięcia książki z systemu.
  */
 type Props = { 
     book_info: BookAdmin,

@@ -10,7 +10,9 @@ import { rentBookRequest, reserveBookRequest } from "../../public/server_request
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.
- * @property {Book} book_info - Obiekt zawierający szczegółowe informacje o książce.
+ * * @property {BookUser} book_info - Obiekt zawierający szczegółowe informacje o książce widoczne dla użytkownika.
+ * @property {function} [onRentBookPressed] - Opcjonalna funkcja wywoływana przy próbie wypożyczenia książki.
+ * @property {function} [onReserveBookPressed] - Opcjonalna funkcja wywoływana przy próbie rezerwacji książki.
  */
 type Props = { 
     book_info: BookUser,
