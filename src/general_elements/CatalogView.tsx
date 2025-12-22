@@ -35,7 +35,10 @@ import {
     rentBookRequest,
     addBookInstanceRequest,
     removeBookRequest,
-    editBookRequest
+    editBookRequest,
+    removeBookInstanceRequest,
+    markDamagedBookInstanceRequest,
+    markMendedBookInstanceRequest
 } from "../../public/server_requests.ts";
 import catalogIcon from "../assets/newsstand.svg"
 import { AuthContext } from "../../public/UserAuth";
@@ -117,7 +120,10 @@ function CatalogView(): JSX.Element {
         | "reserveConfirm" | "reserveSuccess" | "reserveError"
         | "removeBookConfirm" | "removeBookSuccess" | "removeBookError"
         | "addInstanceSuccess" | "addInstanceError"
-        | "editBook" | "editBookError">(undefined);
+        | "editBook" | "editBookError"
+        | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
+        | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
+        | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError">(undefined);
 
     const [popupData, setPopupData] = useState<any>(undefined);
 
@@ -266,6 +272,50 @@ function CatalogView(): JSX.Element {
     const onRemoveBookPressed = (book: BookAdmin) => {
         setShownPopup("removeBookConfirm");
         setPopupData(book);
+    }
+
+    const onInstanceMarkDamagedPressed = (book: BookAdmin, instance_id: number) => {
+        hidePopups();
+        try {
+            markDamagedBookInstanceRequest(instance_id);
+            setPopupData({ book: book, instanceId: instance_id });
+            setShownPopup("instanceMarkDamagedSuccess");
+        } catch (e) {
+            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            setPopupData({ book: book, instanceId: instance_id, error: msg });
+            setShownPopup("instanceMarkDamagedError");
+        }
+    }
+
+    const onInstanceMarkMendedPressed = (book: BookAdmin, instance_id: number) => {
+        hidePopups();
+        try {
+            markMendedBookInstanceRequest(instance_id);
+            setPopupData({ book: book, instanceId: instance_id });
+            setShownPopup("instanceMarkMendedSuccess");
+        } catch (e) {
+            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            setPopupData({ book: book, instanceId: instance_id, error: msg });
+            setShownPopup("instanceMarkMendedError");
+        }
+    }
+
+    const onInstanceRemovePressed = (book: BookAdmin, instance_id: number) => {
+        setShownPopup("removeInstanceConfirm");
+        setPopupData({ book: book, instanceId: instance_id });
+    }
+
+    const handleInstanceRemove = (data: { book: BookAdmin, instanceId: number }) => {
+        hidePopups();
+        try {
+            removeBookInstanceRequest(data.instanceId);
+            setPopupData(data);
+            setShownPopup("removeInstanceSuccess");
+        } catch (e) {
+            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            setPopupData({ ...data, error: msg });
+            setShownPopup("removeInstanceError");
+        }
     }
 
     const hidePopups = () => {
@@ -490,6 +540,96 @@ function CatalogView(): JSX.Element {
                 </div>
             </Popup>
         }
+        {shownPopup === "instanceMarkDamagedSuccess" &&
+            <Popup title="Zmieniono stan egzemplarza" onClose={hidePopups}>
+                <p className="text-justify">
+                    Pomyślnie oznaczono jako zniszczony egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "instanceMarkDamagedError" &&
+            <Popup title="Błąd przy zmianie stanu" onClose={hidePopups}>
+                <p className="text-justify">
+                    Nie udało się oznaczyć jako zniszczony egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+                <p className="text-justify italic">
+                    <strong>{popupData.error}</strong>
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "instanceMarkMendedSuccess" &&
+            <Popup title="Zmieniono stan egzemplarza" onClose={hidePopups}>
+                <p className="text-justify">
+                    Pomyślnie anulowano zniszczenie egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "instanceMarkMendedError" &&
+            <Popup title="Błąd przy zmianie stanu" onClose={hidePopups}>
+                <p className="text-justify">
+                    Nie udało się anulować zniszczenia egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+                <p className="text-justify italic">
+                    <strong>{popupData.error}</strong>
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "removeInstanceConfirm" &&
+            <Popup title="Usuwanie egzemplarza" onClose={hidePopups}>
+                <p className="text-justify">
+                    Czy na pewno chcesz trwale usunąć egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+                <p><strong>
+                    Tej operacji nie można cofnąć.
+                </strong></p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Anuluj</button>
+                    <button onClick={() => { handleInstanceRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "removeInstanceSuccess" &&
+            <Popup title="Usunięto egzemplarz" onClose={hidePopups}>
+                <p className="text-justify">
+                    Pomyślnie usunięto egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong> z systemu.
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
+        {shownPopup === "removeInstanceError" &&
+            <Popup title="Błąd przy usuwaniu egzemplarza" onClose={hidePopups}>
+                <p className="text-justify">
+                    Nie udało się usunąć egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
+                </p>
+                <p className="text-justify italic">
+                    <strong>{popupData.error}</strong>
+                </p>
+
+                <div className="flex flex-row *:flex-1 mt-6">
+                    <button onClick={hidePopups} className="boring">Zamknij</button>
+                </div>
+            </Popup>
+        }
 
         <h1 className="mb-14"><img src={catalogIcon} alt="icon" /> Katalog</h1>
         <main>
@@ -590,6 +730,9 @@ function CatalogView(): JSX.Element {
                         onAddInstancePressed={onAddInstancePressed}
                         onEditBookPressed={onEditBookPressed}
                         onRemoveBookPressed={onRemoveBookPressed}
+                        onInstanceMarkDamagedPressed={onInstanceMarkDamagedPressed}
+                        onInstanceMarkMendedPressed={onInstanceMarkMendedPressed}
+                        onInstanceRemove={onInstanceRemovePressed}
                     />
                 ))}
             </div>
