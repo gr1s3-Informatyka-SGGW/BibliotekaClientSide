@@ -10,6 +10,10 @@ import {validators} from "../../public/validators.ts";
 import {addBookRequest, editBookRequest} from "../../public/server_requests.ts";
 import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
+import AddBoxIcon from "../assets/add_box.svg";
+import BookIcon from "../assets/book.svg";
+import SaveIcon from "../assets/save.svg";
+import "../style.css";
 import "./add_book.css";
 import "../input.css";
 
@@ -43,13 +47,13 @@ export default function AddBookView(){
 
     return <>
         <h1>
-            <img src="../assets/add_box.svg"></img>
+            <img src={AddBoxIcon}></img>
             Dodaj książkę
         </h1>
 
         <div className="panel book-info">
             <h3 className="header">
-                <img src="../assets/book.svg"></img>
+                <img src={BookIcon}></img>
                 Informacje o książce
             </h3>
 
@@ -341,7 +345,7 @@ export class AddBookForm
 
                 <div className="add-container">
                     <button type="submit">
-                        <img src="../assets/save.svg" /> Dodaj książkę
+                        <img src={SaveIcon}></img> Dodaj książkę
                     </button>
                 </div>
 
