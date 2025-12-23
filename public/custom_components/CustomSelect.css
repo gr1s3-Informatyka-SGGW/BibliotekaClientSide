@@ -17,7 +17,7 @@
     border: none;
     user-select: none;
 }
-.custom-select-trigger:hover {
+.custom-select-trigger:hover, .custom-select-trigger:focus {
     background-color: #ebc3cf;
 }
 .custom-select-trigger.filtered {
@@ -25,8 +25,19 @@
     background-color: #891e49;
 }
 
-.custom-select-trigger.filtered:hover {
+.custom-select-trigger.filtered:hover, .custom-select-trigger.filtered:focus {
     background-color: #6b1737;
+}
+
+.custom-select-trigger:focus,
+.custom-select-trigger:focus-visible {
+    outline: none;
+}
+
+.options-list:focus,
+.options-list:focus-visible {
+    outline: none;
+
 }
 
 .custom-select-trigger > div {
@@ -54,6 +65,10 @@
     border-radius: 100em;
     color: #FFE8EF;
     background-color: #891E49;
+}
+
+.filter-reset-btn:hover, .filter-reset-btn:focus {
+    background-color: #6b1737;
 }
 
 .select-dropdown {
@@ -113,7 +128,12 @@
     transform: translateY(-50%);
     color: #891E49;
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
+
 
 .search-input {
     width: 100%;
@@ -158,8 +178,12 @@
     gap: 0.4em;
 }
 
-.option-item:hover, .option-item.focused {
+.option-item:hover{
     background-color: #6B1737;
+}
+
+.option-item.focused {
+    background-color: #7a2b47;
 }
 
 .option-item.selected {
@@ -200,6 +224,17 @@
     margin-top: 0.5rem;
     padding: 0.5rem;
     background-color: #6B1737;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0.4rem;
+    cursor: pointer;
+}
+
+.date-confirm-btn-sm:focus, .date-confirm-btn-sm:hover {
+    outline: none;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #4e1028;
     color: white;
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 0.4rem;

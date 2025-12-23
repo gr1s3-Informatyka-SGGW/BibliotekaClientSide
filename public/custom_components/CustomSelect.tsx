@@ -1,5 +1,6 @@
 /**
- * @file Implementacja niestandardowego komponentu wyboru (Select)
+ * @file CustomSelect.tsx
+ * @description Implementacja niestandardowego komponentu wyboru (Select)
  * @author Karol Dziuba
  */
 
@@ -12,6 +13,12 @@ import '../../src/style.css';
 
 /**
  * Komponent prezentacyjny wyświetlający ikonę wyszukiwania (lupę).
+ *
+ * Szczegóły implementacyjne:
+ * - **Kolorowanie**: Używa zaawansowanego filtra CSS (`filter`), aby narzucić konkretny kolor
+ * na plik SVG bez konieczności jego fizycznej edycji.
+ * - **Dostępność**: Pusty atrybut `alt=""` oznacza, że ikona jest traktowana jako element dekoracyjny
+ * i zostanie pominięta przez czytniki ekranowe (screen readers).
  *
  * @param {object} props - Właściwości komponentu.
  * @param {string} [props.className=""] - Opcjonalna klasa CSS, zazwyczaj używana do ustalenia
@@ -30,10 +37,9 @@ const SearchIcon = ({ className = "" }: { className?: string }) => (
 /**
  * Przycisk służący do resetowania wszystkich wybranych filtrów.
  * Wyświetla etykietę oraz liczbę aktywnych filtrów.
- * @param param
- * @param {number} [param.activeCount] - liczba aktywnych filtrów
- * @param {()=> void} param.onReset - funkcja wywołania po kliknięciu
- * @param {string} [param.label] - Tekst wyświetlany na przycisku
+ * @param activeCount - liczba aktywnych filtrów
+ * @param onReset - funkcja wywołania po kliknięciu
+ * @param label - Tekst wyświetlany na przycisku
  */
 export const FilterResetButton = ({ activeCount = 0, onReset, label = "Wyczyść filtry" }: { activeCount?: number; onReset: () => void; label?: string; }) => (
     <button
@@ -46,7 +52,14 @@ export const FilterResetButton = ({ activeCount = 0, onReset, label = "Wyczyść
 );
 
 /**
- * @type SelectContextType Kontekst zapewniający komunikację między komponentem CustomSelect a jego opcjami.
+ * Kontekst zapewniający komunikację i współdzielenie stanu między głównym komponentem CustomSelect a jego opcjami.
+ *
+ * @property {Set<string>} selectedValues - Zbiór unikalnych identyfikatorów aktualnie wybranych opcji.
+ * @property {(value: string, label: string) => void} onSelect - Funkcja zwrotna wywoływana w momencie kliknięcia lub zatwierdzenia opcji.
+ * @property {string} searchQuery - Aktualna fraza wpisana przez użytkownika w pole wyszukiwania.
+ * @property {number} focusedIndex - Indeks numeryczny elementu, który jest aktualnie podświetlony (nawigacja klawiaturą/myszą).
+ * @property {(index: number) => void} setFocusedIndex - Funkcja służąca do ręcznego ustawienia indeksu podświetlonego elementu.
+ * @property {(value: string, label: string) => void} registerOption - Metoda pozwalająca opcjom potomnym (CustomOption) zarejestrować swoją etykietę w mapie rodzica.
  */
 
 interface SelectContextType {
@@ -62,12 +75,12 @@ const SelectContext = React.createContext<SelectContextType | undefined>(undefin
 
 
 /**
- * @type CustomOptionProps Typ właściwości dla pojedynczej opcji wyboru
+ * Typ właściwości dla pojedynczej opcji wyboru
  * @property value - Unikalna wartość opcji
  * @property children - Wyświetlana etykieta lub element
  * @property className - Dodatkowa klasa CSS
  * @property index - Indeks elementu
- * @property onClick - opcjonalna funkcja wywołania po kliknięciu, w opcje.
+ * @property onClick - opcjonalna funkcja wywołania po kliknięciu w opcje.
  */
 
 export interface CustomOptionProps {
@@ -90,7 +103,7 @@ export interface CustomOptionProps {
 }
 
 /**
- * @type CustomOptionProps Typ właściwości dla głównego komponentu Select
+ * Typ właściwości dla głównego komponentu Select
  * @property label - Etykieta przycisku otwierającego listę
  * @property allow_multiple - Czy pozwala na wybór wielu opcji (domyślnie false)
  * @property searchable - Czy lista ma pole wyszukiwania
@@ -98,6 +111,8 @@ export interface CustomOptionProps {
  * @property initialValues - Wartości początkowe
  * @property className - Dodatkowa klasa CSS
  * @property allowCustomRange - Czy wyświetlić panel zakresu dat zamiast listy opcji
+ * @property menu_mode - Tryb, w którym nie pokazuje się wybrana opcja na dole przycisku.
+ * @property filterKey - Jak nazwać filtr w zapytaniu do serwera.
  */
 
 export interface CustomSelectProps {
@@ -109,6 +124,8 @@ export interface CustomSelectProps {
     initialValues?: string[];
     className?: string;
     allowCustomRange?: boolean;
+    menu_mode? :boolean;
+    filterKey: string;
 }
 
 /**
@@ -118,7 +135,7 @@ export interface CustomSelectProps {
  * @property labelMap - Mapa mapująca wartości na etykiety
  * @property searchQuery - Aktualna fraza wyszukiwania
  * @property focusedIndex - Indeks aktualnie podświetlonego elementu (nawigacja klawiaturą)
- * @property position - Obliczona pozycja dropdown'a względem przycisku aktywacji
+ * @property position - Obliczona pozycja dropdowna względem przycisku aktywacji
  */
 
 interface CustomSelectState {
@@ -132,9 +149,9 @@ interface CustomSelectState {
 
 /**
  * Komponent reprezentujący pojedynczą opcję na liście rozwijanej.
- * Rejestruje się w kontekście rodzica i obsługuje interakcje myszką.
- * @extends Component
- * @prop {CustomOptionProps} Props
+ *
+ * Odpowiada za wyświetlanie elementu, obsługę zdarzeń myszy (kliknięcie, najechanie)
+ * oraz rejestrację swojej wartości i etykiety w kontekście rodzica (CustomSelect).
  */
 export class CustomOption extends Component<CustomOptionProps> {
     private elementRef = createRef<HTMLButtonElement>();
@@ -180,7 +197,7 @@ export class CustomOption extends Component<CustomOptionProps> {
      * standardowy wybór (onSelect) jest pomijany.
      * 3. W przeciwnym razie wykonuje standardową logikę wyboru i zatrzymuje propagację.
      *
-     * @param {React.MouseEvent<HTMLButtonElement>} e - Obiekt zdarzenia myszy.
+     * @param e - Obiekt zdarzenia myszy.
      */
     handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 
@@ -232,13 +249,8 @@ export class CustomOption extends Component<CustomOptionProps> {
 /**
  * Komponent główny listy rozwijanej.
  * Obsługuje logikę otwierania/zamykania, pozycjonowania, filtrowania opcji i zarządzania stanem wyboru.
- * @extends Component
- * @implements IFormComponent<string[]>
- *
- * @prop {CustomSelectProps} Props
- * @prop {CustomSelectState} state
  */
-export class CustomSelect extends Component<CustomSelectProps, CustomSelectState> implements IFormComponent<string[]> {
+export class CustomSelect extends Component<CustomSelectProps, CustomSelectState> implements IFormComponent<any> {
     private triggerRef = createRef<HTMLDivElement>();
     private dropdownRef = createRef<HTMLDivElement>();
     private searchInputRef = createRef<HTMLInputElement>();
@@ -260,8 +272,8 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
      * W tym komponencie odpowiada za logikę efektów ubocznych:
      *
      * 1. **Synchronizacja danych:** Aktualizuje stan `selectedValues`, jeśli rodzic przekaże nowe `initialValues`.
-     * 2. **Zarządzanie zdarzeniami:** Dodaje globalne event listener'y w momencie otwarcia listy i usuwa je po jej zamknięciu.
-     * 3. **Pozycjonowanie i Focus:** Przelicza pozycję dropdown'u oraz ustawia focus na polu wyszukiwania po otwarciu.
+     * 2. **Zarządzanie zdarzeniami:** Dodaje globalne event listenery w momencie otwarcia listy i usuwa je po jej zamknięciu.
+     * 3. **Pozycjonowanie i Focus:** Przelicza pozycję dropdownu oraz ustawia focus na polu wyszukiwania po otwarciu.
      * 4. **Czyszczenie:** Resetuje frazę wyszukiwania po zamknięciu listy.
      *
      * @param prevProps - Właściwości komponentu przed aktualizacją.
@@ -297,6 +309,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
             document.addEventListener('mousedown', this.handleOutsideClick);
             document.addEventListener('touchstart', this.handleOutsideClick);
 
+
             // Focus search if searchable
             if (this.props.searchable) {
                 setTimeout(() => this.searchInputRef.current?.focus(), 50);
@@ -327,8 +340,18 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         document.removeEventListener('touchstart', this.handleOutsideClick);
     }
 
-    getValue(): string[] {
-        return Array.from(this.state.selectedValues);
+    getValue() {
+        if (this.state.selectedValues.size === 0) {
+            return {};
+        }
+
+        const valuesArray = Array.from(this.state.selectedValues);
+
+        return {
+            filter: {
+                [this.props.filterKey]: valuesArray
+            }
+        };
     }
 
     static readonly DROPDOWN_MIN_WIDTH = 240;
@@ -430,7 +453,10 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         if (!isOpen) {
             if (['Enter', ' ', 'ArrowDown'].includes(e.key)) {
                 e.preventDefault();
-                this.setState({ isOpen: true });
+                this.setState({
+                    isOpen: true,
+                    focusedIndex: 0
+                });
             }
             return;
         }
@@ -466,6 +492,19 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         }
     };
 
+    /**
+     * Obsługuje zdarzenie wyboru konkretnej opcji (kliknięcie lub Enter).
+     *
+     * Metoda realizuje następującą logikę:
+     * 1. Rejestruje parę wartość-etykieta w `labelMap`, aby zapewnić poprawne wyświetlanie wybranej opcji.
+     * 2. W trybie `allow_multiple`: dodaje wartość do zbioru lub ją usuwa (toggle).
+     * 3. W trybie pojedynczym: nadpisuje wybór i zamyka listę rozwijaną.
+     * 4. Wywołuje prop `onChange` przekazując zaktualizowaną tablicę wartości do rodzica.
+     *
+     * @param {string} value - Unikalny identyfikator wybranej opcji.
+     * @param {string} label - Tekstowa reprezentacja opcji (wyświetlana użytkownikowi).
+     */
+
     private handleSelect = (value: string, label: string) => {
         this.registerOption(value, label);
 
@@ -488,15 +527,48 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         }
     };
 
+    /**
+     * Rejestruje mapowanie wartości na etykietę w stanie komponentu.
+     *
+     * Metoda ta jest wywoływana przez komponenty podrzędne (CustomOption) podczas ich montowania.
+     * Dzięki temu rodzic (CustomSelect) wie, jaki tekst wyświetlić na przycisku (trigger),
+     * gdy dana wartość znajduje się w zbiorze `selectedValues`.
+     *
+     * @param {string} value - Unikalny identyfikator opcji.
+     * @param {string} label - Tekstowa reprezentacja opcji (to, co widzi użytkownik).
+     */
+
     private registerOption = (value: string, label: string) => {
         this.setState(prev => ({
             labelMap: new Map(prev.labelMap).set(value, label)
         }));
     };
 
+    /**
+     * Ustawia indeks elementu, który ma zostać wizualnie podświetlony (otrzymać focus).
+     *
+     * Metoda aktualizuje stan `focusedIndex`. Jest przekazywana do kontekstu (`SelectContext`),
+     * co umożliwia komponentom potomnym (`CustomOption`) zmianę aktywnego elementu
+     * w momencie najechania na nie kursorem myszy (`onMouseEnter`).
+     *
+     * @param {number} index - Nowy indeks podświetlonego elementu (liczony od 0).
+     */
+
     private setFocusedIndex = (index: number) => {
         this.setState({ focusedIndex: index });
     };
+
+    /**
+     * Generuje wewnętrzną zawartość listy rozwijanej (dropdownu).
+     *
+     * Metoda ta pełni rolę "kontrolera widoku" dla wnętrza listy i odpowiada za:
+     * 1. Wybór trybu wyświetlania: standardowa lista opcji lub panel zakresu dat (`allowCustomRange`).
+     * 2. Logikę wyszukiwania: filtrowanie opcji na podstawie `searchQuery`.
+     * 3. Logikę sortowania: szeregowanie wyników tak, aby te zaczynające się od wpisanej frazy były wyżej.
+     * 4. Obsługę stanów brzegowych: brak zdefiniowanych opcji lub brak wyników wyszukiwania.
+     *
+     * @returns {React.ReactNode} Elementy JSX (input, lista opcji lub komunikaty) gotowe do wstawienia do portalu.
+     */
 
     private renderContent() {
         const { children, searchable, allowCustomRange } = this.props;
@@ -512,18 +584,38 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
             return <div className="options-list"><div className="empty-state">Brak opcji</div></div>;
         }
 
-        const visibleChildren = arrayChildren.filter((child) => {
-            if (!React.isValidElement(child)) return false;
-
-            if (!searchable || !searchQuery) return true;
-
+        const getTextFromChild = (child: React.ReactNode): string => {
+            if (!React.isValidElement(child)) return "";
             const props = child.props as CustomOptionProps;
-            const textContent = typeof props.children === 'string'
+            return typeof props.children === 'string'
                 ? props.children
                 : (props.value ? String(props.value) : "");
+        };
 
-            return textContent.toLowerCase().includes(searchQuery.toLowerCase());
+        const lowerQuery = searchQuery.toLowerCase();
+
+        const visibleChildren = arrayChildren.filter((child) => {
+            if (!React.isValidElement(child)) return false;
+            if (!searchable || !searchQuery) return true;
+
+            return getTextFromChild(child).toLowerCase().includes(lowerQuery);
         });
+
+        if (searchable && searchQuery) {
+            visibleChildren.sort((a, b) => {
+                const textA = getTextFromChild(a).toLowerCase();
+                const textB = getTextFromChild(b).toLowerCase();
+
+                const indexA = textA.indexOf(lowerQuery);
+                const indexB = textB.indexOf(lowerQuery);
+
+                if (indexA !== indexB) {
+                    return indexA - indexB;
+                }
+
+                return textA.length - textB.length;
+            });
+        }
 
         return (
             <>
@@ -554,7 +646,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         );
     }
     render() {
-        const { label, allow_multiple, className } = this.props;
+        const { label, allow_multiple, className, menu_mode } = this.props;
         const { isOpen, selectedValues, labelMap, position } = this.state;
 
         const isActive = selectedValues.size > 0;
@@ -565,14 +657,14 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         return (
                 <div
                     ref={this.triggerRef}
-                    onClick={() => this.setState({ isOpen: !isOpen })}
+                    onClick={() => this.setState({ isOpen: !isOpen, focusedIndex: -1})}
                     onKeyDown={this.handleKeyDown}
                     className={`custom-select-trigger ${isActive ? 'filtered' : ''} ${className || ''}`}
                     role="button"
                     tabIndex={0}
                 >
                     {label}
-                    {isActive && (
+                    {isActive && !menu_mode && (
                         <div>{displayLabel}{allow_multiple && displayCount}</div>
                     )}
 
@@ -608,7 +700,6 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
 }
 
 /**
- * @type DateRangePanelProps
  * Definicja właściwości (props) dla komponentu `DateRangePanel`.
  */
 
@@ -680,6 +771,7 @@ const DateRangePanel = ({ onConfirm }: DateRangePanelProps) => {
                     value={start}
                     onChange={handleInput(setStart)}
                     onClick={e => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className={error ? 'input-error' : ''} // Opcjonalna klasa błędu
                 />
             </div>
@@ -692,6 +784,7 @@ const DateRangePanel = ({ onConfirm }: DateRangePanelProps) => {
                     value={end}
                     onChange={handleInput(setEnd)}
                     onClick={e => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className={error ? 'input-error' : ''}
                 />
             </div>
