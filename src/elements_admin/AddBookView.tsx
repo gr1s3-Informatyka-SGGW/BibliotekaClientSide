@@ -8,9 +8,10 @@ import {useState, Component, type FormEvent} from "react";
 
 import DynamicSelect from "../../public/custom_components/DynamicSelect.tsx";
 import {validators} from "../../public/validators.ts";
-import {addBookRequest, editBookRequest} from "../../public/server_requests.ts";
+import {addBookRequest, editBookRequest, addBookInstanceRequest} from "../../public/server_requests.ts";
 import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
+import { Alert } from "../../public/custom_components/Popup.tsx";
 import AddBoxIcon from "../assets/add_box.svg";
 import BookIcon from "../assets/book.svg";
 import SaveIcon from "../assets/save.svg";
@@ -25,18 +26,26 @@ export default function AddBookView(){
 
     const [error, setError] = useState<string|null>(null)
     const [success, setSuccess] = useState<string|null>(null)
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    
 
-    async function sendForm(book: Book){
+    async function sendForm(book: Book, copies: number) {
         console.log("Wysyłam:", book)
-        setError(null)
-        setSuccess(null)
+        setError(null);
+        setSuccess(null);
 
         try {
-            await addBookRequest(book)
-            setSuccess("Książka została pomyślnie dodana.")
-            showPopup("book_copies_added")
-        } catch (e){
-            setError("Wystąpił błąd przy dodawaniu książki.")
+            const createdBook = await addBookRequest(book);
+
+            for (let i = 0; i < copies; i++) {
+                await addBookInstanceRequest(createdBook.book_id);
+            }
+
+            setSuccess("Książka została pomyślnie dodana.");
+            setIsPopupOpen(true);
+
+        } catch (e) {
+            setError("Wystąpił błąd przy dodawaniu książki.");
         }
     }
 
@@ -64,6 +73,18 @@ export default function AddBookView(){
 
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
+
+        <Alert
+            title="Sukces"
+            message="Książka oraz jej egzemplarze zostały poprawnie dodane do systemu."
+            icon={BookIcon}       // opcjonalnie ikona
+            isOpen={isPopupOpen}
+            setIsOpen={setIsPopupOpen}
+            onCancel={() => console.log("Popup zamknięty")}
+            onAccept={() => console.log("Akcja zatwierdzona")} // jeśli chcesz przycisk Tak
+            cancelText="OK"       // nadpisuje domyślne teksty
+            acceptText="Dodaj kolejny" // tylko jeśli używasz onAccept
+        />
     </>
 }
 
@@ -81,8 +102,9 @@ export class AddBookForm
     extends Component<{
         info?: Book
         mode: "create"|"edit"
-        onSubmit: (b:Book)=>void
+        onSubmit: (b: Book, copies: number) => void
     }>
+
     implements IFormComponent<Book>
 {
     info?: Book
@@ -111,6 +133,10 @@ export class AddBookForm
         this.authorInput = "";
         this.genreInput = "";
         this.tagInput = "";
+    }
+
+    getCopiesCount(): number {  
+        return Number(this.getVal("copies"));
     }
 
     // Funkcje dodawania/usuwania
@@ -165,7 +191,6 @@ export class AddBookForm
             title: this.getVal("title"),
             isbn_number: this.getVal("isbn"),
             publisher: (document.getElementById("publisher") as HTMLSelectElement).value,
-            length: Number(this.getVal("length")),
             language: (document.getElementById("language") as HTMLSelectElement).value,
             publish_year: Number(this.getVal("publish_year")),
             authors: this.authors,
@@ -178,19 +203,20 @@ export class AddBookForm
         if (!validators.title(b.title).ok) return "Niepoprawny tytuł"
         if (!validators.isbn(b.isbn_number).ok) return "Niepoprawny ISBN"
         if (!validators.publisher(b.publisher).ok) return "Niepoprawny wydawca"
-        if (!validators.pages(b.length).ok) return "Niepoprawna liczba stron"
         return null
     }
 
-    private submit = (e:FormEvent)=>{
-        e.preventDefault()
-        const data = this.getValue()
-        const valid = this.validate(data)
-        if (valid){
-            alert(valid)
-            return
+    private submit = (e: FormEvent) => {
+        e.preventDefault();
+
+        const data = this.getValue();
+        const valid = this.validate(data);
+        if (valid) {
+            alert(valid);
+            return;
         }
-        this.props.onSubmit(data)
+
+        this.props.onSubmit(data, this.getCopiesCount());
     }
 
     render() {
@@ -310,10 +336,10 @@ export class AddBookForm
                     <div className="form-group">
                         <label>Liczba egzemplarzy:</label>
                         <input
-                            id="length"
+                            id="copies"
                             type="number"
                             min={1}
-                            defaultValue={b?.length ?? 1}
+                            defaultValue={1}
                         />
                     </div>
                 </div>
