@@ -160,29 +160,33 @@ function CatalogView(): JSX.Element {
     }, [activeFilters]);
 
     // Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
-    useEffect(() => {
-        (async () => {
-            const searchString = search?.search || "";
-            console.log(`Wyszukiwanie ${searchString} na stronie ${currentPage}\n
+    const fetchBooksAndScrollToTop = async () => {
+        const searchString = search?.search || "";
+        console.log(`Wyszukiwanie ${searchString} na stronie ${currentPage}\n
                 Sortowanie: ${sorting.key}_${sorting.direction}\n
                 Filtry    : ${JSON.stringify(activeFilters)}`);
-            const result = await fetchCatalogRequest(
-                isLibrarian,
-                searchString,
-                sorting,
-                activeFilters,
-                currentPage,
-            );
+        const result = await fetchCatalogRequest(
+            isLibrarian,
+            searchString,
+            sorting,
+            activeFilters,
+            currentPage,
+        );
 
-            setBooks(result.books);
-            setTotalPages(result.totalPages);
-            setTotalBookCount(result.totalBooks);
-        })()
+        setBooks(result.books);
+        setTotalPages(result.totalPages);
+        setTotalBookCount(result.totalBooks);
 
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
+    }
+
+    useEffect(() => {
+        (async () => {
+            await fetchBooksAndScrollToTop();
+        })()
     }, [activeFilters, sorting, search, currentPage]);
 
     const handleResetFilters = () => {
@@ -219,12 +223,12 @@ function CatalogView(): JSX.Element {
 
     const onRentBookPressed = (book: BookUser) => {
         setShownPopup("rentConfirm");
-        setPopupData(book);
+        setPopupData({ book: book });
     }
 
     const onReserveBookPressed = (book: BookUser) => {
         setShownPopup("reserveConfirm");
-        setPopupData(book);
+        setPopupData({ book: book });
     }
 
     const onAddInstancePressed = (book: BookAdmin) => {
@@ -237,7 +241,7 @@ function CatalogView(): JSX.Element {
         }
         try {
             reserveBookRequest(book.book_id);
-            setPopupData(book);
+            setPopupData({ book: book });
             setShownPopup("addInstanceSuccess");
             return;
         } catch (e) {
@@ -258,7 +262,7 @@ function CatalogView(): JSX.Element {
         }
         try {
             editBookRequest(book);
-            setPopupData(book);
+            setPopupData({ book: book });
             setShownPopup("editBook");
             return;
         } catch (e) {
@@ -271,7 +275,7 @@ function CatalogView(): JSX.Element {
 
     const onRemoveBookPressed = (book: BookAdmin) => {
         setShownPopup("removeBookConfirm");
-        setPopupData(book);
+        setPopupData({ book: book });
     }
 
     const onInstanceMarkDamagedPressed = (book: BookAdmin, instance_id: number) => {
@@ -323,8 +327,9 @@ function CatalogView(): JSX.Element {
         setPopupData(undefined);
     }
 
-    const handleBookReserve = (book: BookUser) => {
+    const handleBookReserve = (data: { book: BookUser }) => {
         hidePopups();
+        const book = data.book;
 
         if (!book.book_id) {
             setPopupData({ book: book, error: "Pole book_id jest undefined" });
@@ -333,7 +338,7 @@ function CatalogView(): JSX.Element {
         }
         try {
             reserveBookRequest(book.book_id);
-            setPopupData(book);
+            setPopupData({ book: book });
             setShownPopup("reserveSuccess");
             return;
         } catch (e) {
@@ -344,8 +349,9 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const handleBookRent = (book: BookUser) => {
+    const handleBookRent = (data: { book: BookUser }) => {
         hidePopups();
+        const book = data.book;
 
         if (!book.book_id) {
             setPopupData({ book: book, error: "Pole book_id jest undefined" });
@@ -355,7 +361,7 @@ function CatalogView(): JSX.Element {
 
         try {
             rentBookRequest(book.book_id);
-            setPopupData(book);
+            setPopupData({ book: book });
             setShownPopup("rentSuccess");
             return;
         } catch (e) {
@@ -366,8 +372,9 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const handleBookRemove = (book: BookAdmin) => {
+    const handleBookRemove = (data: { book: BookAdmin }) => {
         hidePopups();
+        const book = data.book;
 
         if (!book.book_id) {
             setPopupData({ book: book, error: "Pole book_id jest undefined" });
@@ -376,8 +383,9 @@ function CatalogView(): JSX.Element {
         }
         try {
             removeBookRequest(book.book_id);
-            setPopupData(book);
+            setPopupData({ book: book });
             setShownPopup("removeBookSuccess");
+            fetchBooksAndScrollToTop();
             return;
         } catch (e) {
             const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
@@ -388,256 +396,232 @@ function CatalogView(): JSX.Element {
     }
 
     return <>
-        {shownPopup === "rentConfirm" &&
-            <Popup title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
-                <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>?</p>
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Nie</button>
-                    <button onClick={() => { handleBookRent(popupData) }}>Tak, wypożycz</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "rentError" &&
-            <Popup title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się wypożyczyć książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+        <Popup isOpen={shownPopup === "rentConfirm"} setIsOpen={() => { }} title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
+            <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?</p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Nie</button>
+                <button onClick={() => { handleBookRent(popupData) }}>Tak, wypożycz</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "rentSuccess" &&
-            <Popup title="Książka wypożyczona" onClose={hidePopups}>
-                <p className="text-justify">
-                    Pomyślnie wypożyczono książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>.
-                </p>
+        <Popup isOpen={shownPopup === "rentError"} setIsOpen={() => { }} title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się wypożyczyć książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "reserveConfirm" &&
-            <Popup title="Potwierdzenie rezerwacji" onClose={hidePopups}>
-                <p className="text-justify">
-                    Czy na pewno chcesz zarezerwować książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>?
-                </p>
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Nie</button>
-                    <button onClick={() => { handleBookReserve(popupData) }}>Tak, zarezerwuj</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "reserveError" &&
-            <Popup title="Błąd rezerwacji" icon={iconError} onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się zarezerwować książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "reserveSuccess" &&
-            <Popup title="Potwierdzenie rezerwacji" onClose={hidePopups}>
-                <p className="text-justify">
-                    Dziękujemy za rezerwację książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
+        <Popup isOpen={shownPopup === "rentSuccess"} setIsOpen={() => { }} title="Książka wypożyczona" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie wypożyczono książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "removeBookConfirm" &&
-            <Popup title="Usuwanie książki" onClose={hidePopups}>
-                <p className="text-justify">
-                    Czy na pewno chcesz trwale usunąć książkę <strong className="whitespace-nowrap">„{popupData.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.authors.join(", ")}</strong>.
-                </p>
-                <p><strong>
-                    Tej operacji nie można cofnąć.
-                </strong></p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={() => { handleBookRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "removeBookSuccess" &&
-            <Popup title="Usunięto książkę" onClose={hidePopups}>
-                <p className="text-justify">
-                    Pomyślnie usunięto książkę <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong> z systemu.
-                </p>
+        <Popup isOpen={shownPopup === "reserveConfirm"} setIsOpen={() => { }} title="Potwierdzenie rezerwacji" onClose={hidePopups}>
+            <p className="text-justify">
+                Czy na pewno chcesz zarezerwować książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?
+            </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Nie</button>
+                <button onClick={() => { handleBookReserve(popupData) }}>Tak, zarezerwuj</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "removeBookError" &&
-            <Popup title="Błąd przy usuwaniu książki" onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się usunąć książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+        <Popup isOpen={shownPopup === "reserveError"} setIsOpen={() => { }} title="Błąd rezerwacji" icon={iconError} onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się zarezerwować książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "addInstanceSuccess" &&
-            <Popup title="Dodano egzemplarz" onClose={hidePopups}>
-                <p className="text-justify">
-                    Pomyślnie dodano egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "addInstanceError" &&
-            <Popup title="Błąd przy dodawaniu egzemplarza" onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się dodać egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+        <Popup isOpen={shownPopup === "reserveSuccess"} setIsOpen={() => { }} title="Potwierdzenie rezerwacji" onClose={hidePopups}>
+            <p className="text-justify">
+                Dziękujemy za rezerwację książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "editBook" &&
-            <></>
-        }
-        {shownPopup === "editBookError" &&
-            <Popup title="Błąd przy edycji książki" onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się dodać edytować książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "instanceMarkDamagedSuccess" &&
-            <Popup title="Zmieniono stan egzemplarza" onClose={hidePopups}>
-                <p className="text-justify">
-                    Pomyślnie oznaczono jako zniszczony egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
+        <Popup isOpen={shownPopup === "removeBookConfirm"} setIsOpen={() => { }} title="Usuwanie książki" onClose={hidePopups}>
+            <p className="text-justify">
+                Czy na pewno chcesz trwale usunąć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p><strong>
+                Tej operacji nie można cofnąć.
+            </strong></p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "instanceMarkDamagedError" &&
-            <Popup title="Błąd przy zmianie stanu" onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się oznaczyć jako zniszczony egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Anuluj</button>
+                <button onClick={() => { handleBookRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "instanceMarkMendedSuccess" &&
-            <Popup title="Zmieniono stan egzemplarza" onClose={hidePopups}>
-                <p className="text-justify">
-                    Pomyślnie anulowano zniszczenie egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
+        <Popup isOpen={shownPopup === "removeBookSuccess"} setIsOpen={() => { }} title="Usunięto książkę" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie usunięto książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong> z systemu.
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "instanceMarkMendedError" &&
-            <Popup title="Błąd przy zmianie stanu" onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się anulować zniszczenia egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "removeInstanceConfirm" &&
-            <Popup title="Usuwanie egzemplarza" onClose={hidePopups}>
-                <p className="text-justify">
-                    Czy na pewno chcesz trwale usunąć egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p><strong>
-                    Tej operacji nie można cofnąć.
-                </strong></p>
+        <Popup isOpen={shownPopup === "removeBookError"} setIsOpen={() => { }} title="Błąd przy usuwaniu książki" onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się usunąć książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={() => { handleInstanceRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "removeInstanceSuccess" &&
-            <Popup title="Usunięto egzemplarz" onClose={hidePopups}>
-                <p className="text-justify">
-                    Pomyślnie usunięto egzemplarz książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong> z systemu.
-                </p>
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
-        {shownPopup === "removeInstanceError" &&
-            <Popup title="Błąd przy usuwaniu egzemplarza" onClose={hidePopups}>
-                <p className="text-justify">
-                    Nie udało się usunąć egzemplarza książki <strong className="whitespace-nowrap">„{popupData.book.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData.book.authors.join(", ")}</strong>.
-                </p>
-                <p className="text-justify italic">
-                    <strong>{popupData.error}</strong>
-                </p>
+        <Popup isOpen={shownPopup === "addInstanceSuccess"} setIsOpen={() => { }} title="Dodano egzemplarz" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie dodano egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
 
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-        }
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
 
+        <Popup isOpen={shownPopup === "addInstanceError"} setIsOpen={() => { }} title="Błąd przy dodawaniu egzemplarza" onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się dodać egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "editBookError"} setIsOpen={() => { }} title="Błąd przy edycji książki" onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się edytować książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "instanceMarkDamagedSuccess"} setIsOpen={() => { }} title="Zmieniono stan egzemplarza" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie oznaczono jako zniszczony egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "instanceMarkDamagedError"} setIsOpen={() => { }} title="Błąd przy zmianie stanu" onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się oznaczyć jako zniszczony egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "instanceMarkMendedSuccess"} setIsOpen={() => { }} title="Zmieniono stan egzemplarza" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie anulowano zniszczenie egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "instanceMarkMendedError"} setIsOpen={() => { }} title="Błąd przy zmianie stanu" onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się anulować zniszczenia egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "removeInstanceConfirm"} setIsOpen={() => { }} title="Usuwanie egzemplarza" onClose={hidePopups}>
+            <p className="text-justify">
+                Czy na pewno chcesz trwale usunąć egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p><strong>
+                Tej operacji nie można cofnąć.
+            </strong></p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Anuluj</button>
+                <button onClick={() => { handleInstanceRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "removeInstanceSuccess"} setIsOpen={() => { }} title="Usunięto egzemplarz" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie usunięto egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong> z systemu.
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "removeInstanceError"} setIsOpen={() => { }} title="Błąd przy usuwaniu egzemplarza" onClose={hidePopups}>
+            <p className="text-justify">
+                Nie udało się usunąć egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+            </p>
+            <p className="text-justify italic">
+                <strong>{popupData?.error}</strong>
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
         <h1 className="mb-14"><img src={catalogIcon} alt="icon" /> Katalog</h1>
         <main>
             <NavSidebar></NavSidebar>
             <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
 
-                <CustomSelect label="Sortuj" initialValues={["Tytuł (A-Z)"]}
+                <CustomSelect filterKey="" label="Sortuj" initialValues={["Tytuł (A-Z)"]}
                     onChange={(v: string[]) => {
                         switch (v[0]) {
                             case "Tytuł (A-Z)": {
@@ -667,37 +651,37 @@ function CatalogView(): JSX.Element {
                     <CustomOption value="Rok wydania (malejąco)">Rok wydania (malejąco)</CustomOption>
                 </CustomSelect>
 
-                <CustomSelect label="Autor" searchable allow_multiple
+                <CustomSelect filterKey="" label="Autor" searchable allow_multiple
                     key={`author-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, author: v }) }}>
                     {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
                 </CustomSelect>
 
-                <CustomSelect label="Tagi" searchable allow_multiple
+                <CustomSelect filterKey="" label="Tagi" searchable allow_multiple
                     key={`tags-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
                     {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
                 </CustomSelect>
 
-                <CustomSelect label="Gatunek" searchable allow_multiple
+                <CustomSelect filterKey="" label="Gatunek" searchable allow_multiple
                     key={`genre-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, genre: v }) }}>
                     {allFilters.genre?.map(g => <CustomOption key={g} value={g}>{g}</CustomOption>)}
                 </CustomSelect>
 
-                <CustomSelect label="Wydawca" searchable allow_multiple
+                <CustomSelect filterKey="" label="Wydawca" searchable allow_multiple
                     key={`publisher-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, publisher: v }) }}>
                     {allFilters.publisher?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
                 </CustomSelect>
 
-                <CustomSelect label="Język" searchable allow_multiple
+                <CustomSelect filterKey="" label="Język" searchable allow_multiple
                     key={`language-${resetToken}`}
                     onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, language: v }) }}>
                     {allFilters.language?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
                 </CustomSelect>
 
-                <CustomSelect label="Data wydania" allowCustomRange
+                <CustomSelect filterKey="" label="Data wydania" allowCustomRange
                     key={`release_date-${resetToken}`}
                     onChange={(v: string[]) => {
                         const [from, to] = v[0].split('-').map(year => new Date(Number(year), 0, 1));

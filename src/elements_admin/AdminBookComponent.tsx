@@ -61,7 +61,7 @@ export default class AdminBookComponent extends React.Component<Props, {}> {
                 </h3>
                 <div className="flex-row librarian-actions">
                     <button>
-                        <CustomSelect label="Pokaż działania">
+                        <CustomSelect filterKey="" label="Pokaż działania">
                             <CustomOption value="add" onClick={() => {addInstance(b)}}>Dodaj egzemplarz</CustomOption>
                             <CustomOption value="edit" onClick={() => {editBook(b)}}>Edytuj dane książki</CustomOption>
                             <CustomOption value="delete" onClick={() => {removeBook(b)}}>Usuń książkę z systemu</CustomOption>

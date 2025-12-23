@@ -221,6 +221,9 @@ export function rentBookRequest(book_id: number): void{
 export function reserveBookRequest(book_id: number): void{
     throw Error("Not implemented exception")
 }
+export const fetchUserBookRequest = async (book_id: number): Promise<BookUser> => {
+    return toBookUser(await fetchAdminBookRequest(book_id));
+}
 // Katalog - Admin
 export const fetchAdminCatalogRequest = async (
     search: string,
@@ -237,12 +240,21 @@ export const fetchAdminCatalogRequest = async (
     const totalBooks = results.length;
     return { books: items as BookAdmin[], totalPages, totalBooks };
 };
+export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
+    const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
+    if (!bookAdmin) { throw `Nie znaleziono książki o book_id = ${book_id}` }
+    return bookAdmin;
+}
 
 export function editBookRequest(data: Book): void{
     throw Error("Not implemented exception")
 }
-export function removeBookRequest(book_id: number): void{
-    throw Error("Not implemented exception")
+export function removeBookRequest(book_id: number): void {
+    const index = SAMPLE_BOOKS.findIndex(book => book.book_id === book_id);
+
+    if (index !== -1) {
+        SAMPLE_BOOKS.splice(index, 1);
+    }
 }
 export function removeBookInstanceRequest(instance_id: number):void{
     throw Error("Not implemented exception")
