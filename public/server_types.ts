@@ -21,7 +21,7 @@ export interface Session{
  * @prop {string[]} authors
  * @prop {number} publish_year
  * @prop {string} isbn_number
- * @prop {number} length
+ * @prop {number} [length]
  * @prop {string} language
  * @prop {string} publisher
  * @prop {string[]} keywords
@@ -35,7 +35,7 @@ export interface Book{
     publish_year: number;
     isbn_number: string;
 
-    length: number;
+    length?: number;
     language: string;
     publisher: string;
 

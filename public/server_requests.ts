@@ -203,21 +203,38 @@ export function markDamegedBookInstanceRequest(instance_id: number): void{
 export function markMendedBookInstanceRequest(instance_id: number): void{
     throw Error("Not implemented exception")
 }
-export function addBookInstanceRequest(book_id: number): void{
-    throw Error("Not implemented exception")
+export async function addBookInstanceRequest(book_id: number): Promise<void> {
+    if (USE_MOCK) {
+        console.log("MOCK addBookInstanceRequest:", book_id);
+        return;
+    }
+    const r = await fetch("/api/book-instance/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ book_id })
+    });
+
+    if (!r.ok) throw Error();
 }
 // Users
 export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): UserInfo[]{
     throw Error("Not implemented exception")
 }
 // Add Book View
-export async function addBookRequest(book:Book){
+const USE_MOCK = true;
+export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
+    if (USE_MOCK) {
+        return { book_id: Date.now() };
+    }
     const r = await fetch("/api/book/add", {
         method: "POST",
-        headers: {"Content-Type":"application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(book)
-    })
-    if (!r.ok) throw Error()
+    });
+
+    if (!r.ok) throw Error();
+
+    return await r.json();
 }
 // Rent log
 export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
