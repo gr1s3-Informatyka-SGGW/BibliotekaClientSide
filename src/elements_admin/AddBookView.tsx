@@ -12,6 +12,7 @@ import {addBookRequest, editBookRequest, addBookInstanceRequest} from "../../pub
 import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
 import { Alert } from "../../public/custom_components/Popup.tsx";
+import Popup from "../../public/custom_components/Popup.tsx";
 import AddBoxIcon from "../assets/add_box.svg";
 import BookIcon from "../assets/book.svg";
 import SaveIcon from "../assets/save.svg";
@@ -74,17 +75,33 @@ export default function AddBookView(){
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
 
-        <Alert
+        <Popup
             title="Sukces"
-            message="Książka oraz jej egzemplarze zostały poprawnie dodane do systemu."
-            icon={BookIcon}       // opcjonalnie ikona
+            icon={BookIcon}
             isOpen={isPopupOpen}
             setIsOpen={setIsPopupOpen}
-            onCancel={() => console.log("Popup zamknięty")}
-            onAccept={() => console.log("Akcja zatwierdzona")} // jeśli chcesz przycisk Tak
-            cancelText="OK"       // nadpisuje domyślne teksty
-            acceptText="Dodaj kolejny" // tylko jeśli używasz onAccept
-        />
+            onClose={() => console.log("Popup zamknięty")}
+        >
+            <p>Książka oraz jej egzemplarze zostały poprawnie dodane do systemu.</p>
+
+            <div style={{ display: "flex", gap: "0.5em", marginTop: "1em" }}>
+                <button
+                    onClick={() => setIsPopupOpen(false)}
+                    style={{ flex: 1 }}
+                >
+                    OK
+                </button>
+                <button
+                    onClick={() => {
+                        console.log("Dodaj kolejny");
+                        setIsPopupOpen(false);
+                    }}
+                    style={{ flex: 1 }}
+                >
+                    Dodaj kolejny
+                </button>
+            </div>
+        </Popup>
     </>
 }
 
