@@ -1,0 +1,98 @@
+.qr-scroll-area.multi-view-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 10px 25px;
+    overflow-x: hidden;
+}
+
+.qr-scroll-area.single-view {
+    display: flex;
+    justify-content: center;
+}
+
+.card-horizontal {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    background: #fff;
+}
+
+.card-centered {
+    padding: 15px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-horizontal-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.qr-single-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-code-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-footer-standard {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 5px 25px;
+}
+
+.qr-card-legend {
+    color: #801d41;
+    font-weight: bold;
+    padding: 0 8px;
+    font-size: 14px;
+
+}
+
+.qr-id-label {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-filled-bordowy, .btn-outline-bordowy {
+    border-radius: 20px;
+    padding: 8px 25px;
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 130px;
+    font-size: 14px;
+}
+
+.btn-filled-bordowy {
+    background: #801d41;
+    color: #fff;
+    border: none;
+}
+
+.btn-outline-bordowy {
+    background: #fff;
+    color: #801d41;
+    border: 1px solid #801d41;
+
+}
+
+.btn-side {
+    min-width: 100px;
+    padding: 6px 15px;
+}
