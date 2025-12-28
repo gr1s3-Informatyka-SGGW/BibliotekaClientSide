@@ -85,25 +85,11 @@
   color: #d11313;
 }
 
-.librarian-actions>button {
-  padding: 0;
+.librarian-actions .custom-select-trigger {
+  background-color: #891e49;
+  color: white;
 }
 
-.librarian-actions .custom-select-trigger{
-  color:white;
-  background-color: transparent;
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 0.75em;
-
-  background-color: transparent;
-}
-
-.librarian-actions .custom-select-trigger:hover{
-  background-color: transparent;
-}
-
-.librarian-actions .custom-select-trigger div {
-  display: none;
+.librarian-actions .custom-select-trigger:hover {
+  background-color: #6b1737;
 }

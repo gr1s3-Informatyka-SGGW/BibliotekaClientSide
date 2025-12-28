@@ -48,6 +48,7 @@ import { CustomSelect, CustomOption, FilterResetButton } from "../../public/cust
 import { Pagination } from "../general_elements/Pagination.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
 import iconError from "../assets/error.svg"
+import { AddBookForm } from "../elements_admin/AddBookView.tsx";
 
 /**
  * Wykonuje żądanie do API w celu pobrania listy książek na podstawie parametrów wyszukiwania.
@@ -137,7 +138,7 @@ function CatalogView(): JSX.Element {
         | "reserveConfirm" | "reserveSuccess" | "reserveError"
         | "removeBookConfirm" | "removeBookSuccess" | "removeBookError"
         | "addInstanceSuccess" | "addInstanceError"
-        | "editBook" | "editBookError"
+        | "editBook" | "editBookError" | "editBookSuccess"
         | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
         | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
         | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError">(undefined);
@@ -287,11 +288,23 @@ function CatalogView(): JSX.Element {
             setShownPopup("editBookError");
             return;
         }
+        setPopupData({ book: book });
+        setShownPopup("editBook");
+    }
+
+    const onEditBookFinished = async (book: Book, _copies: number) => {
+        hidePopups();
+
+        if (!book.book_id) {
+            setPopupData({ book: book, error: "Pole book_id jest undefined" });
+            setShownPopup("editBookError");
+            return;
+        }
         try {
             await editBookRequest(book);
             await refreshBook(book.book_id);
             setPopupData({ book: book });
-            setShownPopup("editBook");
+            setShownPopup("editBookSuccess");
             return;
         } catch (e) {
             const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
@@ -356,6 +369,12 @@ function CatalogView(): JSX.Element {
     const hidePopups = () => {
         setShownPopup(undefined);
         setPopupData(undefined);
+    }
+
+    const handleClosePopup = (prev: any) => {
+        if (prev == false) {
+            hidePopups();
+        }
     }
 
     const handleBookReserve = async (data: { book: BookUser }) => {
@@ -429,7 +448,7 @@ function CatalogView(): JSX.Element {
     }
 
     return <>
-        <Popup isOpen={shownPopup === "rentConfirm"} setIsOpen={() => { }} title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "rentConfirm"} setIsOpen={handleClosePopup} title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
             <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?</p>
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Nie</button>
@@ -437,7 +456,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "rentError"} setIsOpen={() => { }} title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "rentError"} setIsOpen={handleClosePopup} title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się wypożyczyć książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -450,7 +469,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "rentSuccess"} setIsOpen={() => { }} title="Książka wypożyczona" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "rentSuccess"} setIsOpen={handleClosePopup} title="Książka wypożyczona" onClose={hidePopups}>
             <p className="text-justify">
                 Pomyślnie wypożyczono książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -460,7 +479,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "reserveConfirm"} setIsOpen={() => { }} title="Potwierdzenie rezerwacji" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "reserveConfirm"} setIsOpen={handleClosePopup} title="Potwierdzenie rezerwacji" onClose={hidePopups}>
             <p className="text-justify">
                 Czy na pewno chcesz zarezerwować książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?
             </p>
@@ -470,7 +489,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "reserveError"} setIsOpen={() => { }} title="Błąd rezerwacji" icon={iconError} onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "reserveError"} setIsOpen={handleClosePopup} title="Błąd rezerwacji" icon={iconError} onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się zarezerwować książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -483,7 +502,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "reserveSuccess"} setIsOpen={() => { }} title="Potwierdzenie rezerwacji" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "reserveSuccess"} setIsOpen={handleClosePopup} title="Potwierdzenie rezerwacji" onClose={hidePopups}>
             <p className="text-justify">
                 Dziękujemy za rezerwację książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -493,7 +512,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "removeBookConfirm"} setIsOpen={() => { }} title="Usuwanie książki" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "removeBookConfirm"} setIsOpen={handleClosePopup} title="Usuwanie książki" onClose={hidePopups}>
             <p className="text-justify">
                 Czy na pewno chcesz trwale usunąć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -507,7 +526,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "removeBookSuccess"} setIsOpen={() => { }} title="Usunięto książkę" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "removeBookSuccess"} setIsOpen={handleClosePopup} title="Usunięto książkę" onClose={hidePopups}>
             <p className="text-justify">
                 Pomyślnie usunięto książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong> z systemu.
             </p>
@@ -517,7 +536,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "removeBookError"} setIsOpen={() => { }} title="Błąd przy usuwaniu książki" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "removeBookError"} setIsOpen={handleClosePopup} title="Błąd przy usuwaniu książki" onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się usunąć książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -530,7 +549,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "addInstanceSuccess"} setIsOpen={() => { }} title="Dodano egzemplarz" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "addInstanceSuccess"} setIsOpen={handleClosePopup} title="Dodano egzemplarz" onClose={hidePopups}>
             <p className="text-justify">
                 Pomyślnie dodano egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -540,7 +559,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "addInstanceError"} setIsOpen={() => { }} title="Błąd przy dodawaniu egzemplarza" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "addInstanceError"} setIsOpen={handleClosePopup} title="Błąd przy dodawaniu egzemplarza" onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się dodać egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -553,7 +572,12 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "editBookError"} setIsOpen={() => { }} title="Błąd przy edycji książki" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "editBook"} setIsOpen={handleClosePopup} title="Edytuj książkę" onClose={hidePopups}>
+            <AddBookForm info={popupData?.book} mode="edit" onSubmit={onEditBookFinished}>
+            </AddBookForm>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "editBookError"} setIsOpen={handleClosePopup} title="Błąd przy edycji książki" onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się edytować książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -566,7 +590,18 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "instanceMarkDamagedSuccess"} setIsOpen={() => { }} title="Zmieniono stan egzemplarza" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "editBookSuccess"} setIsOpen={handleClosePopup} title="Edycja udana" onClose={hidePopups}>
+            <p className="text-justify">
+                Pomyślnie edytowano książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+                Zmiany zostały zapisane.
+            </p>
+
+            <div className="flex flex-row *:flex-1 mt-6">
+                <button onClick={hidePopups} className="boring">Zamknij</button>
+            </div>
+        </Popup>
+
+        <Popup isOpen={shownPopup === "instanceMarkDamagedSuccess"} setIsOpen={handleClosePopup} title="Zmieniono stan egzemplarza" onClose={hidePopups}>
             <p className="text-justify">
                 Pomyślnie oznaczono jako zniszczony egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -576,7 +611,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "instanceMarkDamagedError"} setIsOpen={() => { }} title="Błąd przy zmianie stanu" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "instanceMarkDamagedError"} setIsOpen={handleClosePopup} title="Błąd przy zmianie stanu" onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się oznaczyć jako zniszczony egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -589,7 +624,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "instanceMarkMendedSuccess"} setIsOpen={() => { }} title="Zmieniono stan egzemplarza" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "instanceMarkMendedSuccess"} setIsOpen={handleClosePopup} title="Zmieniono stan egzemplarza" onClose={hidePopups}>
             <p className="text-justify">
                 Pomyślnie anulowano zniszczenie egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -599,7 +634,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "instanceMarkMendedError"} setIsOpen={() => { }} title="Błąd przy zmianie stanu" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "instanceMarkMendedError"} setIsOpen={handleClosePopup} title="Błąd przy zmianie stanu" onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się anulować zniszczenia egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -612,7 +647,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "removeInstanceConfirm"} setIsOpen={() => { }} title="Usuwanie egzemplarza" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "removeInstanceConfirm"} setIsOpen={handleClosePopup} title="Usuwanie egzemplarza" onClose={hidePopups}>
             <p className="text-justify">
                 Czy na pewno chcesz trwale usunąć egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -626,7 +661,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "removeInstanceSuccess"} setIsOpen={() => { }} title="Usunięto egzemplarz" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "removeInstanceSuccess"} setIsOpen={handleClosePopup} title="Usunięto egzemplarz" onClose={hidePopups}>
             <p className="text-justify">
                 Pomyślnie usunięto egzemplarz książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong> z systemu.
             </p>
@@ -636,7 +671,7 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <Popup isOpen={shownPopup === "removeInstanceError"} setIsOpen={() => { }} title="Błąd przy usuwaniu egzemplarza" onClose={hidePopups}>
+        <Popup isOpen={shownPopup === "removeInstanceError"} setIsOpen={handleClosePopup} title="Błąd przy usuwaniu egzemplarza" onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się usunąć egzemplarza książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -748,7 +783,7 @@ function CatalogView(): JSX.Element {
                         onRemoveBookPressed={onRemoveBookPressed}
                         onInstanceMarkDamagedPressed={onInstanceMarkDamagedPressed}
                         onInstanceMarkMendedPressed={onInstanceMarkMendedPressed}
-                        onInstanceRemove={onInstanceRemovePressed}
+                        onInstanceRemovePressed={onInstanceRemovePressed}
                     />
                 ))}
             </div>
