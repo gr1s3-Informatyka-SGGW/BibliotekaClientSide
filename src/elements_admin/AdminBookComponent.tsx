@@ -4,7 +4,7 @@
  * */
 import React, { type JSX } from "react";
 import type { BookAdmin } from "../../public/server_types.ts";
-import { editBookRequest, addBookInstanceRequest, removeBookRequest, markDamagedBookInstanceRequest, removeBookInstanceRequest, markMendedBookInstanceRequest } from "../../public/server_requests.ts";
+import {addBookInstanceRequest, removeBookRequest, markDamagedBookInstanceRequest, removeBookInstanceRequest, markMendedBookInstanceRequest } from "../../public/server_requests.ts";
 import { CustomSelect, CustomOption } from "../../public/custom_components/CustomSelect.tsx";
 import InstanceQR from "./InstanceQR.tsx";
 import bookIcon from '../assets/book.svg'
@@ -12,6 +12,7 @@ import scannerIcon from '../assets/qr_code_scanner.svg'
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import {AddBookForm} from "./AddBookView.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
+import '../general_elements/catalog.css'
 
 /**
  * Komponent klasowy wyświetlający szczegółowe informacje o książce w widoku administratora.
@@ -135,7 +136,7 @@ function InstanceComponent(props: InstanceComponentProps) {
         markMendedBookInstanceRequest(props.id);
     }
     /**
-     * @event remove Obsługuje zdarzenie kliknięcia guzika "Usun". Wysyła żądanie usunięcia - usuwa egzemplarz.
+     * @event remove Obsługuje zdarzenie kliknięcia guzika "Usun". Wysyła żądanie usunięcia — usuwa egzemplarz.
      * */
     const remove = () => {
         removeBookInstanceRequest(props.id);
