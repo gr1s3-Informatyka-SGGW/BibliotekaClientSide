@@ -249,6 +249,8 @@ export class CustomOption extends Component<CustomOptionProps> {
 /**
  * Komponent główny listy rozwijanej.
  * Obsługuje logikę otwierania/zamykania, pozycjonowania, filtrowania opcji i zarządzania stanem wyboru.
+ * @property {CustomSelectProps} props
+ * @property {CustomSelectState} state
  */
 export class CustomSelect extends Component<CustomSelectProps, CustomSelectState> implements IFormComponent<any> {
     private triggerRef = createRef<HTMLDivElement>();
@@ -561,7 +563,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
     /**
      * Generuje wewnętrzną zawartość listy rozwijanej (dropdownu).
      *
-     * Metoda ta pełni rolę "kontrolera widoku" dla wnętrza listy i odpowiada za:
+     * Metoda ta odgrywa rolę "kontrolera widoku" dla wnętrza listy i odpowiada za:
      * 1. Wybór trybu wyświetlania: standardowa lista opcji lub panel zakresu dat (`allowCustomRange`).
      * 2. Logikę wyszukiwania: filtrowanie opcji na podstawie `searchQuery`.
      * 3. Logikę sortowania: szeregowanie wyników tak, aby te zaczynające się od wpisanej frazy były wyżej.
