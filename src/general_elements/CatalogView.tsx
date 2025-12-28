@@ -38,7 +38,9 @@ import {
     editBookRequest,
     removeBookInstanceRequest,
     markDamagedBookInstanceRequest,
-    markMendedBookInstanceRequest
+    markMendedBookInstanceRequest,
+    fetchAdminBookRequest,
+    fetchUserBookRequest
 } from "../../public/server_requests.ts";
 import catalogIcon from "../assets/newsstand.svg"
 import { AuthContext } from "../../public/UserAuth";
@@ -68,6 +70,21 @@ const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: Se
         return Promise.resolve(
             { books: [], totalPages: 0, totalBooks: 0 }
         )
+    }
+}
+
+/**
+ * Wykonuje żądanie do API w celu pobrania danych pojedynczej książki.
+ * * @param {boolean} isLibrarian - Flaga określająca, czy pobrać dane z punktu końcowego dla administratora.
+ * @param {number} book_id - Unikalny identyfikator książki.
+ * @returns {Promise<Book>} Obiekt zawierający szczegóły książki.
+ */
+const fetchBookRequest = (isLibrarian: boolean, book_id: number):
+    Promise<Book> => {
+    if (isLibrarian) {
+        return fetchAdminBookRequest(book_id);
+    } else {
+        return fetchUserBookRequest(book_id);
     }
 }
 
@@ -183,6 +200,15 @@ function CatalogView(): JSX.Element {
         });
     }
 
+    const refreshBook = async (book_id: number) => {
+        const updatedBook = await fetchBookRequest(isLibrarian, book_id);
+        if (updatedBook) {
+            setBooks(currentBooks => currentBooks.map(b =>
+                b.book_id === book_id ? updatedBook : b
+            ));
+        }
+    }
+
     useEffect(() => {
         (async () => {
             await fetchBooksAndScrollToTop();
@@ -231,7 +257,7 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book });
     }
 
-    const onAddInstancePressed = (book: BookAdmin) => {
+    const onAddInstancePressed = async (book: BookAdmin) => {
         hidePopups();
 
         if (!book.book_id) {
@@ -240,7 +266,8 @@ function CatalogView(): JSX.Element {
             return;
         }
         try {
-            reserveBookRequest(book.book_id);
+            await addBookInstanceRequest(book.book_id);
+            await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("addInstanceSuccess");
             return;
@@ -252,7 +279,7 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const onEditBookPressed = (book: BookAdmin) => {
+    const onEditBookPressed = async (book: BookAdmin) => {
         hidePopups();
 
         if (!book.book_id) {
@@ -261,7 +288,8 @@ function CatalogView(): JSX.Element {
             return;
         }
         try {
-            editBookRequest(book);
+            await editBookRequest(book);
+            await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("editBook");
             return;
@@ -278,10 +306,11 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book });
     }
 
-    const onInstanceMarkDamagedPressed = (book: BookAdmin, instance_id: number) => {
+    const onInstanceMarkDamagedPressed = async (book: BookAdmin, instance_id: number) => {
         hidePopups();
         try {
-            markDamagedBookInstanceRequest(instance_id);
+            await markDamagedBookInstanceRequest(instance_id);
+            if (book.book_id) await refreshBook(book.book_id);
             setPopupData({ book: book, instanceId: instance_id });
             setShownPopup("instanceMarkDamagedSuccess");
         } catch (e) {
@@ -291,10 +320,11 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const onInstanceMarkMendedPressed = (book: BookAdmin, instance_id: number) => {
+    const onInstanceMarkMendedPressed = async (book: BookAdmin, instance_id: number) => {
         hidePopups();
         try {
-            markMendedBookInstanceRequest(instance_id);
+            await markMendedBookInstanceRequest(instance_id);
+            if (book.book_id) await refreshBook(book.book_id);
             setPopupData({ book: book, instanceId: instance_id });
             setShownPopup("instanceMarkMendedSuccess");
         } catch (e) {
@@ -309,10 +339,11 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book, instanceId: instance_id });
     }
 
-    const handleInstanceRemove = (data: { book: BookAdmin, instanceId: number }) => {
+    const handleInstanceRemove = async (data: { book: BookAdmin, instanceId: number }) => {
         hidePopups();
         try {
-            removeBookInstanceRequest(data.instanceId);
+            await removeBookInstanceRequest(data.instanceId);
+            if (data.book.book_id) await refreshBook(data.book.book_id);
             setPopupData(data);
             setShownPopup("removeInstanceSuccess");
         } catch (e) {
@@ -327,7 +358,7 @@ function CatalogView(): JSX.Element {
         setPopupData(undefined);
     }
 
-    const handleBookReserve = (data: { book: BookUser }) => {
+    const handleBookReserve = async (data: { book: BookUser }) => {
         hidePopups();
         const book = data.book;
 
@@ -337,7 +368,8 @@ function CatalogView(): JSX.Element {
             return;
         }
         try {
-            reserveBookRequest(book.book_id);
+            await reserveBookRequest(book.book_id);
+            await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("reserveSuccess");
             return;
@@ -349,7 +381,7 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const handleBookRent = (data: { book: BookUser }) => {
+    const handleBookRent = async (data: { book: BookUser }) => {
         hidePopups();
         const book = data.book;
 
@@ -360,7 +392,8 @@ function CatalogView(): JSX.Element {
         }
 
         try {
-            rentBookRequest(book.book_id);
+            await rentBookRequest(book.book_id);
+            await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("rentSuccess");
             return;
@@ -372,7 +405,7 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const handleBookRemove = (data: { book: BookAdmin }) => {
+    const handleBookRemove = async (data: { book: BookAdmin }) => {
         hidePopups();
         const book = data.book;
 
@@ -382,10 +415,10 @@ function CatalogView(): JSX.Element {
             return;
         }
         try {
-            removeBookRequest(book.book_id);
+            await removeBookRequest(book.book_id);
             setPopupData({ book: book });
             setShownPopup("removeBookSuccess");
-            fetchBooksAndScrollToTop();
+            await fetchBooksAndScrollToTop();
             return;
         } catch (e) {
             const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
@@ -620,78 +653,77 @@ function CatalogView(): JSX.Element {
             <NavSidebar></NavSidebar>
             <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
-
-                <CustomSelect filterKey="" label="Sortuj" initialValues={["Tytuł (A-Z)"]}
-                    onChange={(v: string[]) => {
-                        switch (v[0]) {
-                            case "Tytuł (A-Z)": {
-                                setSorting({ key: "title", direction: "ASC" });
-                                return;
+                    <CustomSelect filterKey="" label="Sortuj" initialValues={["Tytuł (A-Z)"]}
+                        onChange={(v: string[]) => {
+                            switch (v[0]) {
+                                case "Tytuł (A-Z)": {
+                                    setSorting({ key: "title", direction: "ASC" });
+                                    return;
+                                }
+                                case "Tytuł (Z-A)": {
+                                    setSorting({ key: "title", direction: "DESC" });
+                                    return;
+                                }
+                                case "Rok wydania (rosnąco)": {
+                                    setSorting({ key: "publish_year", direction: "ASC" });
+                                    return;
+                                }
+                                case "Rok wydania (malejąco)": {
+                                    setSorting({ key: "publish_year", direction: "DESC" });
+                                    return;
+                                } default: {
+                                    throw Error(`Nieznany tryb sortowania ${v[0]}`);
+                                    return;
+                                }
                             }
-                            case "Tytuł (Z-A)": {
-                                setSorting({ key: "title", direction: "DESC" });
-                                return;
-                            }
-                            case "Rok wydania (rosnąco)": {
-                                setSorting({ key: "publish_year", direction: "ASC" });
-                                return;
-                            }
-                            case "Rok wydania (malejąco)": {
-                                setSorting({ key: "publish_year", direction: "DESC" });
-                                return;
-                            } default: {
-                                throw Error(`Nieznany tryb sortowania ${v[0]}`);
-                                return;
-                            }
-                        }
-                    }}>
-                    <CustomOption value="Tytuł (A-Z)">Tytuł (A-Z)</CustomOption>
-                    <CustomOption value="Tytuł (Z-A)">Tytuł (Z-A)</CustomOption>
-                    <CustomOption value="Rok wydania (rosnąco)">Rok wydania (rosnąco)</CustomOption>
-                    <CustomOption value="Rok wydania (malejąco)">Rok wydania (malejąco)</CustomOption>
-                </CustomSelect>
+                        }}>
+                        <CustomOption value="Tytuł (A-Z)">Tytuł (A-Z)</CustomOption>
+                        <CustomOption value="Tytuł (Z-A)">Tytuł (Z-A)</CustomOption>
+                        <CustomOption value="Rok wydania (rosnąco)">Rok wydania (rosnąco)</CustomOption>
+                        <CustomOption value="Rok wydania (malejąco)">Rok wydania (malejąco)</CustomOption>
+                    </CustomSelect>
 
-                <CustomSelect filterKey="" label="Autor" searchable allow_multiple
-                    key={`author-${resetToken}`}
-                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, author: v }) }}>
-                    {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
-                </CustomSelect>
+                    <CustomSelect filterKey="" label="Autor" searchable allow_multiple
+                        key={`author-${resetToken}`}
+                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, author: v }) }}>
+                        {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
+                    </CustomSelect>
 
-                <CustomSelect filterKey="" label="Tagi" searchable allow_multiple
-                    key={`tags-${resetToken}`}
-                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
-                    {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
-                </CustomSelect>
+                    <CustomSelect filterKey="" label="Tagi" searchable allow_multiple
+                        key={`tags-${resetToken}`}
+                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
+                        {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
+                    </CustomSelect>
 
-                <CustomSelect filterKey="" label="Gatunek" searchable allow_multiple
-                    key={`genre-${resetToken}`}
-                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, genre: v }) }}>
-                    {allFilters.genre?.map(g => <CustomOption key={g} value={g}>{g}</CustomOption>)}
-                </CustomSelect>
+                    <CustomSelect filterKey="" label="Gatunek" searchable allow_multiple
+                        key={`genre-${resetToken}`}
+                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, genre: v }) }}>
+                        {allFilters.genre?.map(g => <CustomOption key={g} value={g}>{g}</CustomOption>)}
+                    </CustomSelect>
 
-                <CustomSelect filterKey="" label="Wydawca" searchable allow_multiple
-                    key={`publisher-${resetToken}`}
-                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, publisher: v }) }}>
-                    {allFilters.publisher?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
-                </CustomSelect>
+                    <CustomSelect filterKey="" label="Wydawca" searchable allow_multiple
+                        key={`publisher-${resetToken}`}
+                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, publisher: v }) }}>
+                        {allFilters.publisher?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
+                    </CustomSelect>
 
-                <CustomSelect filterKey="" label="Język" searchable allow_multiple
-                    key={`language-${resetToken}`}
-                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, language: v }) }}>
-                    {allFilters.language?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
-                </CustomSelect>
+                    <CustomSelect filterKey="" label="Język" searchable allow_multiple
+                        key={`language-${resetToken}`}
+                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, language: v }) }}>
+                        {allFilters.language?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
+                    </CustomSelect>
 
-                <CustomSelect filterKey="" label="Data wydania" allowCustomRange
-                    key={`release_date-${resetToken}`}
-                    onChange={(v: string[]) => {
-                        const [from, to] = v[0].split('-').map(year => new Date(Number(year), 0, 1));
-                        setActiveFilters({
-                            ...activeFilters,
-                            release_date: { from, to }
-                        });
-                    }}>
-                    <CustomOption value="release_date:custom">Zakres</CustomOption>
-                </CustomSelect>
+                    <CustomSelect filterKey="" label="Data wydania" allowCustomRange
+                        key={`release_date-${resetToken}`}
+                        onChange={(v: string[]) => {
+                            const [from, to] = v[0].split('-').map(year => new Date(Number(year), 0, 1));
+                            setActiveFilters({
+                                ...activeFilters,
+                                release_date: { from, to }
+                            });
+                        }}>
+                        <CustomOption value="release_date:custom">Zakres</CustomOption>
+                    </CustomSelect>
             </SearchPanel>
 
             <div className="books">
