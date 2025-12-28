@@ -4,15 +4,31 @@
  * */
 import React, { type JSX } from "react";
 import type { BookAdmin } from "../../public/server_types.ts";
-import {addBookInstanceRequest, removeBookRequest, markDamagedBookInstanceRequest, removeBookInstanceRequest, markMendedBookInstanceRequest } from "../../public/server_requests.ts";
 import { CustomSelect, CustomOption } from "../../public/custom_components/CustomSelect.tsx";
-import InstanceQR from "./InstanceQR.tsx";
 import bookIcon from '../assets/book.svg'
 import scannerIcon from '../assets/qr_code_scanner.svg'
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
-import {AddBookForm} from "./AddBookView.tsx";
-import Popup from "../../public/custom_components/Popup.tsx";
-import '../general_elements/catalog.css'
+
+/**
+ * Właściwości (props) dla komponentu AdminBookComponent.
+ * * @property {BookAdmin} book_info - Obiekt zawierający rozszerzone informacje o książce przeznaczone dla panelu administratora.
+ * @property {function} [onAddInstancePressed] - Opcjonalna funkcja wywoływana w celu dodania nowego egzemplarza książki.
+ * @property {function} [onEditBookPressed] - Opcjonalna funkcja wywoływana w celu edycji danych istniejącej książki.
+ * @property {function} [onRemoveBookPressed] - Opcjonalna funkcja wywoływana w celu usunięcia książki z systemu.
+ * @property {function} [onInstanceMarkDamagedPressed] - Opcjonalna funkcja wywoływana przy oznaczaniu egzemplarza jako zniszczony.
+ * @property {function} [onInstanceMarkMendedPressed] - Opcjonalna funkcja wywoływana przy anulowaniu zniszczenia egzemplarza.
+ * @property {function} [onInstanceRemove] - Opcjonalna funkcja wywoływana przy usuwaniu egzemplarza.
+ */
+type Props = {
+    book_info: BookAdmin,
+    onAddInstancePressed?: (book_info: BookAdmin) => any,
+    onEditBookPressed?: (book_info: BookAdmin) => any,
+    onRemoveBookPressed?: (book_info: BookAdmin) => any,
+    onInstanceMarkDamagedPressed?: (book_info: BookAdmin, instance_id: number) => any,
+    onInstanceMarkMendedPressed?: (book_info: BookAdmin, instance_id: number) => any,
+    onInstanceRemovePressed?: (book_info: BookAdmin, instance_id: number) => any,
+};
+
 
 /**
  * Komponent klasowy wyświetlający szczegółowe informacje o książce w widoku administratora.
@@ -23,11 +39,18 @@ import '../general_elements/catalog.css'
  * @prop {BookAdmin} props.book_info - Obiekt zawierający szczegółowe informacje o książce.
  * */
 
-export default class AdminBookComponent extends React.Component<{ book_info: BookAdmin }, {}> {
+export default class AdminBookComponent extends React.Component<Props, {}> {
     render(): JSX.Element {
         const b = this.props.book_info;
         const authors = b.authors.join(", ");
         const genres = b.genre.join(", ");
+
+        const addInstance = this.props.onAddInstancePressed ?? ((b: BookAdmin) => { });
+        const editBook = this.props.onEditBookPressed ?? ((b: BookAdmin) => { });
+        const removeBook = this.props.onRemoveBookPressed ?? ((b: BookAdmin) => { });
+        const markDamaged = this.props.onInstanceMarkDamagedPressed ?? ((b: BookAdmin, id: number) => { });
+        const markMended = this.props.onInstanceMarkMendedPressed ?? ((b: BookAdmin, id: number) => { });
+        const removeInstance = this.props.onInstanceRemovePressed ?? ((b: BookAdmin, id: number) => { });
 
         return <div className="book">
             <div className="header-actions">
@@ -35,13 +58,11 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
                     <img src={bookIcon} alt="icon" /> „{b.title}” — {authors}
                 </h3>
                 <div className="flex-row librarian-actions">
-                    <button>
-                        <CustomSelect label="Pokaż działania">
-                            <CustomOption value="add" onClick={this.addInstance}>Dodaj egzemplarz</CustomOption>
-                            <CustomOption value="edit" onClick={this.editBook}>Edytuj dane książki</CustomOption>
-                            <CustomOption value="delete" onClick={this.removeBook}>Usuń książkę z systemu</CustomOption>
-                        </CustomSelect>
-                    </button>
+                    <CustomSelect filterKey="" label="Pokaż działania" menu_mode={true}>
+                        <CustomOption value="add" onClick={() => { addInstance(b) }}>Dodaj egzemplarz</CustomOption>
+                        <CustomOption value="edit" onClick={() => { editBook(b) }}>Edytuj dane książki</CustomOption>
+                        <CustomOption value="delete" onClick={() => { removeBook(b) }}>Usuń książkę z systemu</CustomOption>
+                    </CustomSelect>
                 </div>
             </div>
             <Collapsible header="Szczegóły">
@@ -60,57 +81,39 @@ export default class AdminBookComponent extends React.Component<{ book_info: Boo
             <Collapsible header="Egzemplarze">
                 <div className="copies">
                     {b.instances.map((ins, index) =>
-                        <InstanceComponent index={index} key={index} id={ins.id} status={ins.status}></InstanceComponent>
+                        <InstanceComponent
+                            index={index}
+                            key={index}
+                            id={ins.id}
+                            status={ins.status}
+                            onMarkDamagedPressed={(id) => markDamaged(b, id)}
+                            onMarkMendedPressed={(id) => markMended(b, id)}
+                            onRemovePressed={(id) => removeInstance(b, id)}
+                        />
                     )}
                 </div>
             </Collapsible>
         </div>
     }
-
-    /**
-     * @event addInstance Obsługuje zdarzenie kliknięcia opcji 'Dodaj egzemplarz'
-     * @returns {void}
-     */
-    addInstance = (): void => {
-        if (this.props.book_info.book_id === undefined) {
-            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
-            return;
-        }
-        try {
-            addBookInstanceRequest(this.props.book_info.book_id);
-        } catch(e) {
-            console.error(`${e}`);
-        }
-    }
-
-    /**
-     * @event removeBook Obsługuje zdarzenie kliknięcie opcji 'Usuń książkę z systemu'
-     * @returns {void}
-     */
-    removeBook = (): void => {
-        if (this.props.book_info.book_id === undefined) {
-            console.error(`book_id is undefined\n${JSON.stringify(this.props.book_info)}`)
-            return;
-        }
-        try {
-            removeBookRequest(this.props.book_info.book_id);
-        } catch(e) {
-            console.error(`${e}`);
-        }
-    }
-    /**
-     * @event editBook Obsługuje zdarzenie wybrania opcji 'Edytuj książkę'. Wywołuje komponent <AddBookForm> i wysyła jego wynik do serwera
-     * */
-    editBook = (): void => {
-        const editForm = new AddBookForm();
-        return <Popup><>{editForm}</></Popup>
-    }
 }
 
+/**
+ * Właściwości (props) dla komponentu InstanceComponent.
+ * @property {number} index - Indeks egzemplarza na liście.
+ * @property {number} id - Unikalny identyfikator egzemplarza.
+ * @property {"damaged" | "available" | "rented" | "reserved"} status - Aktualny status egzemplarza.
+ * @property {function} [onMarkDamagedPressed] - Funkcja wywoływana przy próbie oznaczenia egzemplarza jako zniszczony.
+ * @property {function} [onMarkMendedPressed] - Funkcja wywoływana przy próbie anulowania zniszczenia egzemplarza.
+ * @property {function} [onRemove] - Funkcja wywoływana przy próbie usunięcia egzemplarza.
+ */
 interface InstanceComponentProps {
     index: number
     id: number
     status: "damaged" | "available" | "rented" | "reserved"
+    onMarkDamagedPressed?: (id: number) => void
+    onMarkMendedPressed?: (id: number) => void
+    onRemovePressed?: (id: number) => void
+    onDisplayQRCodePressed?: (id: number) => void
 }
 
 /**
@@ -122,32 +125,6 @@ interface InstanceComponentProps {
  * @prop {"damaged"|"available"|"rented"|"reserved"} props.state - status egzemplarza decydujący o jego dostępności i możliwych akcjach
  * */
 function InstanceComponent(props: InstanceComponentProps) {
-
-    /**
-     * @event markDamaged Obsługuje zdarzenie kliknięcia guzika "Ozn. jako zniszczony". Oznacza egzemplarz jako zniszczony, wysyła żądanie do serwera. Nie dostępny, gdy egzemplarz ma status `damaged`
-     * */
-    const markDamaged = () => {
-        markDamagedBookInstanceRequest(props.id);
-    }
-    /**
-     * @event markMended Obsługuje zdarzenie kliknięcia guzika "Anuluj zniszczenie". Oznacza egzemplarz jako już nie zniszczony, wysyła żądanie do serwera. Dostępny, tylko gdy egzemplarz ma status 'damaged'
-     * */
-    const markMended = () => {
-        markMendedBookInstanceRequest(props.id);
-    }
-    /**
-     * @event remove Obsługuje zdarzenie kliknięcia guzika "Usun". Wysyła żądanie usunięcia — usuwa egzemplarz.
-     * */
-    const remove = () => {
-        removeBookInstanceRequest(props.id);
-    }
-    /**
-     * @event displayQRCode Obsługuje zdarzenie kliknięcia guzika z symbolem kodu QR. wyświetla komunikat z kodem QR egzemplarza
-     * */
-    const displayQRCode = () => {
-        return <InstanceQR instance_id={props.id} />
-    }
-
     const status = props.status;
     const buttonMarkDamagedVisible = status !== "damaged";
     const buttonMarkMendedVisible = status === "damaged";
@@ -165,14 +142,19 @@ function InstanceComponent(props: InstanceComponentProps) {
         }
     })();
 
+    const markDamaged = props.onMarkDamagedPressed ?? ((insId: number) => { });
+    const markMended = props.onMarkMendedPressed ?? ((insId: number) => { });
+    const remove = props.onRemovePressed ?? ((insId: number) => { });
+    const displayQRCode = props.onDisplayQRCodePressed ?? ((insId: number) => { });
+
     return <>
         <div className="copy">
             <span><b>Egzemplarz #{props.index + 1}</b> - <span className={statusClass}>{statusText}</span></span>
             <div className="actions">
-                <button onClick={displayQRCode}><img src={scannerIcon} /></button>
-                <button onClick={remove} className="borrow button" >Usuń</button>
-                {buttonMarkDamagedVisible && <button onClick={markDamaged} className="reserve button w-46" >Ozn. jako zniszczony</button>}
-                {buttonMarkMendedVisible && <button onClick={markMended} className="reserve button w-46" >Anuluj zniszczenie</button>}
+                <button onClick={() => { displayQRCode(props.id) }}><img src={scannerIcon} /></button>
+                <button onClick={() => { remove(props.id) }} className="borrow button" >Usuń</button>
+                {buttonMarkDamagedVisible && <button onClick={() => { markDamaged(props.id) }} className="reserve button w-46" >Ozn. jako zniszczony</button>}
+                {buttonMarkMendedVisible && <button onClick={() => { markMended(props.id) }} className="reserve button w-46" >Anuluj zniszczenie</button>}
             </div>
         </div>
     </>;
