@@ -1,33 +1,138 @@
-/*
-* odpowiadający plik w design: 'popup.js'
-* przykład w design: https://kocham-sggw.ct.ws/biblioteka/Client/catalog.html po naciśnięciu "Wypożycz" lub w skrajnym przypadku
-*                    https://kocham-sggw.ct.ws/biblioteka/Employee/catalog.html po naciśnięciu "Pokarz działania" i "Edytuj książkę"
-* realizowana funkcjonalność:
-*   wyświetlanie zawartości komponentu jako wyskakującego okna na środku ekranu. Reszta treści rozmazuje się w tle do momentu, gdy okno nie zostanie
-*   zamknięte przez akcje wewnątrz komponentu albo użytkownik klinie treść poza nim.
-*   Można zdefiniować nagłówek komunikatu wyświetlający się na jego górze oraz ikonę obok niego, ikona jest wczytywana z zasobów z użyciem import.
-* przykład implementacji:
-*   <Popup title="Książka" title_icon={logo}>
-*       <div>
-            Jakiś html może form
-*           <Button onclick="close()">Zamknij</Button>
-*       </div>
-*   </Popup>
-*/
-import {createContext, type ReactNode, useContext} from "react";
+/**
+ * @file Implementacja komponentów <Popup> i <Alert>.
+ * @author Dawid Filipek
+ */
 
-export const popupContext = createContext(()=>{})
-
-export default function Popup({children, title, title_icon}: {children:ReactNode, title?: String, title_icon?: any}){
-    const close = () => {} // close function
-    return <popupContext.Provider value={close}>
-        {children}
-    </popupContext.Provider>
+import React, {type EventHandler, type KeyboardEventHandler, type ReactNode, useState} from "react";
+import { createPortal } from "react-dom";
+import './Popup.css';
+/**
+ * @interface PopupProps
+ * @property {string} title - Tekst wyświetlany w nagłówku okna.
+ * @property {string} [icon] - Opcjonalna ścieżka do pliku ikony (SVG/PNG).
+ * @property {ReactNode} children - Zawartość renderowana wewnątrz okna.
+ * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
+ * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
+ * @property {()=>void} [onClose] - event wywołany przy zamknięciu okna poprzez kliknięcie escape lub poza komponent
+ */
+export interface PopupProps {
+    title: string;
+    icon?: string;
+    children: ReactNode;
+    isOpen: boolean;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    onClose?: ()=> void
 }
 
-// zdefiniować typowe okno "czy jesteś pewien"
-export function Alert({message, title}: {message:string, title: string}){
-    return <Popup title={title}>
-        <div></div>
-    </Popup>
+/**
+ * @interface AlertProps
+ * @property {string} message - Treść komunikatu wyświetlanego wewnątrz alertu.
+ * @property {string} title - Tekst wyświetlany w nagłówku okna.
+ * @property {string} [icon] - Opcjonalna ścieżka do pliku ikony (SVG/PNG).
+ * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
+ * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
+ *
+ * @property {() => void} [onCancel] - Callback wywoływany przy rezygnacji/zamknięciu okna.
+ * @property {() => void} [onAccept] - KLUCZOWY PARAMETR: Przesłanie tej funkcji powoduje 
+ * automatyczne wyrenderowanie drugiego przycisku (akceptacji). Jeśli parametr jest pominięty, 
+ * Alert wyświetla tylko jeden przycisk (informacyjny).
+ *
+ * @property {string} [acceptText] - Tekst przycisku akceptacji (domyślnie "Tak").
+ * @property {string} [cancelText] - Tekst przycisku anulowania. Domyślnie "Anuluj", a jeśli onAccept nie został podany — "Ok".
+ */
+export interface AlertProps{
+    message: string;
+    title: string;
+    icon?: string;
+    isOpen: boolean;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+
+    onCancel?: () => void;
+    onAccept?: () => void;
+
+    acceptText?: string;
+    cancelText?: string;
+}
+
+
+
+/**
+ * @function Popup
+ * @description Uniwersalne okno modalne. Można je zamknąć poprzez tło, klawisz ESC
+ * lub recznie poprzez wywołanie setera odpowiadającego jej hook'a isOpen
+ * @example
+ * // prosty popup z guzikiem, który go zamyka
+ * const [isPopupOpen, setIsPopupOpen] = useState<boolean>(true)
+ * return <Popup title="Szczegóły książki" isOpen={isPopupOpen} setIsOpen={setIsPopupOpen}>
+ *     <button onClick={() => setIsPopupOpen(false)}>
+ *         Zamknij tę zawartość
+ *     </button>
+ * </Popup>
+ */
+export default function Popup({ title, icon, children, isOpen,  setIsOpen, onClose}: PopupProps){
+
+    /**
+     * @event handleEscape
+     * zamyka okno, gdy zostanie kliknięty escape
+     * @prop {React.KeyboardEvent<HTMLDivElement>} event
+     * @returns void
+     * */
+    const handleEscape: React.KeyboardEventHandler<HTMLDivElement> = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        console.log(event);
+        if (event.key === 'Escape') setIsOpen(false)
+        if(onClose) onClose();
+    };
+
+    return isOpen && createPortal(
+        <div className="popup-backdrop" onKeyDown={handleEscape} onClick={(e) => e.target === e.currentTarget && setIsOpen(false)}>
+            <div className="popup-window">
+                <div className="popup-header">
+                    {icon && icon.trim() !== "" && <img src={icon} alt="" className="popup-icon" />}
+                    <h3 className="popup-title">{title}</h3>
+                </div>
+                <div className="popup-content">{children}</div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+/**
+ * @function Alert
+ * @description Komponent okna dialogowego z predefiniowaną strukturą komunikatu
+ * oraz przyciskami akcji. Obsługuje inteligentne dopasowanie tekstów przycisków.
+ */
+export function Alert({ title, message, isOpen, setIsOpen, icon, onAccept, onCancel, acceptText, cancelText }: AlertProps){
+
+
+    const handleAcceptClick = () => {
+        setIsOpen(false)
+        if (onAccept) onAccept();
+    };
+
+    const handleCancelClick = () => {
+        setIsOpen(false)
+        if (onCancel) onCancel();
+    };
+
+
+
+    // Logika domyślnych tekstów: "Tak/Anuluj" dla dwóch opcji, "Ok" dla pojedynczej informacji.
+    const finalCancelText = cancelText || (onAccept ? "Anuluj" : "Ok");
+    const finalAcceptText = acceptText || "Tak";
+
+    return (
+        <Popup title={title} isOpen={isOpen} setIsOpen={setIsOpen} onClose={onCancel} icon={icon}>
+            <div className="alert-message">{message}</div>
+            <div className="alert-actions">
+                {onAccept && (
+                    <button onClick={handleAcceptClick} className="save-button">
+                        {finalAcceptText}
+                    </button>
+                )}
+                <button onClick={()=>handleCancelClick()} className="cancel-button">
+                    {finalCancelText}
+                </button>
+            </div>
+        </Popup>
+    )
 }

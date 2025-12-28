@@ -1,0 +1,102 @@
+.popup-backdrop {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000; 
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    background-color: rgba(0, 0, 0, 0.1); 
+    backdrop-filter: blur(5px); 
+    overflow-y: auto; 
+}
+
+
+.popup-window {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 1001; 
+    width: 400px;
+    max-width: 90%;
+    min-width: 300px;
+}
+
+.popup-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    
+}
+
+.popup-title {
+    margin: 0;
+    font-size: 1.2em;
+    color: #891E49;
+}
+
+.popup-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.popup-content {
+    padding: 20px;
+}
+
+.alert-message {
+    margin-bottom: 15px;
+    font-size: 1em;
+}
+
+.alert-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;                 
+    margin-top: 20px;
+    width: 100%;               
+}
+
+.alert-actions button {
+    width: calc(50% - 5px); 
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    border: 1px solid #801840;
+    transition: background-color 0.2s;
+}
+
+.save-button {
+    --accent-color: #791a45;
+    background-color: var(--accent-color);
+    color: white;
+    border: 1px solid var(--accent-color);
+    margin-left: 10px;
+}
+
+.alert-actions button:not(.save-button) {
+    --accent-color: #791a45;
+    background: white;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+}
+
+.save-button:hover {
+    background-color: #6B1737;
+}
+
+.cancel-button {
+    background-color: white;
+    color: #801840;
+}
+
+.cancel-button:hover {
+    background-color: #f8f0f3;
+}
