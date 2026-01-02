@@ -257,9 +257,9 @@ function CatalogView(): JSX.Element {
     // Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
     const fetchBooksAndScrollToTop = useCallback(async () => {
         const searchString = search?.search || "";
-        console.log(`Wyszukiwanie ${searchString} na stronie ${currentPage}\n
+        /*console.log(`Wyszukiwanie ${searchString} na stronie ${currentPage}\n
                 Sortowanie: ${sorting.key}_${sorting.direction}\n
-                Filtry    : ${JSON.stringify(activeFilters)}`);
+                Filtry    : ${JSON.stringify(activeFilters)}`);*/
         const result = await fetchCatalogRequest(
             isLibrarian,
             searchString,
