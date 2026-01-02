@@ -173,13 +173,13 @@ export interface CatalogResponse<T extends Book> {
 }
 
 /**
- * @type SearchSort
- * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
- * @prop {'DESC'|'ASC'} direction - czy sortowanie będzie się odbywać rosnąco (ASC) czy malejąco (DESC)
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
  * */
-export interface SearchSort{
-    key: string
-    direction: 'DESC'|'ASC'
+export interface RentLogSearchFilter extends IFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
 }
 
 
