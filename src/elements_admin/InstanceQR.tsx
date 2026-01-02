@@ -2,19 +2,23 @@
 * @file Implementuje komponent generujący i wyświetlający komunikat z kodem QR danego egzemplarza
 * @author Dawid Filipek
 * */
-import React, { useEffect, useRef } from "react";
+import React, {type JSX, useEffect, useRef} from "react";
 import QRCode from "qrcode";
 import Popup from "../../public/custom_components/Popup.tsx";
 import "./InstanceQR.css";
 
 /**
  * Interfejs dla właściwości komponentu InstanceQR.
- * * @interface InstanceQRProps
+ * @interface InstanceQRProps
  * @property {number[] | number} instance_id - Identyfikator lub tablica identyfikatorów egzemplarzy, dla których mają zostać wygenerowane kody QR.
+ * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna dla komponentu <Popup>
+ * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
  * @property {() => void} [onClose] - Opcjonalna funkcja wywoływana podczas zamykania popupu.
  */
 interface InstanceQRProps {
     instance_id: number[] | number;
+    isOpen: boolean
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
     onClose?: () => void;
 }
 
@@ -26,15 +30,15 @@ interface InstanceQRProps {
  * return (
  * <InstanceQR instance_id={[123, 124]} onClose={() => console.log('Closed')} />
  * )
- * * @param {InstanceQRProps} props - Właściwości komponentu.
+ * @param {InstanceQRProps} props — Właściwości komponentu.
  * @returns {JSX.Element} Element JSX renderujący popup z kodami QR.
  */
-export default function InstanceQR({ instance_id, onClose }: InstanceQRProps) {
+export default function InstanceQR({ instance_id, onClose, isOpen, setIsOpen }: InstanceQRProps): JSX.Element {
     /** @type {number[]} Normalizacja identyfikatorów do tablicy */
-    const ids = Array.isArray(instance_id) ? instance_id : [instance_id];
+    const ids: number[] = Array.isArray(instance_id) ? instance_id : [instance_id];
     
     /** @type {boolean} Czy wyświetlany jest tylko jeden kod QR */
-    const isSingle = ids.length === 1;
+    const isSingle: boolean = ids.length === 1;
     
     /** * Referencje do elementów HTMLCanvasElement, na których generowane są kody QR.
      * Kluczem jest ID egzemplarza.
@@ -59,7 +63,7 @@ export default function InstanceQR({ instance_id, onClose }: InstanceQRProps) {
 
     /**
      * Pobiera wygenerowany kod QR jako plik obrazu PNG.
-     * * @param {number} id - Identyfikator egzemplarza, którego kod ma zostać pobrany.
+     * * @param {number} id — Identyfikator egzemplarza, którego kod ma zostać pobrany.
      * @returns {void}
      */
     const downloadQR = (id: number): void => {
@@ -82,6 +86,8 @@ export default function InstanceQR({ instance_id, onClose }: InstanceQRProps) {
         <div className={!isSingle ? "qr-standard-list-wrapper" : ""}>
             <Popup
                 title={isSingle ? "Kod QR egzemplarza" : "Książka dodana. Kody egzemplarzy:"}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
                 onClose={onClose}
             >
                 {/* Kontener listy kodów z obsługą przewijania */}
