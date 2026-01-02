@@ -7,7 +7,7 @@
  * * @author Aleksander Grzegrzułka
  */
 
-import React from 'react';
+import { type JSX } from 'react';
 import iconNext from "../../src/assets/arrow_forward.svg"
 import iconPrev from "../../src/assets/arrow_back.svg"
 
@@ -27,16 +27,16 @@ interface PaginationProps {
  * Komponent funkcyjny Pagination.
  * Renderuje pasek nawigacji stronami.
  * * @param {PaginationProps} props - parametry wejściowe komponentu
- * @returns {React.FC<PaginationProps>} Wyrenderowany interfejs nawigacji
+ * @returns {JSX.Element} Wyrenderowany interfejs nawigacji
  */
-export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
+export const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps): JSX.Element => {
     const isFirst = currentPage <= 1;
     const isLast = currentPage >= totalPages;
 
     return (
         <div className="flex items-center justify-center gap-4 my-4">
-            <button 
-                onClick={() => onPageChange(currentPage - 1)} 
+            <button
+                onClick={() => { onPageChange(currentPage - 1) }}
                 disabled={isFirst}
                 className="flex items-center border boring"
             >
@@ -48,8 +48,8 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
                 Strona {currentPage} z {totalPages}
             </span>
 
-            <button 
-                onClick={() => onPageChange(currentPage + 1)} 
+            <button
+                onClick={() => { onPageChange(currentPage + 1) }}
                 disabled={isLast}
                 className="flex items-center border boring"
             >

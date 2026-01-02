@@ -18,16 +18,20 @@ import Collapsible from '../../public/custom_components/Collapsible.tsx'
  * @property {function} [onInstanceMarkDamagedPressed] - Opcjonalna funkcja wywoływana przy oznaczaniu egzemplarza jako zniszczony.
  * @property {function} [onInstanceMarkMendedPressed] - Opcjonalna funkcja wywoływana przy anulowaniu zniszczenia egzemplarza.
  * @property {function} [onInstanceRemove] - Opcjonalna funkcja wywoływana przy usuwaniu egzemplarza.
+ * @property {function} [onInstanceDisplayQRCodePressed] - Opcjonalna funkcja wywoływana przy próbie pokazania kodu QR egzemplarza.
  */
 type Props = {
     book_info: BookAdmin,
-    onAddInstancePressed?: (book_info: BookAdmin) => any,
-    onEditBookPressed?: (book_info: BookAdmin) => any,
-    onRemoveBookPressed?: (book_info: BookAdmin) => any,
-    onInstanceMarkDamagedPressed?: (book_info: BookAdmin, instance_id: number) => any,
-    onInstanceMarkMendedPressed?: (book_info: BookAdmin, instance_id: number) => any,
-    onInstanceRemovePressed?: (book_info: BookAdmin, instance_id: number) => any,
+    onAddInstancePressed?: (book_info: BookAdmin) => void,
+    onEditBookPressed?: (book_info: BookAdmin) => void,
+    onRemoveBookPressed?: (book_info: BookAdmin) => void,
+    onInstanceMarkDamagedPressed?: (book_info: BookAdmin, instance_id: number) => void,
+    onInstanceMarkMendedPressed?: (book_info: BookAdmin, instance_id: number) => void,
+    onInstanceRemovePressed?: (book_info: BookAdmin, instance_id: number) => void,
+    onInstanceDisplayQRCodePressed?: (book_info: BookAdmin, instance_id: number) => void,
 };
+
+type State = object;
 
 
 /**
@@ -39,7 +43,7 @@ type Props = {
  * @prop {BookAdmin} props.book_info - Obiekt zawierający szczegółowe informacje o książce.
  * */
 
-export default class AdminBookComponent extends React.Component<Props, {}> {
+export default class AdminBookComponent extends React.Component<Props, State> {
     render(): JSX.Element {
         const b = this.props.book_info;
         const authors = b.authors.join(", ");
@@ -51,6 +55,7 @@ export default class AdminBookComponent extends React.Component<Props, {}> {
         const markDamaged = this.props.onInstanceMarkDamagedPressed ?? ((b: BookAdmin, id: number) => { });
         const markMended = this.props.onInstanceMarkMendedPressed ?? ((b: BookAdmin, id: number) => { });
         const removeInstance = this.props.onInstanceRemovePressed ?? ((b: BookAdmin, id: number) => { });
+        const showQR = this.props.onInstanceDisplayQRCodePressed ?? ((b: BookAdmin, id: number) => { });
 
         return <div className="book">
             <div className="header-actions">
@@ -89,6 +94,7 @@ export default class AdminBookComponent extends React.Component<Props, {}> {
                             onMarkDamagedPressed={(id) => markDamaged(b, id)}
                             onMarkMendedPressed={(id) => markMended(b, id)}
                             onRemovePressed={(id) => removeInstance(b, id)}
+                            onDisplayQRCodePressed={(id) => showQR(b, id)}
                         />
                     )}
                 </div>

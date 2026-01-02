@@ -14,7 +14,7 @@
  * * @author Aleksander Grzegrzułka
  */
 
-import { useContext, useEffect, useState, type JSX } from "react";
+import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
 import { type BookSearchFilter, type SearchSort, type CatalogResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
 import "./catalog.css";
@@ -49,6 +49,8 @@ import { Pagination } from "../general_elements/Pagination.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
 import iconError from "../assets/error.svg"
 import { AddBookForm } from "../elements_admin/AddBookView.tsx";
+import { useSearchParams } from "react-router-dom";
+import InstanceQR from "../elements_admin/InstanceQR.tsx";
 
 /**
  * Wykonuje żądanie do API w celu pobrania listy książek na podstawie parametrów wyszukiwania.
@@ -99,10 +101,33 @@ function CatalogView(): JSX.Element {
     const auth = useContext(AuthContext);
     const isLibrarian = auth?.session?.access === 'admin';
 
-    const [search, setSearch] = useState<SearchPanelReturn | undefined>(undefined);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
+        const from = params.get("date_from");
+        const to = params.get("date_to");
+        return {
+            author: params.getAll("author"),
+            genre: params.getAll("genre"),
+            publisher: params.getAll("publisher"),
+            tags: params.getAll("tags"),
+            language: params.getAll("language"),
+            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
+        };
+    };
+
+    const [search, setSearch] = useState<SearchPanelReturn | undefined>(() => {
+        const q = searchParams.get("q");
+        return q ? { search: q } : undefined;
+    });
+
     const [books, setBooks] = useState<Book[]>([]);
 
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(() => {
+        const p = searchParams.get("page");
+        return p ? parseInt(p) : 1;
+    });
+
     const [totalPages, setTotalPages] = useState(1);
     const [totalBookCount, setTotalBookCount] = useState(0);
 
@@ -117,21 +142,17 @@ function CatalogView(): JSX.Element {
         language: [] as string[]
     });
 
-    const [activeFilters, setActiveFilters] = useState<BookSearchFilter>({
-        author: [] as string[],
-        genre: [] as string[],
-        publisher: [] as string[],
-        tags: [] as string[],
-        language: [] as string[],
-        release_date: undefined
-    });
+    const [activeFilters, setActiveFilters] = useState<BookSearchFilter>(() => getFiltersFromUrl(searchParams));
 
     const [activeFilterCount, setActiveFilterCount] = useState<number>(0);
 
-    const [sorting, setSorting] = useState<SearchSort>({
-        key: "title",
-        direction: "ASC"
-    });
+    const [sorting, setSorting] = useState<SearchSort>(() => ({
+        key: searchParams.get("sort_key") || "title",
+        direction: (searchParams.get("sort_dir") as 'ASC' | 'DESC') || "ASC"
+    }));
+
+    // Ref to track if we triggered the URL update (prevents infinite loop with Back button logic)
+    const isUpdatingUrlRef = useRef(false);
 
     const [shownPopup, setShownPopup] = useState<undefined
         | "rentConfirm" | "rentSuccess" | "rentError"
@@ -141,11 +162,71 @@ function CatalogView(): JSX.Element {
         | "editBook" | "editBookError" | "editBookSuccess"
         | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
         | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
-        | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError">(undefined);
+        | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError"
+        | "instanceDisplayQRCode">(undefined);
 
-    const [popupData, setPopupData] = useState<any>(undefined);
+    interface PopupData {
+        book?: Book,
+        error?: string,
+        instanceId?: number,
+    }
 
-    // Pobieranie wszystkich dostępnych filtrów na starcie
+    const [popupData, setPopupData] = useState<PopupData>({});
+
+    // 1. Sync State -> URL
+    useEffect(() => {
+        const params = new URLSearchParams();
+
+        if (search?.search) params.set("q", search.search);
+        if (currentPage > 1) params.set("page", currentPage.toString());
+
+        if (sorting.key !== "title" || sorting.direction !== "ASC") {
+            params.set("sort_key", sorting.key);
+            params.set("sort_dir", sorting.direction);
+        }
+
+        activeFilters.author?.forEach(v => params.append("author", v));
+        activeFilters.genre?.forEach(v => params.append("genre", v));
+        activeFilters.publisher?.forEach(v => params.append("publisher", v));
+        activeFilters.tags?.forEach(v => params.append("tags", v));
+        activeFilters.language?.forEach(v => params.append("language", v));
+
+        if (activeFilters.release_date) {
+            params.set("date_from", activeFilters.release_date.from.getFullYear().toString());
+            params.set("date_to", activeFilters.release_date.to.getFullYear().toString());
+        }
+
+        // Only update if actually different to avoid redundant history entries
+        if (params.toString() !== searchParams.toString()) {
+            isUpdatingUrlRef.current = true;
+            setSearchParams(params, { replace: true });
+        }
+
+    }, [activeFilters, sorting, search, currentPage, setSearchParams, searchParams]);
+
+    // 2. Sync URL -> State (Handle Back Button / External Navigation)
+    useEffect(() => {
+        if (isUpdatingUrlRef.current) {
+            isUpdatingUrlRef.current = false;
+            return;
+        }
+
+        const newPage = parseInt(searchParams.get("page") || "1");
+        const newSearch = searchParams.get("q") ? { search: searchParams.get("q")! } : undefined;
+        const newSort: SearchSort = {
+            key: searchParams.get("sort_key") || "title",
+            direction: (searchParams.get("sort_dir") as 'ASC' | 'DESC') || "ASC"
+        };
+        const newFilters = getFiltersFromUrl(searchParams);
+
+        setCurrentPage(newPage);
+        setSearch(newSearch);
+        setSorting(newSort);
+        setActiveFilters(newFilters);
+    }, [searchParams]);
+
+
+    // Pobieranie wszystkich dostępnych opcji filtrów na starcie
     useEffect(() => {
         const loadOptions = async () => {
             try {
@@ -157,13 +238,9 @@ function CatalogView(): JSX.Element {
                 console.error("Błąd ładowania filtrów:", error);
             }
         };
-        loadOptions();
+        void loadOptions();
     }, []);
 
-    // Reakcja na zmianę filtrów (resetuje stronę na 1)
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [activeFilters, sorting]);
 
     // Aktualizowanie ilości aktywnych filtrów
     useEffect(() => {
@@ -178,7 +255,7 @@ function CatalogView(): JSX.Element {
     }, [activeFilters]);
 
     // Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
-    const fetchBooksAndScrollToTop = async () => {
+    const fetchBooksAndScrollToTop = useCallback(async () => {
         const searchString = search?.search || "";
         console.log(`Wyszukiwanie ${searchString} na stronie ${currentPage}\n
                 Sortowanie: ${sorting.key}_${sorting.direction}\n
@@ -199,7 +276,7 @@ function CatalogView(): JSX.Element {
             top: 0,
             behavior: 'smooth'
         });
-    }
+    }, [activeFilters, currentPage, isLibrarian, search?.search, sorting]);
 
     const refreshBook = async (book_id: number) => {
         const updatedBook = await fetchBookRequest(isLibrarian, book_id);
@@ -214,7 +291,11 @@ function CatalogView(): JSX.Element {
         (async () => {
             await fetchBooksAndScrollToTop();
         })()
-    }, [activeFilters, sorting, search, currentPage]);
+    }, [activeFilters, sorting, search, currentPage, fetchBooksAndScrollToTop]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeFilters, sorting, search])
 
     const handleResetFilters = () => {
         setSearch({ search: "" });
@@ -227,6 +308,7 @@ function CatalogView(): JSX.Element {
             language: [],
             release_date: undefined,
         });
+        setCurrentPage(1);
     };
 
     const notFoundText = ((): string => {
@@ -273,7 +355,7 @@ function CatalogView(): JSX.Element {
             setShownPopup("addInstanceSuccess");
             return;
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("addInstanceError");
             return;
@@ -307,7 +389,7 @@ function CatalogView(): JSX.Element {
             setShownPopup("editBookSuccess");
             return;
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("editBookError");
             return;
@@ -319,6 +401,11 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book });
     }
 
+    const onInstanceDisplayQRCodePressed = async (book: BookAdmin, instance_id: number) => {
+        setPopupData({ book: book, instanceId: instance_id });
+        setShownPopup("instanceDisplayQRCode");
+    }
+
     const onInstanceMarkDamagedPressed = async (book: BookAdmin, instance_id: number) => {
         hidePopups();
         try {
@@ -327,7 +414,7 @@ function CatalogView(): JSX.Element {
             setPopupData({ book: book, instanceId: instance_id });
             setShownPopup("instanceMarkDamagedSuccess");
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, instanceId: instance_id, error: msg });
             setShownPopup("instanceMarkDamagedError");
         }
@@ -341,7 +428,7 @@ function CatalogView(): JSX.Element {
             setPopupData({ book: book, instanceId: instance_id });
             setShownPopup("instanceMarkMendedSuccess");
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, instanceId: instance_id, error: msg });
             setShownPopup("instanceMarkMendedError");
         }
@@ -352,15 +439,20 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book, instanceId: instance_id });
     }
 
-    const handleInstanceRemove = async (data: { book: BookAdmin, instanceId: number }) => {
+    const handleInstanceRemove = async (data: PopupData) => {
         hidePopups();
+
+        if (!data.instanceId || !data.book) {
+            return;
+        }
+
         try {
             await removeBookInstanceRequest(data.instanceId);
             if (data.book.book_id) await refreshBook(data.book.book_id);
             setPopupData(data);
             setShownPopup("removeInstanceSuccess");
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ ...data, error: msg });
             setShownPopup("removeInstanceError");
         }
@@ -368,18 +460,22 @@ function CatalogView(): JSX.Element {
 
     const hidePopups = () => {
         setShownPopup(undefined);
-        setPopupData(undefined);
+        setPopupData({});
     }
 
-    const handleClosePopup = (prev: any) => {
+    const handleClosePopup = (prev: unknown) => {
         if (prev == false) {
             hidePopups();
         }
     }
 
-    const handleBookReserve = async (data: { book: BookUser }) => {
+    const handleBookReserve = async (data: PopupData) => {
         hidePopups();
         const book = data.book;
+
+        if (!book) {
+            return;
+        }
 
         if (!book.book_id) {
             setPopupData({ book: book, error: "Pole book_id jest undefined" });
@@ -393,16 +489,20 @@ function CatalogView(): JSX.Element {
             setShownPopup("reserveSuccess");
             return;
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("reserveError");
             return;
         }
     }
 
-    const handleBookRent = async (data: { book: BookUser }) => {
+    const handleBookRent = async (data: PopupData) => {
         hidePopups();
         const book = data.book;
+
+        if (!book) {
+            return;
+        }
 
         if (!book.book_id) {
             setPopupData({ book: book, error: "Pole book_id jest undefined" });
@@ -417,16 +517,20 @@ function CatalogView(): JSX.Element {
             setShownPopup("rentSuccess");
             return;
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("rentError");
             return;
         }
     }
 
-    const handleBookRemove = async (data: { book: BookAdmin }) => {
+    const handleBookRemove = async (data: PopupData) => {
         hidePopups();
         const book = data.book;
+
+        if (!book) {
+            return;
+        }
 
         if (!book.book_id) {
             setPopupData({ book: book, error: "Pole book_id jest undefined" });
@@ -440,7 +544,7 @@ function CatalogView(): JSX.Element {
             await fetchBooksAndScrollToTop();
             return;
         } catch (e) {
-            const msg = (e && Object.prototype.hasOwnProperty.call(e, "message")) ? (e as any).message : "";
+            const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("removeBookError");
             return;
@@ -452,7 +556,7 @@ function CatalogView(): JSX.Element {
             <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?</p>
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Nie</button>
-                <button onClick={() => { handleBookRent(popupData) }}>Tak, wypożycz</button>
+                <button onClick={() => void handleBookRent(popupData)}>Tak, wypożycz</button>
             </div>
         </Popup>
 
@@ -485,7 +589,7 @@ function CatalogView(): JSX.Element {
             </p>
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Nie</button>
-                <button onClick={() => { handleBookReserve(popupData) }}>Tak, zarezerwuj</button>
+                <button onClick={() => void handleBookReserve(popupData)}>Tak, zarezerwuj</button>
             </div>
         </Popup>
 
@@ -522,7 +626,7 @@ function CatalogView(): JSX.Element {
 
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Anuluj</button>
-                <button onClick={() => { handleBookRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
+                <button onClick={() => void handleBookRemove(popupData)} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
             </div>
         </Popup>
 
@@ -657,7 +761,7 @@ function CatalogView(): JSX.Element {
 
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Anuluj</button>
-                <button onClick={() => { handleInstanceRemove(popupData); }} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
+                <button onClick={() => void handleInstanceRemove(popupData)} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
             </div>
         </Popup>
 
@@ -683,82 +787,108 @@ function CatalogView(): JSX.Element {
                 <button onClick={hidePopups} className="boring">Zamknij</button>
             </div>
         </Popup>
+
+        <InstanceQR isOpen={shownPopup === "instanceDisplayQRCode"} setIsOpen={handleClosePopup} instance_id={popupData.instanceId ?? 0}>
+
+        </InstanceQR>
+
         <h1 className="mb-14"><img src={catalogIcon} alt="icon" /> Katalog</h1>
         <main>
             <NavSidebar></NavSidebar>
-            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }}>
+            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }} defaultValue={search?.search ?? ""}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
-                    <CustomSelect filterKey="" label="Sortuj" initialValues={["Tytuł (A-Z)"]}
-                        onChange={(v: string[]) => {
-                            switch (v[0]) {
-                                case "Tytuł (A-Z)": {
-                                    setSorting({ key: "title", direction: "ASC" });
-                                    return;
-                                }
-                                case "Tytuł (Z-A)": {
-                                    setSorting({ key: "title", direction: "DESC" });
-                                    return;
-                                }
-                                case "Rok wydania (rosnąco)": {
-                                    setSorting({ key: "publish_year", direction: "ASC" });
-                                    return;
-                                }
-                                case "Rok wydania (malejąco)": {
-                                    setSorting({ key: "publish_year", direction: "DESC" });
-                                    return;
-                                } default: {
-                                    throw Error(`Nieznany tryb sortowania ${v[0]}`);
-                                    return;
-                                }
+                <CustomSelect filterKey="" label="Sortuj" initialValues={(() => {
+                    if (!sorting) return ["Tytuł (A-Z)"];
+                    const isYear = sorting.key === 'publish_year';
+                    const isAsc = sorting.direction === 'ASC';
+                    const label = isYear ? 'Rok wydania' : 'Tytuł';
+                    const direction = isYear
+                        ? (isAsc ? 'rosnąco' : 'malejąco')
+                        : (isAsc ? 'A-Z' : 'Z-A');
+                    return [`${label} (${direction})`];
+                })()}
+                    onChange={(v: string[]) => {
+                        switch (v[0]) {
+                            case "Tytuł (A-Z)": {
+                                setSorting({ key: "title", direction: "ASC" });
+                                return;
                             }
-                        }}>
-                        <CustomOption value="Tytuł (A-Z)">Tytuł (A-Z)</CustomOption>
-                        <CustomOption value="Tytuł (Z-A)">Tytuł (Z-A)</CustomOption>
-                        <CustomOption value="Rok wydania (rosnąco)">Rok wydania (rosnąco)</CustomOption>
-                        <CustomOption value="Rok wydania (malejąco)">Rok wydania (malejąco)</CustomOption>
-                    </CustomSelect>
+                            case "Tytuł (Z-A)": {
+                                setSorting({ key: "title", direction: "DESC" });
+                                return;
+                            }
+                            case "Rok wydania (rosnąco)": {
+                                setSorting({ key: "publish_year", direction: "ASC" });
+                                return;
+                            }
+                            case "Rok wydania (malejąco)": {
+                                setSorting({ key: "publish_year", direction: "DESC" });
+                                return;
+                            } default: {
+                                throw Error(`Nieznany tryb sortowania ${v[0]}`);
+                            }
+                        }
+                    }}>
+                    <CustomOption value="Tytuł (A-Z)">Tytuł (A-Z)</CustomOption>
+                    <CustomOption value="Tytuł (Z-A)">Tytuł (Z-A)</CustomOption>
+                    <CustomOption value="Rok wydania (rosnąco)">Rok wydania (rosnąco)</CustomOption>
+                    <CustomOption value="Rok wydania (malejąco)">Rok wydania (malejąco)</CustomOption>
+                </CustomSelect>
 
-                    <CustomSelect filterKey="" label="Autor" searchable allow_multiple
-                        key={`author-${resetToken}`}
-                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, author: v }) }}>
-                        {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
-                    </CustomSelect>
+                <CustomSelect filterKey="" label="Autor" searchable allow_multiple
+                    key={`author-${resetToken}`}
+                    initialValues={activeFilters.author}
+                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, author: v }) }}>
+                    {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
+                </CustomSelect>
 
-                    <CustomSelect filterKey="" label="Tagi" searchable allow_multiple
-                        key={`tags-${resetToken}`}
-                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
-                        {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
-                    </CustomSelect>
+                <CustomSelect filterKey="" label="Tagi" searchable allow_multiple
+                    key={`tags-${resetToken}`}
+                    initialValues={activeFilters.tags}
+                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
+                    {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
+                </CustomSelect>
 
-                    <CustomSelect filterKey="" label="Gatunek" searchable allow_multiple
-                        key={`genre-${resetToken}`}
-                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, genre: v }) }}>
-                        {allFilters.genre?.map(g => <CustomOption key={g} value={g}>{g}</CustomOption>)}
-                    </CustomSelect>
+                <CustomSelect filterKey="" label="Gatunek" searchable allow_multiple
+                    key={`genre-${resetToken}`}
+                    initialValues={activeFilters.genre}
+                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, genre: v }) }}>
+                    {allFilters.genre?.map(g => <CustomOption key={g} value={g}>{g}</CustomOption>)}
+                </CustomSelect>
 
-                    <CustomSelect filterKey="" label="Wydawca" searchable allow_multiple
-                        key={`publisher-${resetToken}`}
-                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, publisher: v }) }}>
-                        {allFilters.publisher?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
-                    </CustomSelect>
+                <CustomSelect filterKey="" label="Wydawca" searchable allow_multiple
+                    key={`publisher-${resetToken}`}
+                    initialValues={activeFilters.publisher}
+                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, publisher: v }) }}>
+                    {allFilters.publisher?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
+                </CustomSelect>
 
-                    <CustomSelect filterKey="" label="Język" searchable allow_multiple
-                        key={`language-${resetToken}`}
-                        onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, language: v }) }}>
-                        {allFilters.language?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
-                    </CustomSelect>
+                <CustomSelect filterKey="" label="Język" searchable allow_multiple
+                    key={`language-${resetToken}`}
+                    initialValues={activeFilters.language}
+                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, language: v }) }}>
+                    {allFilters.language?.map(p => <CustomOption key={p} value={p}>{p}</CustomOption>)}
+                </CustomSelect>
 
-                    <CustomSelect filterKey="" label="Data wydania" allowCustomRange
-                        key={`release_date-${resetToken}`}
-                        onChange={(v: string[]) => {
-                            const [from, to] = v[0].split('-').map(year => new Date(Number(year), 0, 1));
-                            setActiveFilters({
-                                ...activeFilters,
-                                release_date: { from, to }
-                            });
-                        }}>
-                        <CustomOption value="release_date:custom">Zakres</CustomOption>
-                    </CustomSelect>
+
+                <CustomSelect filterKey="" label="Data wydania" allowCustomRange
+                    initialValues={(() => {
+                        const from = activeFilters.release_date?.from.getFullYear();
+                        const to = activeFilters.release_date?.to.getFullYear();
+                        if (from && to) {
+                            return [from.toString() + " - " + to.toString()];
+                        }
+                    })()}
+                    key={`release_date-${resetToken}`}
+                    onChange={(v: string[]) => {
+                        const [from, to] = v[0].split('-').map(year => new Date(Number(year), 0, 1));
+                        setActiveFilters({
+                            ...activeFilters,
+                            release_date: { from, to }
+                        });
+                    }}>
+                    <CustomOption value="release_date:custom">Zakres</CustomOption>
+                </CustomSelect>
             </SearchPanel>
 
             <div className="books">
@@ -778,12 +908,13 @@ function CatalogView(): JSX.Element {
                 {isLibrarian && books.map((book, index) => (
                     <AdminBookComponent
                         book_info={book as BookAdmin} key={book.book_id || index}
-                        onAddInstancePressed={onAddInstancePressed}
-                        onEditBookPressed={onEditBookPressed}
-                        onRemoveBookPressed={onRemoveBookPressed}
-                        onInstanceMarkDamagedPressed={onInstanceMarkDamagedPressed}
-                        onInstanceMarkMendedPressed={onInstanceMarkMendedPressed}
-                        onInstanceRemovePressed={onInstanceRemovePressed}
+                        onAddInstancePressed={(b: BookAdmin) => void onAddInstancePressed(b)}
+                        onEditBookPressed={(b: BookAdmin) => void onEditBookPressed(b)}
+                        onRemoveBookPressed={(b: BookAdmin) => void onRemoveBookPressed(b)}
+                        onInstanceDisplayQRCodePressed={(b: BookAdmin, ins: number) => void onInstanceDisplayQRCodePressed(b, ins)}
+                        onInstanceMarkDamagedPressed={(b: BookAdmin, ins: number) => void onInstanceMarkDamagedPressed(b, ins)}
+                        onInstanceMarkMendedPressed={(b: BookAdmin, ins: number) => void onInstanceMarkMendedPressed(b, ins)}
+                        onInstanceRemovePressed={(b: BookAdmin, ins: number) => void onInstanceRemovePressed(b, ins)}
                     />
                 ))}
             </div>
