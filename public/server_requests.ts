@@ -116,7 +116,7 @@ export function loginRequest(email: string, password: string): Session{
 
 }
 
-export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
+export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
     const existingEmails = ["admin@test.com", "user@test.com"];
     if (existingEmails.includes(email)) {
         throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
@@ -130,43 +130,43 @@ export function registerRequest(name:string, surname:string, email:string, passw
         card_info
     });
 }
-export function resetPasswordRequest(email: string): void{
+export async function resetPasswordRequest(email: string): Promise<void>{
     throw Error("Not implemented exception")
 }
 
 // ProfileView
-export function fetchUserInfoRequest(): User{
+export async function fetchUserInfoRequest(): Promise<User>{
     throw Error("Not implemented exception")
 }
 
-export function changeClientDataRequest(name: string, surname: string): void{
+export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): void{
-    throw Error("Not implemented exception")
-}
-
-export function changeClientPasswordRequest(old_password: string, new_password: string): void{
+export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-export function cancelReservationRequest(reservation_id: number): void{
-    throw Error("Not implemented exception")
-}
-export function claimReservationRequest(reservation_id: number): void{
+export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-export function extendRentRequest(rent_id: number): void{
+export async function cancelReservationRequest(reservation_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+export async function claimReservationRequest(reservation_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-export function returnBookRequest(rend_id: number): void{
+export async function extendRentRequest(rent_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+
+export async function returnBookRequest(rend_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 
 
-export function fetchBorrowedBooksRequest(): Book[]{
+export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
     throw Error("Not implemented exception")
 }
 
@@ -215,10 +215,10 @@ export const fetchUserCatalogRequest = async (
     return { books: userBooks, totalPages, totalBooks };
 };
 
-export function rentBookRequest(book_id: number): void{
+export async function rentBookRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function reserveBookRequest(book_id: number): void{
+export async function reserveBookRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 export const fetchUserBookRequest = async (book_id: number): Promise<BookUser> => {
@@ -246,37 +246,37 @@ export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin>
     return bookAdmin;
 }
 
-export function editBookRequest(data: Book): void{
+export async function editBookRequest(data: Book): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function removeBookRequest(book_id: number): void {
+export async function removeBookRequest(book_id: number): Promise<void> {
     const index = SAMPLE_BOOKS.findIndex(book => book.book_id === book_id);
 
     if (index !== -1) {
         SAMPLE_BOOKS.splice(index, 1);
     }
 }
-export function removeBookInstanceRequest(instance_id: number):void{
+export async function removeBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function markDamagedBookInstanceRequest(instance_id: number): void{
+export async function markDamagedBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function markMendedBookInstanceRequest(instance_id: number): void{
+export async function markMendedBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function addBookInstanceRequest(book_id: number): void{
+export async function addBookInstanceRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 // Users
-export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): UserInfo[]{
+export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): Promise<UserInfo[]>{
     throw Error("Not implemented exception")
 }
 // Add Book View
-export function addBookRequest(data: Book): void{
+export async function addBookRequest(data: Book): Promise<void>{
     throw Error("Not implemented exception")
 }
 // Rent log
-export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo>{
     throw Error("Not implemented exception")
 }

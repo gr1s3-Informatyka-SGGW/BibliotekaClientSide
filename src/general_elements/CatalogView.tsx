@@ -11,7 +11,7 @@
  * - Paginacja wyników z automatycznym przewijaniem strony do góry.
  * - Zarządzanie stanem filtrów, w tym funkcja całkowitego resetowania kryteriów wyszukiwania.
  * - Automatyczne pobieranie dostępnych opcji filtrów z serwera przy inicjalizacji.
- * * @author Aleksander Grzegrzułka
+ * @author Aleksander Grzegrzułka
  */
 
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
@@ -45,7 +45,7 @@ import {
 import catalogIcon from "../assets/newsstand.svg"
 import { AuthContext } from "../../public/UserAuth";
 import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
-import { Pagination } from "../general_elements/Pagination.tsx";
+import { Pagination } from "./Pagination.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
 import iconError from "../assets/error.svg"
 import { AddBookForm } from "../elements_admin/AddBookView.tsx";
@@ -54,7 +54,7 @@ import InstanceQR from "../elements_admin/InstanceQR.tsx";
 
 /**
  * Wykonuje żądanie do API w celu pobrania listy książek na podstawie parametrów wyszukiwania.
- * * @param {boolean} isLibrarian - Flaga określająca, czy pobrać dane z punktu końcowego dla administratora.
+ * @param {boolean} isLibrarian - Flaga określająca, czy pobrać dane z punktu końcowego dla administratora.
  * @param {string} search_bar - Fraza wpisana w wyszukiwarkę.
  * @param {SearchSort} [sort] - Obiekt definiujący klucz i kierunek sortowania.
  * @param {BookSearchFilter} [filter] - Obiekt zawierający wybrane kategorie filtrów.
@@ -78,7 +78,7 @@ const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: Se
 
 /**
  * Wykonuje żądanie do API w celu pobrania danych pojedynczej książki.
- * * @param {boolean} isLibrarian - Flaga określająca, czy pobrać dane z punktu końcowego dla administratora.
+ * @param {boolean} isLibrarian - Flaga określająca, czy pobrać dane z punktu końcowego dla administratora.
  * @param {number} book_id - Unikalny identyfikator książki.
  * @returns {Promise<Book>} Obiekt zawierający szczegóły książki.
  */

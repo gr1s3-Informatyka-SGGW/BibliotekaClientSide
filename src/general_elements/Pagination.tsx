@@ -26,7 +26,7 @@ interface PaginationProps {
 /**
  * Komponent funkcyjny Pagination.
  * Renderuje pasek nawigacji stronami.
- * * @param {PaginationProps} props - parametry wejściowe komponentu
+ * * @param {PaginationProps} props — parametry wejściowe komponentu
  * @returns {JSX.Element} Wyrenderowany interfejs nawigacji
  */
 export const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps): JSX.Element => {
