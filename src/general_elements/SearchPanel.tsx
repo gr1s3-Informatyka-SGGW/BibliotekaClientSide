@@ -31,12 +31,14 @@ export interface SearchPanelReturn {
 /**
  * Właściwości (props) przyjmowane przez komponent SearchPanel.
  *
- * @property children - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
- * @property onSearch - Funkcja zwrotna (callback) wywoływana po zatwierdzeniu wyszukiwania (Enter lub przycisk).
+ * @property [children] - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
+ * @property [onSearch] - Funkcja zwrotna (callback) wywoływana po zatwierdzeniu wyszukiwania (Enter lub przycisk).
+ * @property [defaultValue] - Wartość paska wyszukiwania przy załadowaniu strony
  */
 interface SearchPanelProps {
-    children?: ReactNode; // nie działa dla {ReactNode & IFormComponent<any>}
+    children?: ReactNode;
     onSearch?: (data: SearchPanelReturn) => void;
+    defaultValue?: string
 }
 
 /**
@@ -58,7 +60,7 @@ interface SearchPanelState {
 export default class SearchPanel extends Component<SearchPanelProps, SearchPanelState> implements IFormComponent<SearchPanelReturn> {
 
     /**
-     * Tablica przechowywująca referencje do instancji komponentów podrzędnych (filtrów).
+     * Tablica przechowująca referencje do instancji komponentów podrzędnych (filtrów).
      * Umożliwia wywołanie metody getValue() na każdym z dzieci.
      * @private
      */
@@ -71,7 +73,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
     constructor(props: SearchPanelProps) {
         super(props);
         this.state = {
-            searchValue: ''
+            searchValue: props.defaultValue ?? ''
         };
     }
 

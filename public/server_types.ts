@@ -28,7 +28,7 @@ export interface Session{
  * @prop {string[]} genre
  * */
 export interface Book{
-    book_id?: string;
+    book_id?: number;
     title: string;
     authors: string[];
 
@@ -161,13 +161,25 @@ export interface UserListSearchFilter extends IFilter{
     status?: ('user'|'admin'|'blocked')[]
 }
 /**
- * @type SearchSort
- * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
- * @prop {'DESC'|'ASC'} direction - czy sortowanie będzie się odbywać rosnąco (ASC) czy malejąco (DESC)
+ * @type CatalogResponse - generyczny interfejs odpowiedzi serwera dla widoku katalogu
+ * @prop {T[]} books - lista obiektów książek (BookUser[] lub BookAdmin[]) zwrócona dla bieżącej strony
+ * @prop {number} totalPages - całkowita liczba stron dostępnych dla wybranych kryteriów wyszukiwania
+ * @prop {number} totalBooks - łączna liczba wszystkich książek w bazie danych spełniających nałożone filtry
  * */
-export interface SearchSort{
-    key: string
-    direction: 'DESC'|'ASC'
+export interface CatalogResponse<T extends Book> {
+    books: T[];
+    totalPages: number;
+    totalBooks: number;
+}
+
+/**
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * */
+export interface RentLogSearchFilter extends IFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
 }
 
 

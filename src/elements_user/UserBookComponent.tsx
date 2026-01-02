@@ -5,13 +5,20 @@
 import { Component, type JSX } from "react";
 import Collapsible from '../../public/custom_components/Collapsible.tsx'
 import bookIcon from '../assets/book.svg'
-import {type BookUser} from "../../public/server_types.ts"
+import { type BookUser } from "../../public/server_types.ts"
+import { rentBookRequest, reserveBookRequest } from "../../public/server_requests.ts";
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.
- * @property {Book} book_info - Obiekt zawierający szczegółowe informacje o książce.
+ * * @property {BookUser} book_info - Obiekt zawierający szczegółowe informacje o książce widoczne dla użytkownika.
+ * @property {function} [onRentBookPressed] - Opcjonalna funkcja wywoływana przy próbie wypożyczenia książki.
+ * @property {function} [onReserveBookPressed] - Opcjonalna funkcja wywoływana przy próbie rezerwacji książki.
  */
-type Props = { book_info: BookUser };
+type Props = { 
+    book_info: BookUser,
+    onRentBookPressed?: (book_info: BookUser) => any,
+    onReserveBookPressed?: (book_info: BookUser) => any,
+};
 
 /**
  * Stan komponentu UserBookComponent (obecnie pusty).
@@ -31,6 +38,8 @@ class UserBookComponent extends Component<Props, State> {
      */
     render(): JSX.Element {
         const b = this.props.book_info;
+        const rent = this.props.onRentBookPressed;
+        const reserve = this.props.onReserveBookPressed;
         const authors = b.authors.join(", ");
         const genres = b.genre.join(", ");
         const instances = (() => {
@@ -51,8 +60,8 @@ class UserBookComponent extends Component<Props, State> {
                     <img src={bookIcon} alt="icon" /> „{b.title}” — {authors}
                 </h3>
                 <div className="flex-row reader-actions">
-                    <button onClick={this.onRentBookPressed} disabled={disableRentButton}>Wypożycz</button>
-                    <button onClick={this.onReserveBookPressed} disabled={disableReserveButton}>Zarezerwuj</button>
+                    <button onClick={() => {rent && rent(b)}} disabled={disableRentButton}>Wypożycz</button>
+                    <button onClick={() => {reserve && reserve(b)}} disabled={disableReserveButton}>Zarezerwuj</button>
                 </div>
             </div>
 
@@ -72,23 +81,6 @@ class UserBookComponent extends Component<Props, State> {
             </Collapsible>
         </div>
     }
-
-    /**
-     * Obsługuje zdarzenie kliknięcia przycisku "Wypożycz".
-     * @returns {void}
-     */
-    onRentBookPressed = (): void => {
-        alert(`naciśnięto wypożycz dla „${this.props.book_info.title}”`)
-    }
-
-    /**
-     * Obsługuje zdarzenie kliknięcia przycisku "Zarezerwuj".
-     * @returns {void}
-     */
-    onReserveBookPressed = (): void => {
-        alert(`naciśnięto zarezerwuj dla „${this.props.book_info.title}”`)
-    }
-
 }
 
 export default UserBookComponent;
