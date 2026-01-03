@@ -9,12 +9,12 @@ interface ChipProps {
 
 /**
  * Komponent reprezentujący pojedynczą wybraną etykietę (chip) lub przycisk akcji.
- * * @param {ChipProps} props - Właściwości komponentu.
+ * @param {ChipProps} props - Właściwości komponentu.
  * @param {string} props.label - Tekst wyświetlany na chipie.
  * @param {Function} props.onRemove - Funkcja wywoływana przy usuwaniu lub kliknięciu przycisku.
  * @param {boolean} [props.isAddButton] - Jeśli true, chip stylizowany jest jako przycisk "Dodaj".
  */
-const Chip: React.FC<ChipProps> = ({ label, onRemove, isAddButton = false }) => {
+const Chip: React.FC<ChipProps> = ({ label, onRemove, isAddButton = false }: ChipProps) => {
     const className = isAddButton ? "chip add" : "chip";
 
     if (isAddButton) {
@@ -40,6 +40,7 @@ interface DynamicSelectProps {
     children?: string[];
     allow_multiple?: boolean;
     placeholder?: string;
+    default_value?: string|string[]
 }
 
 interface DynamicSelectState {
@@ -53,7 +54,7 @@ interface DynamicSelectState {
  * Dynamiczny komponent wyboru (select) obsługujący wyszukiwanie, 
  * wybór wielokrotny oraz dodawanie nowych pozycji.
  * Implementuje interfejs IFormComponent.
- * * @extends {Component<DynamicSelectProps, DynamicSelectState>}
+ * @extends {Component<DynamicSelectProps, DynamicSelectState>}
  * @implements {IFormComponent<string[] | string>}
  */
 export default class DynamicSelect
@@ -116,10 +117,10 @@ export default class DynamicSelect
     };
     /**
      * Zwraca opcje pasujące do wpisanego terminu wyszukiwania.
-     * W przypadku wyboru wielokrotnego, filtruje już wybrane elementy.
+     * W przypadku wyboru wielokrotnego filtruje już wybrane elementy.
      * @returns {string[]} - Lista pasujących opcji.
      */
-    getFilteredOptions() {
+    getFilteredOptions(): string[] {
         const { children = [] } = this.props;
         const { searchTerm, selectedItems } = this.state;
         const normalized = searchTerm.toLowerCase().trim();
