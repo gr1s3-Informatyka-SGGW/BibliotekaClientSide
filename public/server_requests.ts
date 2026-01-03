@@ -203,10 +203,15 @@ export function markDamegedBookInstanceRequest(instance_id: number): void{
 export function markMendedBookInstanceRequest(instance_id: number): void{
     throw Error("Not implemented exception")
 }
-export async function addBookInstanceRequest(book_id: number): Promise<void> {
+let mockInstanceCounter = 1;
+export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
     if (USE_MOCK) {
-        console.log("MOCK addBookInstanceRequest:", book_id);
-        return;
+        const fakeId = mockInstanceCounter++;
+        console.log("MOCK addBookInstanceRequest:", book_id, "->", fakeId);
+
+        return {
+            instance_id: fakeId
+        };
     }
     const r = await fetch("/api/book-instance/add", {
         method: "POST",
@@ -215,6 +220,7 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
     });
 
     if (!r.ok) throw Error();
+    return await r.json();
 }
 // Users
 export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): UserInfo[]{

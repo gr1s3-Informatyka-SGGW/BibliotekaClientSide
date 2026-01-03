@@ -12,6 +12,7 @@ import {addBookRequest, editBookRequest, addBookInstanceRequest} from "../../pub
 import {type Book} from "../../public/server_types.ts";
 import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
 import { Alert } from "../../public/custom_components/Popup.tsx";
+import InstanceQR from "./InstanceQR.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
 import AddBoxIcon from "../assets/add_box.svg";
 import BookIcon from "../assets/book.svg";
@@ -28,7 +29,9 @@ export default function AddBookView(){
     const [error, setError] = useState<string|null>(null)
     const [success, setSuccess] = useState<string|null>(null)
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [instanceIds, setInstanceIds] = useState<number[] | null>(null);
     
+
 
     async function sendForm(book: Book, copies: number) {
         console.log("Wysyłam:", book)
@@ -38,20 +41,17 @@ export default function AddBookView(){
         try {
             const createdBook = await addBookRequest(book);
 
+            const ids: number[] = [];
+
             for (let i = 0; i < copies; i++) {
-                await addBookInstanceRequest(createdBook.book_id);
+                const instance = await addBookInstanceRequest(createdBook.book_id);
+                ids.push(instance.instance_id);
             }
 
-            setSuccess("Książka została pomyślnie dodana.");
-            setIsPopupOpen(true);
-
+            setInstanceIds(ids);
         } catch (e) {
             setError("Wystąpił błąd przy dodawaniu książki.");
         }
-    }
-
-    function showPopup(id: string){
-        alert("Dodano książkę!")
     }
 
     return <>
@@ -74,34 +74,13 @@ export default function AddBookView(){
 
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
+        {instanceIds && (
+            <InstanceQR
+                instance_id={instanceIds}
+                onClose={() => setInstanceIds(null)}
+            />
+        )}
 
-        <Popup
-            title="Sukces"
-            icon={BookIcon}
-            isOpen={isPopupOpen}
-            setIsOpen={setIsPopupOpen}
-            onClose={() => console.log("Popup zamknięty")}
-        >
-            <p>Książka oraz jej egzemplarze zostały poprawnie dodane do systemu.</p>
-
-            <div style={{ display: "flex", gap: "0.5em", marginTop: "1em" }}>
-                <button
-                    onClick={() => setIsPopupOpen(false)}
-                    style={{ flex: 1 }}
-                >
-                    OK
-                </button>
-                <button
-                    onClick={() => {
-                        console.log("Dodaj kolejny");
-                        setIsPopupOpen(false);
-                    }}
-                    style={{ flex: 1 }}
-                >
-                    Dodaj kolejny
-                </button>
-            </div>
-        </Popup>
     </>
 }
 
