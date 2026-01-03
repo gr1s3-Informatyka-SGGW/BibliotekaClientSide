@@ -4,19 +4,19 @@
 */
 export const regex = {
     /** Walidacja imienia: 2-60 znaków, obsługa polskich znaków, dopuszcza spacje, apostrofy i myślniki. */
-    firstName: /^(?=.{2,60}$)[\p{L}]+(?:[ '\-][\p{L}]+)*$/u,
+    firstName: /^(?=.{2,60}$)\p{L}+(?:[ '\-][\p{L}]+)*$/u,
     /** Walidacja nazwiska: 2-80 znaków, obsługa polskich znaków, dopuszcza spacje, apostrofy i myślniki. */
-    lastName: /^(?=.{2,80}$)[\p{L}]+(?:[ '\-][\p{L}]+)*$/u,
+    lastName: /^(?=.{2,80}$)\p{L}+(?:[ '\-][\p{L}]+)*$/u,
     /** Standardowa walidacja formatu e-mail. */
     email: /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,63}$/,
     /** Walidacja polskiego numeru telefonu (opcjonalny prefiks +48, 9 cyfr). */
-    phone: /^(?:(?:\+48)?\s?)?(?:\d{9}|(?:\d{3}[\s-]\d{3}[\s-]\d{3}))$/,
+    phone: /^(?:(?:\+48)?\s?)?(?:\d{9}|\d{3}[\s-]\d{3}[\s-]\d{3})$/,
     /** Walidacja ulicy: 1-100 znaków, litery, cyfry i znaki specjalne adresu. */
     street: /^(?=.{1,100}$)[\p{L}\d]+(?:[ .,'-\/]*\s*[\p{L}\d]+)*$/u,
     /** Walidacja numeru domu/lokalu: np. 12, 12/4, 15A. */
     houseNo: /^(?=.{1,10}$)[A-Za-z0-9]+(?:\/[A-Za-z0-9]+)?$/,
     /** Walidacja nazwy miasta: 1-80 znaków, obsługa myślników i spacji. */
-    city: /^(?=.{1,80}$)[\p{L}]+(?:[ \-][\p{L}]+)*$/u,
+    city: /^(?=.{1,80}$)\p{L}+(?:[ \-]\p{L}+)*$/u,
     /** Walidacja polskiego kodu pocztowego (format 00-000). */
     postal: /^\d{2}-\d{3}$/,
     /** Walidacja długości numeru karty kredytowej (13-19 cyfr). */
@@ -26,26 +26,27 @@ export const regex = {
     /** Walidacja kodu CVV (3 lub 4 cyfry). */
     cvv: /^\d{3,4}$/,
     /** Walidacja hasła: min. 12 znaków, jedna wielka litera, jedna mała litera, jedna cyfra i jeden znak specjalny. */
-    password: /^(?=.{12,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%\^&\*\(\)\-_:;\=\+\[\]\{\}\|;:'",<\.>\/\?`~]).+$/,
+    password: /^(?=.{12,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_:;=+\[\]{}|'",<.>\/?`~]).+$/,
     /** Walidacja tytułu książki: 1-255 znaków, zaczyna się od litery lub cyfry. */
     title: /^(?=.{1,255}$)[\p{L}0-9][\p{L}0-9\s!?:;,. '"()\[\]{}/&+-]*$/u,
     /** Walidacja autora: dopuszcza format tekstowy lub numeryczny (ID). */
-    author: /^(?=.{1,200}$)([\p{L}]+(?:[ '\-][\p{L}]+)*(?:\s*,\s*[\p{L}]+(?:[ '\-][\p{L}]+)*)*$|^(\d+)$)/u,
+    author: /^(?=.{1,200}$)(\p{L}+(?:[ '\-]\p{L}+)*(?:\s*,\s*\p{L}+(?:[ '\-]\p{L}+)*)*$|^(\d+)$)/u,
     /** Walidacja nazwy wydawcy: 1-150 znaków. */
     publisher: /^(?=.{1,150}$)[\p{L}0-9][\p{L}0-9\s&,.'-]*$/u,
     /** Walidacja formatu numeru ISBN (10 lub 13). */
     isbnFmt: /^(?:ISBN(?:-1[03])?:?\s*)?(?:\d{9}[\dXx]|\d{13}|\d{1,5}-\d{1,7}-\d{1,7}-[\dXx]?)$/,
-    /** Walidacja słów kluczowych: do 20 fraz oddzielonych przecinkami, max 500 znaków. */
-    keywords: /^(?=.{0,500}$)(?:[^\s,]{1,50})(?:\s*,\s*[^\s,]{1,50}){0,19}$/,
+    /** Walidacja słów kluczowych: do 20 fraz oddzielonych przecinkami, max. 500 znaków. */
+    keywords: /^(?=.{0,500}$)[^\s,]{1,50}(?:\s*,\s*[^\s,]{1,50}){0,19}$/,
     /** Walidacja liczby stron: od 1 do 10000. */
     pages: /^(?:[1-9][0-9]{0,3}|10000)$/
 };
 
 /**
  * Reprezentuje wynik operacji walidacji.
+ * @prop
  */
 export interface ValidationResult {
-    /** Czy walidacja zakończyła się sukcesem. */
+    /** Czy walidacja zakończyła się sukcesem */
     ok: boolean;
     /** Opcjonalny opis błędu w przypadku niepowodzenia. */
     reason?: string;
@@ -53,8 +54,8 @@ export interface ValidationResult {
 
 /**
  * Implementacja algorytmu Luhna do sprawdzania poprawności numerów kart płatniczych.
- * * @param cardNumber - Numer karty do sprawdzenia.
- * @returns true, jeśli suma kontrolna jest poprawna.
+ * @param cardNumber - Numer karty do sprawdzenia.
+ * @returns {boolean} true, jeśli suma kontrolna jest poprawna.
  */
 export function luhnCheck(cardNumber: string | number | null | undefined): boolean {
     if (!cardNumber) return false;
@@ -78,7 +79,7 @@ export function luhnCheck(cardNumber: string | number | null | undefined): boole
 
 /**
  * Parsuje ciąg znaków daty ważności karty na obiekt z miesiącem i rokiem.
- * * @param mmyy - Data w formacie "MM/YY" lub "MM/YYYY".
+ * @param mmyy - Data w formacie "MM/YY" lub "MM/YYYY".
  * @returns Obiekt {month, year} lub null, jeśli format jest niepoprawny.
  */
 export function parseExpiry(mmyy: string | unknown): { month: number; year: number } | null {
@@ -102,7 +103,7 @@ export function parseExpiry(mmyy: string | unknown): { month: number; year: numb
 
 /**
  * Sprawdza, czy karta płatnicza nie straciła ważności względem podanej daty.
- * * @param mmyy - Data ważności karty (MM/YY).
+ * @param mmyy - Data ważności karty (MM/YY).
  * @param now - Data odniesienia (domyślnie aktualna data).
  * @returns true, jeśli karta jest ważna.
  */
@@ -124,7 +125,7 @@ export function isCardExpiryValid(
 
 /**
  * Usuwa z numeru ISBN wszystkie znaki poza cyframi oraz znakiem 'X'.
- * * @param isbn - Surowy ciąg znaków ISBN.
+ * @param isbn - Surowy ciąg znaków ISBN.
  * @returns Znormalizowany ciąg znaków lub null.
  */
 export function isbnNormalize(isbn: unknown): string | null {
@@ -134,7 +135,7 @@ export function isbnNormalize(isbn: unknown): string | null {
 
 /**
  * Sprawdza sumę kontrolną numeru ISBN-10.
- * * @param isbn10 - Znormalizowany 10-cyfrowy numer ISBN.
+ * @param isbn10 - Znormalizowany 10-cyfrowy numer ISBN.
  */
 export function isbn10Check(isbn10: string): boolean {
     if (!/^\d{9}[\dXx]$/.test(isbn10)) return false;
@@ -150,7 +151,7 @@ export function isbn10Check(isbn10: string): boolean {
 
 /**
  * Sprawdza sumę kontrolną numeru ISBN-13.
- * * @param isbn13 - Znormalizowany 13-cyfrowy numer ISBN.
+ * @param isbn13 - Znormalizowany 13-cyfrowy numer ISBN.
  */
 export function isbn13Check(isbn13: string): boolean {
     if (!/^\d{13}$/.test(isbn13)) return false;
@@ -165,7 +166,7 @@ export function isbn13Check(isbn13: string): boolean {
 
 /**
  * Kompleksowa walidacja numeru ISBN (obsługuje ISBN-10 i ISBN-13).
- * * @param isbn - Numer ISBN w dowolnym formacie tekstowym.
+ * @param isbn - Numer ISBN w dowolnym formacie tekstowym.
  * @returns true, jeśli numer jest poprawny.
  */
 export function isbnValidate(isbn: unknown): boolean {
@@ -182,18 +183,18 @@ export function isbnValidate(isbn: unknown): boolean {
 
 /**
  * Sprawdza, czy hasło spełnia wymagania polityki bezpieczeństwa (regex + brak spacji).
- * * @param pwd - Hasło do sprawdzenia.
+ * @param pwd - Hasło do sprawdzenia.
  */
 export function passwordMeetsPolicy(pwd: unknown): boolean {
     if (typeof pwd !== 'string') return false;
     if (!regex.password.test(pwd)) return false;
-    if (/\s/.test(pwd)) return false;
-    return true;
+    return !/\s/.test(pwd);
 }
 
 /**
  * Pomocnicza funkcja usuwająca białe znaki z początku i końca ciągu.
- * * @param input - Dowolny typ danych.
+ * @param input - dana dowolnego typu danych.
+ * @template T - typ parametru input
  * @returns Przycięty ciąg znaków, jeśli wejście było stringiem, w przeciwnym razie oryginał.
  */
 export function sanitizeTrim<T>(input: T): T | string {
@@ -204,6 +205,7 @@ export function sanitizeTrim<T>(input: T): T | string {
 /**
  * Obiekt zawierający gotowe walidatory dla poszczególnych pól formularzy.
  * Każda metoda zwraca obiekt `ValidationResult`.
+ * @prop {(val:unknown)=> ValidationResult} firstName walidacja imienia
  */
 export const validators = {
     /** Waliduje imię. */
