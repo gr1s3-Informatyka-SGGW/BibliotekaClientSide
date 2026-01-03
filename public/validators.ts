@@ -1,6 +1,6 @@
 /**
  * Zbiór wyrażeń regularnych wykorzystywanych do walidacji danych wejściowych.
- * @authors Szymon Dobra, Dawid Filipek
+ * @authors Dawid Filipek, Szymon Doba
 */
 export const regex = {
     /** Walidacja imienia: 2-60 znaków, obsługa polskich znaków, dopuszcza spacje, apostrofy i myślniki. */
