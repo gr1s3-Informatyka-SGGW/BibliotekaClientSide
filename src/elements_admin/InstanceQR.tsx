@@ -1,25 +1,55 @@
+/**
+* @file Implementuje komponent generujący i wyświetlający komunikat z kodem QR danego egzemplarza
+* @author Dawid Filipek
+* */
 import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import Popup from "../../public/custom_components/Popup.tsx";
 import "./InstanceQR.css";
 
+/**
+ * Właściwości komponentu InstanceQR.
+ * * @interface InstanceQRProps
+ * @prop {number[] | number} instance_id - Pojedynczy identyfikator lub tablica ID egzemplarzy do wygenerowania kodów.
+ * @prop {function} [onClose] - Opcjonalna funkcja wywoływana przy zamykaniu komponentu.
+ */
 interface InstanceQRProps {
     instance_id: number[] | number;
     onClose?: () => void;
 }
 
+/**
+ * Komponent wyświetlający popup z wygenerowanymi kodami QR dla danych egzemplarzy.
+ * Pozwala na podgląd oraz pobieranie kodów jako pliki PNG z etykietami.
+ * * @component
+ * @param {InstanceQRProps} props - Właściwości komponentu.
+ */
 export default function InstanceQR({ instance_id, onClose }: InstanceQRProps) {
     const ids = Array.isArray(instance_id) ? instance_id : [instance_id];
     const isSingle = ids.length === 1;
     
+    /** * Referencje do elementów canvas, na których rysowane są kody QR.
+     * @type {React.MutableRefObject<{[key: number]: HTMLCanvasElement | null}>}
+     */
     const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
+    
+    /** * Stan widoczności popupa.
+     * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
+     */
     const [isPopupOpen, setIsPopupOpen] = useState(true);
 
+    /**
+     * Obsługuje proces zamykania popupa i wywołuje callback onClose.
+     * @function handleClose
+     */
     const handleClose = () => {
         setIsPopupOpen(false);
         if (onClose) onClose();
     };
 
+    /**
+     * Efekt generujący kody QR na elementach canvas po zamontowaniu komponentu lub zmianie ID.
+     */
     useEffect(() => {
         ids.forEach((id, index) => {
             const canvas = canvasRefs.current[index]; 
@@ -27,11 +57,18 @@ export default function InstanceQR({ instance_id, onClose }: InstanceQRProps) {
                 QRCode.toCanvas(canvas, id.toString(), {
                     width: isSingle ? 280 : 160,
                     margin: 2
-                }).catch(err => console.error(err));
+                }).catch(err => console.error("Błąd generowania QR:", err));
             }
         });
     }, [ids, isSingle]);
 
+    /**
+     * Generuje plik obrazu (PNG) zawierający kod QR oraz tekstową etykietę egzemplarza,
+     * a następnie inicjuje pobieranie pliku przez przeglądarkę.
+     * * @function downloadQR
+     * @param {number} id - Numer ID egzemplarza.
+     * @param {number} index - Indeks egzemplarza w tablicy (używany do odnalezienia odpowiedniego canvas).
+     */
     const downloadQR = (id: number, index: number) => {
         const originalCanvas = canvasRefs.current[index];
         if (!originalCanvas) return;
@@ -48,21 +85,26 @@ export default function InstanceQR({ instance_id, onClose }: InstanceQRProps) {
         const textMetrics = ctx.measureText(label);
         const textWidth = textMetrics.width + 40;
 
+        // Ustawienie wymiarów nowego płótna (QR + miejsce na tekst)
         const finalWidth = Math.max(originalCanvas.width, textWidth);
         tempCanvas.width = finalWidth;
         tempCanvas.height = originalCanvas.height + padding;
 
+        // Rysowanie tła
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
+        // Rysowanie etykiety tekstowej
         ctx.fillStyle = "#801d41";
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = "center";
         ctx.fillText(label, tempCanvas.width / 2, 30);
 
+        // Kopiowanie kodu QR na nowe płótno
         const qrXOffset = (tempCanvas.width - originalCanvas.width) / 2;
         ctx.drawImage(originalCanvas, qrXOffset, padding);
 
+        // Wywołanie pobierania
         const link = document.createElement("a");
         link.download = `QR_Egzemplarz_${id}_${index}.png`;
         link.href = tempCanvas.toDataURL("image/png");
