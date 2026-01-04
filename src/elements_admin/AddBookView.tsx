@@ -24,7 +24,7 @@ import Popup from "../../public/custom_components/Popup.tsx";
 import AddBoxIcon from "../assets/add_box.svg";
 import BookIcon from "../assets/book.svg";
 import SaveIcon from "../assets/save.svg";
-import "./add_book.css";
+import "./AddBookView.css";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 
 /**

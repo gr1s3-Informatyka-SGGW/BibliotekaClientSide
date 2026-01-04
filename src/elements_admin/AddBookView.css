@@ -133,7 +133,9 @@ h3 {
     flex-grow: 1;
     width: auto;
 }
-
+.error-box{
+    color: red;
+}
 @media (min-width: 650px) {
 
     .form-row {
