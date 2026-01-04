@@ -81,7 +81,7 @@ const popups: Record<string, (info: any) => string> = {
       <p style="margin-top: 1em;"><b>Tytuł:</b> ${data.title}</p>
       <p><b>Autor:</b> ${data.authors}</p>
       <div style="margin-top: 1.5em; text-align: right;">
-        <button style="background-color: #8b2346; color: white; border: none; padding: 8px 20px; borderRadius: 0.75em; cursor: pointer;" onclick="closePopup('book_details')">Zamknij</button>
+        <button style="background-color: #8b2346; color: white; border: none; padding: 8px 20px; border-radius: 0.75em; cursor: pointer;" onclick="closePopup('book_details')">Zamknij</button>
       </div>
     </div>`
 };
@@ -169,12 +169,12 @@ const mainColor = '#8b2346';
 /**
  * Kontener wyświetlający listę książek w spójnym panelu bocznym.
  * @param {Object} props - Właściwości komponentu.
- * @param {ReservationComponent[]|RentComponent[]} props.children - Elementy ReservationComponent lub RentComponent.
+ * @param {ReservationComponent[] | ReservationComponent| RentComponent[]| RentComponent} props.children - Elementy ReservationComponent lub RentComponent.
  * @param {string} props.header - Tytuł sekcji.
  * @param {any} props.icon - Ikona wyświetlana przy nagłówku.
  * @param {number} [props.count] - Opcjonalny licznik elementów.
  */
-export default function ProfileBookList({ children, header, icon, count }: { children: ReservationComponent[] | RentComponent[], header: string, icon: any, count?: number }) {
+export default function ProfileBookList({ children, header, icon, count }: { children: ReservationComponent[] | ReservationComponent| RentComponent[]| RentComponent, header: string, icon: any, count?: number }) {
     return (
         <div className="panel" style={{
             background: 'white',
@@ -204,9 +204,9 @@ export default function ProfileBookList({ children, header, icon, count }: { chi
 
 /**
  * Reprezentuje pojedynczą pozycję na liście rezerwacji.
+ * @prop {Reservation} info Dane o rezerwacji.
  */
 export class ReservationComponent extends Component<{ info: Reservation }> {
-    /** Dane o rezerwacji. */
     info: Reservation;
 
     /**
@@ -271,9 +271,9 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
 
 /**
  * Reprezentuje pojedynczą pozycję na liście aktualnych wypożyczeń.
+ * @prop Rent Dane o wypożyczeniu
  */
 export class RentComponent extends Component<{ info: Rent }> {
-    /** Dane o wypożyczeniu. */
     info: Rent;
 
     /**
