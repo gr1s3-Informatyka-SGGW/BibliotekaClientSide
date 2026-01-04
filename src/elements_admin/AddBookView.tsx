@@ -4,7 +4,14 @@
  * w widoku edycji na stronie /catalog
  * @author Szymon Doba
  */
-import {useState, Component, type FormEvent} from "react";
+import React, {useState, Component, type FormEvent} from "react";
+import {
+    fetchAuthors,
+    fetchGenres,
+    fetchTags,  
+    fetchPublishers,
+    fetchLanguages
+} from "../../public/server_requests.ts";
 
 import DynamicSelect from "../../public/custom_components/DynamicSelect.tsx";
 import {validators} from "../../public/validators.ts";
@@ -29,7 +36,7 @@ export default function AddBookView(){
 
     const [error, setError] = useState<string|null>(null)
     const [success, setSuccess] = useState<string|null>(null)
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isQRopen, setIsQRopen] = useState(false);
     const [instanceIds, setInstanceIds] = useState<number[] | null>(null);
     
 
@@ -50,6 +57,7 @@ export default function AddBookView(){
             }
 
             setInstanceIds(ids);
+            setIsQRopen(true);
         } catch (e) {
             setError("Wystąpił błąd przy dodawaniu książki.");
         }
@@ -76,14 +84,12 @@ export default function AddBookView(){
 
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
-        {instanceIds && (
-            <InstanceQR
-                instance_id={instanceIds}
-                isOpen={}
-                setIsOpen={}
-                onClose={() => setInstanceIds(null)}
-            />
-        )}
+        <InstanceQR
+            instance_id={instanceIds ?? []}
+            isOpen={isQRopen}
+            setIsOpen={setIsQRopen}
+            onClose={() => setInstanceIds(null)}
+        />
 
     </>
 }
@@ -110,13 +116,20 @@ export class AddBookForm
     info?: Book
     mode: 'edit'|'create'
 
-    authors: string[];
-    genres: string[];
-    tags: string[];
 
-    authorInput: string;
-    genreInput: string;
-    tagInput: string;
+    formError: string | null = null;
+
+    availableAuthors: string[] = [];
+    availableGenres: string[] = [];
+    availableTags: string[] = [];
+    availablePublishers: string[] = [];
+    availableLanguages: string[] = [];
+
+    authorsRef = React.createRef<DynamicSelect>();
+    genresRef = React.createRef<DynamicSelect>();
+    tagsRef = React.createRef<DynamicSelect>();
+    publisherRef = React.createRef<DynamicSelect>();
+    languageRef = React.createRef<DynamicSelect>();
 
     constructor(props: {info?: Book, mode: "create"|"edit", onSubmit: (b:Book)=>void }) {
         super(props)
@@ -126,53 +139,22 @@ export class AddBookForm
         this.mode = props.mode;
 
         //chipy na podstawie info
-        this.authors = this.info?.authors ?? [];
-        this.genres = this.info?.genre ?? [];
-        this.tags = this.info?.keywords ?? [];
+        this.authorsRef = React.createRef<DynamicSelect>();
+        this.genresRef = React.createRef<DynamicSelect>();
+        this.tagsRef = React.createRef<DynamicSelect>();
 
-        this.authorInput = "";
-        this.genreInput = "";
-        this.tagInput = "";
     }
 
     getCopiesCount(): number {  
         return Number(this.getVal("copies"));
     }
 
-    // Funkcje dodawania/usuwania
-    private addAuthor = () => {
-        const val = this.authorInput.trim();
-        if (!val || this.authors.includes(val)) return;
-        this.authors.push(val);
-        this.authorInput = "";
-        this.forceUpdate();
-    }
-    private removeAuthor = (v:string) => {
-        this.authors = this.authors.filter(a => a !== v);
-        this.forceUpdate();
-    }
-
-    private addGenre = () => {
-        const val = this.genreInput.trim();
-        if (!val || this.genres.includes(val)) return;
-        this.genres.push(val);
-        this.genreInput = "";
-        this.forceUpdate();
-    }
-    private removeGenre = (v:string) => {
-        this.genres = this.genres.filter(g => g !== v);
-        this.forceUpdate();
-    }
-
-    private addTag = () => {
-        const val = this.tagInput.trim();
-        if (!val || this.tags.includes(val)) return;
-        this.tags.push(val);
-        this.tagInput = "";
-        this.forceUpdate();
-    }
-    private removeTag = (v:string) => {
-        this.tags = this.tags.filter(t => t !== v);
+    async componentDidMount() {
+        this.availableAuthors = await fetchAuthors();
+        this.availableGenres = await fetchGenres();
+        this.availableTags = await fetchTags();
+        this.availablePublishers = await fetchPublishers();
+        this.availableLanguages = await fetchLanguages();
         this.forceUpdate();
     }
 
@@ -190,12 +172,12 @@ export class AddBookForm
             book_id: this.info?.book_id,
             title: this.getVal("title"),
             isbn_number: this.getVal("isbn"),
-            publisher: (document.getElementById("publisher") as HTMLSelectElement).value,
-            language: (document.getElementById("language") as HTMLSelectElement).value,
+            publisher: this.publisherRef.current?.getValue() as string,
+            language: this.languageRef.current?.getValue() as string,
             publish_year: Number(this.getVal("publish_year")),
-            authors: this.authors,
-            keywords: this.tags,
-            genre: this.genres
+            authors: this.authorsRef.current?.getValue() as string[],
+            keywords: this.tagsRef.current?.getValue() as string[],
+            genre: this.genresRef.current?.getValue() as string[]
         }
     }
 
@@ -212,10 +194,12 @@ export class AddBookForm
         const data = this.getValue();
         const valid = this.validate(data);
         if (valid) {
-            alert(valid);
+            this.formError = valid;
+            this.forceUpdate();
             return;
         }
 
+        this.formError = null;
         this.props.onSubmit(data, this.getCopiesCount());
     }
 
@@ -262,62 +246,38 @@ export class AddBookForm
 
                 {/* RZĄD 2: Autorzy */}
                 <div className="form-group">
-                <label>Autorzy:</label>
-                    <div className="multi-select-container">
-                        {this.authors.map(v => (
-                        <div key={v} className="chip">
-                            {v} <span className="chip-close" onClick={() => this.removeAuthor(v)}>x</span>
-                        </div>
-                        ))}
-                        <input
-                        type="text"
-                        value={this.authorInput}
-                        placeholder="Dodaj autora"
-                        onChange={e => { this.authorInput = e.currentTarget.value; this.forceUpdate(); }}
-                        onKeyDown={e => e.key === "Enter" && this.addAuthor()}
-                        />
-                        <div className="chip add" onClick={this.addAuthor}>Dodaj</div>
-                    </div>
+                    <DynamicSelect
+                        ref={this.authorsRef}
+                        id="authors"
+                        label="Autorzy"
+                        allow_multiple
+                        children={this.availableAuthors}
+                        default_value={b?.authors}
+                    />
                 </div>
 
                 {/* RZĄD 3: Gatunki */}
                 <div className="form-group">
-                <label>Gatunki:</label>
-                    <div className="multi-select-container">
-                        {this.genres.map(v => (
-                        <div key={v} className="chip">
-                            {v} <span className="chip-close" onClick={() => this.removeGenre(v)}>x</span>
-                        </div>
-                        ))}
-                        <input
-                        type="text"
-                        value={this.genreInput}
-                        placeholder="Dodaj gatunek"
-                        onChange={e => { this.genreInput = e.currentTarget.value; this.forceUpdate(); }}
-                        onKeyDown={e => e.key === "Enter" && this.addGenre()}
-                        />
-                        <div className="chip add" onClick={this.addGenre}>Dodaj</div>
-                    </div>
+                    <DynamicSelect
+                        ref={this.genresRef}
+                        id="genres"
+                        label="Gatunki"
+                        allow_multiple
+                        children={this.availableGenres}
+                        default_value={b?.genre}
+                    />
                 </div>
 
                 {/* RZĄD 4: Tagi */}
                 <div className="form-group">
-                <label>Tagi:</label>
-                    <div className="multi-select-container">
-                        {this.tags.map(v => (
-                        <div key={v} className="chip">
-                            {v} <span className="chip-close" onClick={() => this.removeTag(v)}>x</span>
-                        </div>
-                        ))}
-                        <input
-                        type="text"
-                        value={this.tagInput}
-                        placeholder="Dodaj tag"
-                        onChange={e => { this.tagInput = e.currentTarget.value; this.forceUpdate(); }}
-                        onKeyDown={e => e.key === "Enter" && this.addTag()}
-                        />
-                        <div className="chip add" onClick={this.addTag}>Dodaj</div>
-                    </div>
+                    <DynamicSelect
+                        ref={this.tagsRef}
+                        id="tags"
+                        label="Tagi"
+                        allow_multiple
+                        children={this.availableTags}
+                        default_value={b?.keywords}
+                    />
                 </div>
 
                 {/* RZĄD 5: Rok wydania + ilośc */}
@@ -347,28 +307,33 @@ export class AddBookForm
                 {/* RZĄD 6: Wydawca + język */}
                 <div className="form-row">
                     <div className="form-group">
-                        <label>Wydawca:</label>
-                        <select id="publisher">
-                            <option value="">Wybierz lub wpisz nowego wydawcę</option>
-                            <option>Dodaj...</option>
-                            <option>Wydawca A</option>
-                            <option>Wydawca B</option>
-                            <option>Wydawca C</option>
-                        </select>
+                        <DynamicSelect
+                            ref={this.publisherRef}
+                            id="publisher"
+                            label="Wydawca"
+                            allow_multiple={false}
+                            children={this.availablePublishers}
+                            default_value={b?.publisher}
+                        />
                     </div>
 
                     <div className="form-group">
-                        <label>Język:</label>
-                        <select id="language">
-                            <option value="">Wybierz lub wpisz nowy język</option>
-                            <option>Dodaj...</option>
-                            <option>senegalski</option>
-                            <option>mongolski</option>
-                            <option>peruwiański</option>
-                        </select>
+                        <DynamicSelect
+                            ref={this.languageRef}
+                            id="language"
+                            label="Język"
+                            allow_multiple={false}
+                            children={this.availableLanguages}
+                            default_value={b?.language}
+                        />
                     </div>
                 </div>
 
+                {this.formError && (
+                    <div className="error-box">
+                        {this.formError}
+                    </div>
+                )}
                 <div className="add-container">
                     <button type="submit">
                         <img src={SaveIcon} alt=''/> Dodaj książkę
