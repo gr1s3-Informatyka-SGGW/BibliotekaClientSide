@@ -327,6 +327,19 @@ export async function addBookInstanceRequest(book_id: number): Promise<{ instanc
 export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): Promise<UserInfo[]>{
     throw Error("Not implemented exception")
 }
+export async function removeUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+export async function blockUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+export async function unblockUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+export async function addAdminRequest(admin_info: User): Promise<void>{
+    throw Error("Not implemented exception")
+}
+
 // Add Book View
 const USE_MOCK = true;
 export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
