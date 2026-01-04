@@ -1,8 +1,12 @@
 /**
  * Zbiór wyrażeń regularnych wykorzystywanych do walidacji danych wejściowych.
- * * @author Dawid Filipek
+ * @author Dawid Filipek
  * @author Szymon Doba
- * * @property {RegExp} firstName - Walidacja imienia (2-60 znaków, obsługa Unicode).
+ */
+
+/**
+ * @var regex
+ * @property {RegExp} firstName - Walidacja imienia (2-60 znaków, obsługa Unicode).
  * @property {RegExp} lastName - Walidacja nazwiska (2-80 znaków, obsługa Unicode).
  * @property {RegExp} email - Walidacja formatu e-mail.
  * @property {RegExp} phone - Polski numer telefonu (opcjonalny prefiks +48, 9 cyfr).
@@ -44,7 +48,7 @@ export const regex = {
 
 /**
  * Reprezentuje wynik operacji walidacji.
- * * @interface ValidationResult
+ * @interface ValidationResult
  * @prop {boolean} ok - Określa, czy walidacja zakończyła się sukcesem.
  * @prop {string} [reason] - Opis przyczyny błędu w przypadku niepowodzenia.
  */
@@ -55,7 +59,7 @@ export interface ValidationResult {
 
 /**
  * Implementacja algorytmu Luhna do sprawdzania poprawności numerów kart płatniczych.
- * * @param {string | number | null | undefined} cardNumber - Numer karty do sprawdzenia.
+ * @param {string | number | null | undefined} cardNumber - Numer karty do sprawdzenia.
  * @returns {boolean} True, jeśli suma kontrolna jest poprawna.
  */
 export function luhnCheck(cardNumber: string | number | null | undefined): boolean {
@@ -80,7 +84,7 @@ export function luhnCheck(cardNumber: string | number | null | undefined): boole
 
 /**
  * Parsuje ciąg znaków daty ważności karty na obiekt z miesiącem i rokiem.
- * * @param {string | unknown} mmyy - Data w formacie "MM/YY" lub "MM/YYYY".
+ * @param {string | unknown} mmyy - Data w formacie "MM/YY" lub "MM/YYYY".
  * @returns {{ month: number; year: number } | null} Obiekt daty lub null przy błędzie.
  */
 export function parseExpiry(mmyy: string | unknown): { month: number; year: number } | null {
@@ -104,7 +108,7 @@ export function parseExpiry(mmyy: string | unknown): { month: number; year: numb
 
 /**
  * Sprawdza, czy karta płatnicza nie straciła ważności względem podanej daty.
- * * @param {string | unknown} mmyy - Data ważności karty (MM/YY).
+ * @param {string | unknown} mmyy - Data ważności karty (MM/YY).
  * @param {Date} [now=new Date()] - Data odniesienia do porównania.
  * @returns {boolean} True, jeśli karta jest nadal ważna.
  */
@@ -126,7 +130,7 @@ export function isCardExpiryValid(
 
 /**
  * Usuwa z numeru ISBN wszystkie znaki poza cyframi oraz znakiem 'X'.
- * * @param {unknown} isbn - Surowy ciąg znaków ISBN.
+ * @param {unknown} isbn - Surowy ciąg znaków ISBN.
  * @returns {string | null} Znormalizowany ciąg znaków lub null.
  */
 export function isbnNormalize(isbn: unknown): string | null {
@@ -136,7 +140,7 @@ export function isbnNormalize(isbn: unknown): string | null {
 
 /**
  * Sprawdza sumę kontrolną numeru ISBN-10.
- * * @param {string} isbn10 - Znormalizowany 10-cyfrowy numer ISBN.
+ * @param {string} isbn10 - Znormalizowany 10-cyfrowy numer ISBN.
  * @returns {boolean} Wynik weryfikacji sumy kontrolnej.
  */
 export function isbn10Check(isbn10: string): boolean {
@@ -153,7 +157,7 @@ export function isbn10Check(isbn10: string): boolean {
 
 /**
  * Sprawdza sumę kontrolną numeru ISBN-13.
- * * @param {string} isbn13 - Znormalizowany 13-cyfrowy numer ISBN.
+ * @param {string} isbn13 - Znormalizowany 13-cyfrowy numer ISBN.
  * @returns {boolean} Wynik weryfikacji sumy kontrolnej.
  */
 export function isbn13Check(isbn13: string): boolean {
@@ -169,7 +173,7 @@ export function isbn13Check(isbn13: string): boolean {
 
 /**
  * Kompleksowa walidacja numeru ISBN (obsługuje ISBN-10 i ISBN-13).
- * * @param {unknown} isbn - Numer ISBN w dowolnym formacie tekstowym.
+ * @param {unknown} isbn — Numer ISBN w dowolnym formacie tekstowym.
  * @returns {boolean} True, jeśli numer i jego suma kontrolna są poprawne.
  */
 export function isbnValidate(isbn: unknown): boolean {
@@ -186,7 +190,7 @@ export function isbnValidate(isbn: unknown): boolean {
 
 /**
  * Sprawdza, czy hasło spełnia wymagania polityki bezpieczeństwa.
- * * @param {unknown} pwd - Hasło do sprawdzenia.
+ * @param {unknown} pwd - Hasło do sprawdzenia.
  * @returns {boolean} True, jeśli hasło jest zgodne z polityką i nie zawiera spacji.
  */
 export function passwordMeetsPolicy(pwd: unknown): boolean {
@@ -197,7 +201,7 @@ export function passwordMeetsPolicy(pwd: unknown): boolean {
 
 /**
  * Pomocnicza funkcja usuwająca białe znaki z początku i końca ciągu.
- * * @template T
+ * @template T
  * @param {T} input - Dana dowolnego typu.
  * @returns {T | string} Przycięty string lub oryginalna wartość.
  */
@@ -209,7 +213,7 @@ export function sanitizeTrim<T>(input: T): T | string {
 /**
  * Obiekt zawierający gotowe walidatory pól formularzy.
  * Każda metoda przyjmuje wartość i zwraca wynik walidacji.
- * * @property {function} firstName - Walidacja imienia.
+ * @property {function} firstName - Walidacja imienia.
  * @property {function} lastName - Walidacja nazwiska.
  * @property {function} email - Walidacja e-mail.
  * @property {function} phone - Walidacja telefonu.
@@ -229,7 +233,8 @@ export function sanitizeTrim<T>(input: T): T | string {
  * @property {function} pages - Walidacja liczby stron.
  */
 export const validators = {
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     firstName(val: unknown): ValidationResult {
         if (val === null || val === undefined) {
             return { ok: false, reason: 'Value cannot be null/undefined' };
@@ -240,35 +245,40 @@ export const validators = {
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     lastName(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.lastName.test(v)) return { ok: false, reason: 'Invalid last name' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     email(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.email.test(v)) return { ok: false, reason: 'Invalid email' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     phone(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.phone.test(v)) return { ok: false, reason: 'Invalid phone' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     street(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.street.test(v)) return { ok: false, reason: 'Invalid street' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     houseNo(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.houseNo.test(v))
@@ -276,21 +286,24 @@ export const validators = {
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     city(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.city.test(v)) return { ok: false, reason: 'Invalid city' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     postal(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.postal.test(v)) return { ok: false, reason: 'Invalid postal code' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     cardNum(val: unknown): ValidationResult {
         const v = String(val).replace(/\D/g, '');
         if (!regex.cardNum.test(v))
@@ -299,7 +312,8 @@ export const validators = {
         return { ok: true };
     },
 
-    /** * @param {unknown} val 
+    /**
+     * @param {unknown} val
      * @param {Date} [now]
      * @returns {ValidationResult} 
      */
@@ -310,35 +324,40 @@ export const validators = {
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     cvv(val: unknown): ValidationResult {
         const v = String(val).trim();
         if (!regex.cvv.test(v)) return { ok: false, reason: 'Invalid CVV' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     password(val: unknown): ValidationResult {
         if (!passwordMeetsPolicy(val))
             return { ok: false, reason: 'Password does not meet policy' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     title(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.title.test(v)) return { ok: false, reason: 'Invalid title' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     author(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.author.test(v)) return { ok: false, reason: 'Invalid author' };
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     publisher(val: unknown): ValidationResult {
         const v = sanitizeTrim(val) as string;
         if (!regex.publisher.test(v))
@@ -346,7 +365,8 @@ export const validators = {
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     isbn(val: unknown): ValidationResult {
         const v = String(val);
         if (!regex.isbnFmt.test(v))
@@ -356,7 +376,8 @@ export const validators = {
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     keywords(val: unknown): ValidationResult {
         if (val === undefined || val === null || String(val).trim() === '')
             return { ok: true };
@@ -365,7 +386,8 @@ export const validators = {
         return { ok: true };
     },
 
-    /** @param {unknown} val @returns {ValidationResult} */
+    /** @param {unknown} val
+     * @returns {ValidationResult} */
     pages(val: unknown): ValidationResult {
         if (!regex.pages.test(String(val)))
             return { ok: false, reason: 'Invalid page count' };
