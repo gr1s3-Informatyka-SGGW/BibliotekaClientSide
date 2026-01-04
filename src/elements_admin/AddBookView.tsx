@@ -6,11 +6,11 @@
  */
 import React, {useState, Component, type FormEvent} from "react";
 import {
-    fetchAuthors,
-    fetchGenres,
-    fetchTags,  
-    fetchPublishers,
-    fetchLanguages
+    fetchAuthorsRequest,
+    fetchGenresRequest,
+    fetchTagsRequest,
+    fetchPublishersRequest,
+    fetchLanguagesRequest
 } from "../../public/server_requests.ts";
 
 import DynamicSelect from "../../public/custom_components/DynamicSelect.tsx";
@@ -150,11 +150,11 @@ export class AddBookForm
     }
 
     async componentDidMount() {
-        this.availableAuthors = await fetchAuthors();
-        this.availableGenres = await fetchGenres();
-        this.availableTags = await fetchTags();
-        this.availablePublishers = await fetchPublishers();
-        this.availableLanguages = await fetchLanguages();
+        this.availableAuthors = await fetchAuthorsRequest();
+        this.availableGenres = await fetchGenresRequest();
+        this.availableTags = await fetchTagsRequest();
+        this.availablePublishers = await fetchPublishersRequest();
+        this.availableLanguages = await fetchLanguagesRequest();
         this.forceUpdate();
     }
 

@@ -26,11 +26,11 @@ import UserBookComponent from "../elements_user/UserBookComponent";
 import {
     fetchAdminCatalogRequest,
     fetchUserCatalogRequest,
-    fetchAuthors,
-    fetchGenres,
-    fetchTags,
-    fetchPublishers,
-    fetchLanguages,
+    fetchAuthorsRequest,
+    fetchGenresRequest,
+    fetchTagsRequest,
+    fetchPublishersRequest,
+    fetchLanguagesRequest,
     reserveBookRequest,
     rentBookRequest,
     addBookInstanceRequest,
@@ -231,7 +231,7 @@ function CatalogView(): JSX.Element {
         const loadOptions = async () => {
             try {
                 const [author, genre, tags, publisher, language] = await Promise.all([
-                    fetchAuthors(), fetchGenres(), fetchTags(), fetchPublishers(), fetchLanguages()
+                    fetchAuthorsRequest(), fetchGenresRequest(), fetchTagsRequest(), fetchPublishersRequest(), fetchLanguagesRequest()
                 ]);
                 setAllFilters({ author, genre, tags, publisher, language });
             } catch (error) {

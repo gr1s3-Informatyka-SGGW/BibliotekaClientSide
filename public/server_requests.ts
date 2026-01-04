@@ -75,23 +75,6 @@ export class TargetNotFoundError extends RequestError{
 
 }
 
-export async function fetchLanguagesRequest(): Promise<string[]>{
-    throw Error("Not implemented exception")
-}
-export async function fetchTagsRequest(): Promise<string[]>{
-    throw Error("Not implemented exception")
-}
-export async function fetchGenresRequest(): Promise<string[]>{
-    throw Error("Not implemented exception")
-}
-export async function fetchAuthorsRequest(): Promise<string[]>{
-    throw Error("Not implemented exception")
-}
-export async function fetchPublishersRequest(): Promise<string[]>{
-    throw Error("Not implemented exception")
-}
-
-
 // Login page requests
 /**
  * Wysyła zapytanie w celu weryfikacji logowania użytkownika
@@ -190,54 +173,37 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
 
 // Katalog - Ogólne
 
-export const fetchAuthors = async (): Promise<string[]> => {
+export async function fetchAuthorsRequest(): Promise<string[]>{
     await wait(randDelay());
     return SAMPLE_AUTHORS;
-};
+}
 
-export const fetchTags = async (): Promise<string[]> => {
+export async function fetchTagsRequest(): Promise<string[]>{
     await wait(randDelay());
     return SAMPLE_TAGS;
-};
+}
 
-export const fetchGenres = async (): Promise<string[]> => {
+export async function fetchGenresRequest(): Promise<string[]>{
     await wait(randDelay());
     return SAMPLE_GENRES;
-};
+}
 
-// Katalog - Ogólne
-
-export const fetchAuthors = async (): Promise<string[]> => {
-    await wait(randDelay());
-    return SAMPLE_AUTHORS;
-};
-
-export const fetchTags = async (): Promise<string[]> => {
-    await wait(randDelay());
-    return SAMPLE_TAGS;
-};
-
-export const fetchGenres = async (): Promise<string[]> => {
-    await wait(randDelay());
-    return SAMPLE_GENRES;
-};
-
-export const fetchPublishers = async (): Promise<string[]> => {
+export async function  fetchPublishersRequest(): Promise<string[]>{
     await wait(randDelay());
     return SAMPLE_PUBLISHERS;
-};
+}
 
-export const fetchLanguages = async (): Promise<string[]> => {
+export async function fetchLanguagesRequest(): Promise<string[]>{
     await wait(randDelay());
     return SAMPLE_LANGUAGES;
-};
+}
 // Katalog - User
-export const fetchUserCatalogRequest = async (
+export async function fetchUserCatalogRequest(
     search: string,
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
-): Promise<CatalogResponse<BookUser>> => {
+): Promise<CatalogResponse<BookUser>>{
     await wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
@@ -247,7 +213,7 @@ export const fetchUserCatalogRequest = async (
     const totalBooks = results.length;
     const userBooks = (items as BookAdmin[]).map(toBookUser);
     return { books: userBooks, totalPages, totalBooks };
-};
+}
 
 export async function rentBookRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
