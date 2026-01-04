@@ -3,6 +3,7 @@ import '../assets/book.svg'
 import { Component } from "react";
 import { type Rent, type Reservation } from "../../public/server_types.ts";
 import ScannerIcon from '../assets/qr_code_scanner.svg';
+import {cancelReservationRequest, claimReservationRequest, extendRentRequest, returnBookRequest} from '../../public/server_requests.ts'
 import ScanButton from "./ScanButton.tsx";
 
 declare global {
