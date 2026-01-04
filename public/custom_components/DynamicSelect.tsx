@@ -4,6 +4,9 @@
  * */
 import React, { Component, createRef } from "react";
 import type IFormComponent from "./IFormComponent";
+import '../style.css';
+import '../add_book.css';
+import '../input.css';
 
 interface ChipProps {
     label: string;
@@ -272,6 +275,16 @@ export default class DynamicSelect
         const { label, id, allow_multiple = true, placeholder } = this.props;
         const { searchTerm, isDropdownOpen, selectedItems, selectedValue } = this.state;
 
+        let finalPlaceholder = placeholder;
+        if (!finalPlaceholder) {
+            const labelLower = label.toLowerCase();
+            if (labelLower.includes('tag')) finalPlaceholder = "Wybierz lub wpisz nowy tag";
+            else if (labelLower.includes('autor')) finalPlaceholder = "Wybierz lub wpisz nowego autora";
+            else if (labelLower.includes('wydawca')) finalPlaceholder = "Wybierz lub wpisz nowego wydawcę";
+            else if (labelLower.includes('język')) finalPlaceholder = "Wybierz lub wpisz nowy język";
+            else if (labelLower.includes('gatunek')) finalPlaceholder = "Wybierz lub wpisz nowy gatunek";
+            else finalPlaceholder = allow_multiple ? "Wybierz opcje..." : "Wybierz...";
+        }
         const filtered = this.getFilteredOptions();
         /**
         * Określa, czy aktualnie wpisana wartość
@@ -315,7 +328,7 @@ export default class DynamicSelect
                             id={id}
                             autoComplete="off"
                             className={allow_multiple ? "multi-input" : "single-input"}
-                            placeholder={placeholder || (allow_multiple ? "Wybierz opcje..." : "Wybierz...")}
+                            placeholder={finalPlaceholder}
                             value={searchTerm}
                             onClick={() => this.setState({ isDropdownOpen: true })}
                             onChange={(e) =>
