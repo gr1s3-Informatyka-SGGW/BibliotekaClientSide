@@ -172,6 +172,9 @@ export async function returnBookRequest(rend_id: number): Promise<void>{
 export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
     throw Error("Not implemented exception")
 }
+export async function fetchReservedBooksRequest(): Promise<Book[]>{
+    throw Error("Not implemented exception")
+}
 
 // Katalog - Ogólne
 
