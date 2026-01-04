@@ -70,6 +70,24 @@ export class TargetNotFoundError extends RequestError{
     }
 
 }
+
+export async function fetchLanguagesRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchTagsRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchGenresRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchAuthorsRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchPublishersRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+
+
 // Login page requests
 /**
  * Wysyła zapytanie w celu weryfikacji logowania użytkownika

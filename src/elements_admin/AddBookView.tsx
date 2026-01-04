@@ -18,6 +18,7 @@ import AddBoxIcon from "../assets/add_box.svg";
 import BookIcon from "../assets/book.svg";
 import SaveIcon from "../assets/save.svg";
 import "./add_book.css";
+import NavSidebar from "../general_elements/NavSidebar.tsx";
 
 /**
  * Pełen widok książki, z paskiem nawigacyjnym i formularzem dodawania książki
@@ -55,6 +56,7 @@ export default function AddBookView(){
     }
 
     return <>
+        <NavSidebar/>
         <h1>
             <img src={AddBoxIcon} alt=''/>
             Dodaj książkę
@@ -77,6 +79,8 @@ export default function AddBookView(){
         {instanceIds && (
             <InstanceQR
                 instance_id={instanceIds}
+                isOpen={}
+                setIsOpen={}
                 onClose={() => setInstanceIds(null)}
             />
         )}
@@ -86,14 +90,14 @@ export default function AddBookView(){
 
 
 /**
-* Komponent obsługujący formularz dodawania lub edycji książek w systemie.
-*  @extends Component
+ * Komponent obsługujący formularz dodawania lub edycji książek w systemie.
+ * @extends Component
  * @implements IFormComponent<Book>
  *
  * @property {Book} [props.info] - informacje o książce podane przy tworzeniu obiektu w trybie edycji. Komponent automatycznie wypełnia nimi formularz przy renderowaniu
  * @property {'edit'|'create'} props.mode - sygnalizuje czy formularz jest w trybie edycji, czy dodawania nowej książki
  * @property {(b:Book)=>void} props.onSubmit -
-* */
+ * */
 export class AddBookForm
     extends Component<{
         info?: Book
