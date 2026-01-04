@@ -74,6 +74,24 @@ export class TargetNotFoundError extends RequestError{
     }
 
 }
+
+export async function fetchLanguagesRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchTagsRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchGenresRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchAuthorsRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchPublishersRequest(): Promise<string[]>{
+    throw Error("Not implemented exception")
+}
+
+
 // Login page requests
 /**
  * Wysyła zapytanie w celu weryfikacji logowania użytkownika
@@ -187,6 +205,23 @@ export const fetchGenres = async (): Promise<string[]> => {
     return SAMPLE_GENRES;
 };
 
+// Katalog - Ogólne
+
+export const fetchAuthors = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_AUTHORS;
+};
+
+export const fetchTags = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_TAGS;
+};
+
+export const fetchGenres = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_GENRES;
+};
+
 export const fetchPublishers = async (): Promise<string[]> => {
     await wait(randDelay());
     return SAMPLE_PUBLISHERS;
@@ -196,7 +231,6 @@ export const fetchLanguages = async (): Promise<string[]> => {
     await wait(randDelay());
     return SAMPLE_LANGUAGES;
 };
-
 // Katalog - User
 export const fetchUserCatalogRequest = async (
     search: string,
@@ -246,8 +280,13 @@ export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin>
     return bookAdmin;
 }
 
-export async function editBookRequest(data: Book): Promise<void>{
-    throw Error("Not implemented exception")
+export async function editBookRequest(book:Book){
+    const r = await fetch("/api/book/update", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(book)
+    })
+    if (!r.ok) throw Error()
 }
 export async function removeBookRequest(book_id: number): Promise<void> {
     const index = SAMPLE_BOOKS.findIndex(book => book.book_id === book_id);
@@ -265,16 +304,44 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
 export async function markMendedBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export async function addBookInstanceRequest(book_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+let mockInstanceCounter = 1;
+export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
+    if (USE_MOCK) {
+        const fakeId = mockInstanceCounter++;
+        console.log("MOCK addBookInstanceRequest:", book_id, "->", fakeId);
+
+        return {
+            instance_id: fakeId
+        };
+    }
+    const r = await fetch("/api/book-instance/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ book_id })
+    });
+
+    if (!r.ok) throw Error();
+    return await r.json();
 }
 // Users
 export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): Promise<UserInfo[]>{
     throw Error("Not implemented exception")
 }
 // Add Book View
-export async function addBookRequest(data: Book): Promise<void>{
-    throw Error("Not implemented exception")
+const USE_MOCK = true;
+export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
+    if (USE_MOCK) {
+        return { book_id: Date.now() };
+    }
+    const r = await fetch("/api/book/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book)
+    });
+
+    if (!r.ok) throw Error();
+
+    return await r.json();
 }
 // Rent log
 export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo>{
