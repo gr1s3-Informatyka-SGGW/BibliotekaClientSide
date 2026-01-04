@@ -1,4 +1,7 @@
-
+/**
+ * Plik implementujący komponent będący alternatywną wersją html'owskiego <select> umożliwiający dynamiczne dodawanie nowych opcji i przeglądanie już istniejących
+ * @author Olimpia Dejko
+ * */
 import React, { Component, createRef } from "react";
 import type IFormComponent from "./IFormComponent";
 
