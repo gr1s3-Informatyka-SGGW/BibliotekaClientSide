@@ -2,6 +2,9 @@
  * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
  * */
 
+import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from   "./fake_catalog_data";
+import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data";
+
 import type {
     Book,
     BookAdmin,
@@ -185,7 +188,32 @@ export function fetchBorrowedBooksRequest(): Book[]{
 }
 
 
+// Katalog - Ogólne
 
+export const fetchAuthors = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_AUTHORS;
+};
+
+export const fetchTags = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_TAGS;
+};
+
+export const fetchGenres = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_GENRES;
+};
+
+export const fetchPublishers = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_PUBLISHERS;
+};
+
+export const fetchLanguages = async (): Promise<string[]> => {
+    await wait(randDelay());
+    return SAMPLE_LANGUAGES;
+};
 // Katalog - User
 export function fetchUserCatalogRequest(search_bar: string ,sort?: SearchSort, filter?: BookSearchFilter): BookUser[]{
     throw Error("Not implemented exception")

@@ -175,6 +175,7 @@ export class AddBookForm
             publisher: this.publisherRef.current?.getValue() as string,
             language: this.languageRef.current?.getValue() as string,
             publish_year: Number(this.getVal("publish_year")),
+            length: Number(this.getVal("length")),
             authors: this.authorsRef.current?.getValue() as string[],
             keywords: this.tagsRef.current?.getValue() as string[],
             genre: this.genresRef.current?.getValue() as string[]
@@ -280,7 +281,7 @@ export class AddBookForm
                     />
                 </div>
 
-                {/* RZĄD 5: Rok wydania + ilośc */}
+                {/* RZĄD 5: Rok wydania + ilośc egzemplarzy + ilość stron */}
                 <div className="form-row">
                     <div className="form-group">
                         <label>Rok wydania:</label>
@@ -300,6 +301,16 @@ export class AddBookForm
                             type="number"
                             min={1}
                             defaultValue={1}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Liczba stron:</label>
+                        <input
+                            id="length"
+                            type="number"
+                            min={1}
+                            defaultValue={b?.length || 100}
                         />
                     </div>
                 </div>
