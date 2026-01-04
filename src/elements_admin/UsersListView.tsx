@@ -5,7 +5,7 @@
 
 import './UsersListView.css'
 import type {UserInfo} from "../../public/server_types.ts";
-import {removeUserRequest, blockUserRequest, fetchUserListRequest, addAdminRequest} from '../../public/server_requests.ts'
+import {removeUserRequest, blockUserRequest, unblockUserRequest, fetchUserListRequest, addAdminRequest} from '../../public/server_requests.ts'
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel from "../general_elements/SearchPanel.tsx";
 import {CustomSelect} from "../../public/custom_components/CustomSelect.tsx";

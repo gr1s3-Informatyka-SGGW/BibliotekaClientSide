@@ -278,9 +278,13 @@ export async function removeUserRequest(user_id: number): Promise<void>{
 export async function blockUserRequest(user_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
+export async function unblockUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
 export async function addAdminRequest(admin_info: User): Promise<void>{
     throw Error("Not implemented exception")
 }
+
 // Add Book View
 export async function addBookRequest(data: Book): Promise<void>{
     throw Error("Not implemented exception")

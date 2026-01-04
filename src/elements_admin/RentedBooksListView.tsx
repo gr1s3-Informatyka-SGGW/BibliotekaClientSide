@@ -2,13 +2,7 @@
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
  *
- * @requires NavSidebar aby umożliwić nawigacje
- * @requires SearchPanel obsługujący sortowanie wyników
- * @requires CustomSelect umożliwiający ustawiać filtry i sortowania wyników
- * @requires CustomTooltip wyświetla szczegóły książki i użytkownika po najechaniu na informacje o nich
  *
- * @requires extendRentRequest przedłuża czas wypożyczenia książki
- * @requires fetchRentLog pobiera informacje o wypożyczeniach do wyświetlenia
  * */
 
 import type {Book, UserInfo, RentFullInfo} from "../../public/server_types.ts";
@@ -17,12 +11,18 @@ import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 import React from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel from "../general_elements/SearchPanel.tsx";
+import {Pagination} from "../general_elements/Pagination.tsx";
 import {CustomSelect} from "../../public/custom_components/CustomSelect.tsx";
 
 /**
  * Komponent widoku /rented-books
-
  * @returns React.JSX.Element
+ *
+ * @requires NavSidebar aby umożliwić nawigacje
+ * @requires SearchPanel obsługujący sortowanie wyników
+ * @requires CustomSelect umożliwiający ustawiać filtry i sortowania wyników
+ * @requires CustomTooltip wyświetla szczegóły książki i użytkownika po najechaniu na informacje o nich
+ * @requires Pagination umożliwia wyświetlanie wyniku w postaci stron i przemieszczenie się po nich.
  * */
 export default function RentedBooksListView(){
     return <>
@@ -46,6 +46,9 @@ export default function RentedBooksListView(){
  * Dla Przeterminowanych informuje o naliczonej opłacie.
  * @prop props
  * @prop {RentFullInfo} props.rent_info - dane książki
+ *
+ * @requires extendRentRequest przedłuża czas wypożyczenia książki
+ * @requires fetchRentLog pobiera informacje o wypożyczeniach do wyświetlenia
  * */
 class RentedBookComponent extends React.Component<{ rent_info: RentFullInfo }, any> {
     render() {
