@@ -1,0 +1,242 @@
+.custom-select-trigger {
+    font-size: 90%;
+    display: inline-flex;
+    width: fit-content;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0.2em 1.0em;
+    min-height: 2.0em;
+    border-radius: 100em;
+    background-color: #ffe8ef;
+    color: #891e49;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: none;
+    user-select: none;
+}
+.custom-select-trigger:hover, .custom-select-trigger:focus {
+    background-color: #ebc3cf;
+}
+.custom-select-trigger.filtered {
+    color: #ffe8ef;
+    background-color: #891e49;
+}
+
+.custom-select-trigger.filtered:hover, .custom-select-trigger.filtered:focus {
+    background-color: #6b1737;
+}
+
+.custom-select-trigger:focus,
+.custom-select-trigger:focus-visible {
+    outline: none;
+}
+
+.options-list:focus,
+.options-list:focus-visible {
+    outline: none;
+
+}
+
+.custom-select-trigger > div {
+    font-size: 75%;
+    color: #976176;
+    margin-top: 2px;
+}
+.custom-select-trigger.filtered > div {
+    color: #f1b3c6;
+}
+
+.filter-reset-btn{
+    all:unset;
+
+    font-size: 90%;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    padding: 0.2em 1em;
+    min-height: 2em;
+    border-radius: 100em;
+    color: #FFE8EF;
+    background-color: #891E49;
+}
+
+.filter-reset-btn:hover, .filter-reset-btn:focus {
+    background-color: #6b1737;
+}
+
+.select-dropdown {
+    position: fixed;
+    z-index: 2001;
+    background-color: #891e49;
+    color: #fff5f8;
+    border-radius: 0.5em;
+    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.3);
+    padding: 1.0em;
+    min-width: 220px;
+    max-width: 90vw;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.98);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+#active-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    animation: slideDownFade 0.2s ease forwards;
+}
+.select-dropdown::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: clamp(12px, var(--arrow-left, 50%), calc(100% - 12px));
+    margin-left: -8px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent #891E49 transparent;
+}
+
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+        visibility: hidden;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        visibility: visible;
+    }
+}
+
+.search-container {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.search-icon-wrapper {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #891E49;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+
+.search-input {
+    width: 100%;
+    max-height: 250px;
+    padding: 0.6rem 0.5rem 0.6rem 2.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-size: 0.9rem;
+    outline: none;
+    font-family: inherit;
+}
+.search-input:hover,
+.search-input:focus,
+.search-input:active {
+    outline: none;
+    box-shadow:none;
+}
+
+
+.options-list {
+    max-height: 250px;
+    overflow:auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.option-item {
+    max-height: 34px;
+    background-color: #891E49;
+    border: 1px solid #fff5;
+    border-radius: 0.75em;
+    color: white;
+    cursor: pointer;
+    padding: 0.5em 1.0em;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+}
+
+.option-item:hover{
+    background-color: #6B1737;
+}
+
+.option-item.focused {
+    background-color: #7a2b47;
+}
+
+.option-item.selected {
+    background-color: #6B1737;
+}
+
+.empty-state {
+    text-align: center;
+    color: #f1b3c6;
+    font-size: 0.9rem;
+    padding: 1rem;
+}
+
+.date-range-dropdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.date-input-group-sm label {
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+    display: block;
+    opacity: 0.9;
+    color:white;
+}
+
+.date-input-group-sm input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.4rem;
+    border: none;
+    outline: none;
+    color: #333;
+}
+
+.date-confirm-btn-sm {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #6B1737;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0.4rem;
+    cursor: pointer;
+}
+
+.date-confirm-btn-sm:focus, .date-confirm-btn-sm:hover {
+    outline: none;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #4e1028;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0.4rem;
+    cursor: pointer;
+}

@@ -28,7 +28,7 @@ export interface Session{
  * @prop {string[]} genre
  * */
 export interface Book{
-    book_id?: string;
+    book_id?: number;
     title: string;
     authors: string[];
 
@@ -115,30 +115,6 @@ export interface CreditCardInfo{
     exp_date: string
     cvv: string
 }
-
-/**
- * @type BookSearchFilter - typ zbierający informacje o filtrach nałożonych na wyświetlaną listę
- * @prop {string[]|undefined} author - Lista dozwolonych autorów
- * @prop {string[]|undefined} genre -  Lista dozwolonych gatunków
- * @prop {string[]|undefined} publisher - Lista dozwolonych wydawców
- * @prop {string[]|undefined} tags - Lista tagów, które mają zawierać zwrócone książki
- * @prop {string[]|undefined} language - Lista dozwolonych języków
- * @prop {object|undefined} release_date - zakres dat wydania
- * @prop {Date} release_date.from - dolna granica
- * @prop {Date} release_date.to - górna granica
- * */
-export interface BookSearchFilter{
-    author?: string[]
-    genre?: string[]
-    publisher?: string[]
-    tags?: string[]
-    language?: string[]
-    release_date?: {
-        from: Date
-        to: Date
-    }
-}
-
 /**
  * @type SearchSort
  * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
@@ -149,12 +125,73 @@ export interface SearchSort{
     direction: 'DESC'|'ASC'
 }
 /**
+ * @interface IFilter - jest implementowany przez wszystkie typy filtrowania aplikacji co ułatwia generalizacje filtrowania
+ * */
+export interface IFilter{
+
+}
+/**
+ * @type BookSearchFilter - typ zbierający informacje o filtrach nałożonych na wyświetlaną listę
+ * @prop {string[]|undefined} author - Lista dozwolonych autorów
+ * @prop {string[]|undefined} genre -  Lista dozwolonych gatunków
+ * @prop {string[]|undefined} publisher - Lista dozwolonych wydawców
+ * @prop {string[]|undefined} tags - Lista tagów, które mają zawierać zwrócone książki
+ * @prop {string[]|undefined} language - Lista dozwolonych języków
+ * @prop {object|undefined} release_date - zakres dat wydania
+ * @prop {Date} release_date.from - dolna granica
+ * @prop {Date} release_date.to - górna granica
+ * @extends IFilter
+ * */
+export interface BookSearchFilter extends IFilter{
+    author?: string[]
+    genre?: string[]
+    publisher?: string[]
+    tags?: string[]
+    language?: string[]
+    release_date?: {
+        from: Date
+        to: Date
+    }
+}
+/**
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * */
+export interface RentLogSearchFilter extends IFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
+}
+/**
  * @type UserListSearchFilter - nakłada filtr na wynik wyszukiwania na stronie /users-view
  * @prop {('user'|'admin'|'blocked')[]|undefined} status - jaki status ma użytkownika zostanie wyświetlony
  * */
-export interface UserListSearchFilter{
+export interface UserListSearchFilter extends IFilter{
     status?: ('user'|'admin'|'blocked')[]
 }
+/**
+ * @type CatalogResponse - generyczny interfejs odpowiedzi serwera dla widoku katalogu
+ * @template T Typ rozszerzający typ Book, zawierający informacje o książce
+ * @prop {T[]} books - lista obiektów książek (BookUser[] lub BookAdmin[]) zwrócona dla bieżącej strony
+ * @prop {number} totalPages - całkowita liczba stron dostępnych dla wybranych kryteriów wyszukiwania
+ * @prop {number} totalBooks - łączna liczba wszystkich książek w bazie danych spełniających nałożone filtry
+ * */
+export interface CatalogResponse<T extends Book> {
+    books: T[];
+    totalPages: number;
+    totalBooks: number;
+}
+
+/**
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * */
+export interface RentLogSearchFilter extends IFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
+}
+
 
 /**
  * @type UserInfo - informacje pobierane o użytkowniku na rzecz widoku /users-view dla administratora
@@ -174,15 +211,7 @@ export interface UserInfo{
     currently_reserved: Reservation[]
 }
 
-/**
- * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
- * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
- * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
- * */
-export interface RentLogSearchFilter{
-    states?: 'active'|'returned'|'un-payed'
-    isOverdue?: boolean
-}
+
 /**
  * @type RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
  * @param {User} user - użytkownik, który wypożyczył książkę

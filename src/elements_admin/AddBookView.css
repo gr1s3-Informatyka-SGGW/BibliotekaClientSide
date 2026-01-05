@@ -1,3 +1,49 @@
+h1 {
+    display: flex;
+    justify-content: center; /* wyśrodkowanie horyzontalne całego h1 */
+    align-items: center;     /* wyrównanie obrazka i tekstu w pionie */
+    font-size: 2em;
+    font-weight: bold;
+    color: #631433;
+    margin: 0.67em 0;
+    gap: 0.15em; /* odstęp między ikoną a tekstem */
+}
+
+h1 > img {
+    filter: invert(16%) sepia(87%) saturate(2250%) hue-rotate(320deg) brightness(40%) contrast(100%);
+    transform: scale(1.35);
+}
+
+img {
+    overflow-clip-margin: content-box;
+    overflow: clip;
+}
+
+.panel .header {
+    margin: 0;
+    color: #891E49;
+    border-bottom: 1px solid #FFE8EF;
+    padding-bottom: 0.5em;
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: left;
+    gap: 0.5em;
+}
+
+h3 {
+    display: block;
+    font-size: 1.17em;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+}
+
 .multi-select-container {
     display: flex;
     flex-wrap: wrap;
@@ -87,7 +133,9 @@
     flex-grow: 1;
     width: auto;
 }
-
+.error-box{
+    color: red;
+}
 @media (min-width: 650px) {
 
     .form-row {
