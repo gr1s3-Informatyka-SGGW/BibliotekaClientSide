@@ -4,6 +4,7 @@
  * */
 import React, { Component, createRef } from "react";
 import type IFormComponent from "./IFormComponent";
+import './DynamicSelect.css';
 
 interface ChipProps {
     label: string;
@@ -69,18 +70,6 @@ interface DynamicSelectState {
     selectedItems: string[];
     selectedValue: string;
 }
-/**
- * Style CSS dla inputa selecta.
- * Ukrywają natywną strzałkę i zastępują ją własną ikoną SVG.
- */
-const arrowStyle: React.CSSProperties = {
-    appearance: "none",
-    backgroundImage: `url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="292.4" height="292.4" fill="%23891E49"><path d="M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-4.9 0-9.4 1.8-13 5.4a17.6 17.6 0 0 0 0 24.1l128 128a17.6 17.6 0 0 0 24.1 0l128-128a17.6 17.6 0 0 0 0-24.1z"/></svg>')`,
-    backgroundPosition: "right 12px top 50%",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "0.7em auto",
-    paddingRight: "35px"
-};
 
 /**
  * Dynamiczny komponent wyboru (select) obsługujący wyszukiwanie, 
@@ -99,6 +88,7 @@ export default class DynamicSelect
  * w celu zamknięcia listy rozwijanej (dropdown).
  */
     private containerRef = createRef<HTMLDivElement>();
+    private inputRef = createRef<HTMLInputElement>();
 
     /**
  * Tworzy nową instancję komponentu DynamicSelect.
@@ -113,11 +103,15 @@ export default class DynamicSelect
         const isMultiple = props.allow_multiple ?? true;
         const defaultValue = props.default_value;
 
+        const initialItems = isMultiple
+            ? (Array.isArray(defaultValue) ? defaultValue : (props.children || []))
+            : (typeof defaultValue === "string" ? defaultValue : "");
+
         this.state = {
-            searchTerm: !isMultiple && typeof defaultValue === "string" ? defaultValue : "",
+            searchTerm: "",
             isDropdownOpen: false,
-            selectedItems: isMultiple && Array.isArray(defaultValue) ? defaultValue : [],
-            selectedValue: !isMultiple && typeof defaultValue === "string" ? defaultValue : ""
+            selectedItems: isMultiple && Array.isArray(initialItems) ? initialItems : [],
+            selectedValue: !isMultiple && typeof initialItems === "string" ? initialItems : ""
         };
     }
 
@@ -143,8 +137,8 @@ export default class DynamicSelect
     /**
      * Synchronizuje lokalny stan komponentu z nowymi propsami.
      * Reaguje na zmianę `default_value`, co pozwala na ustawienie wartości 
-     * domyślnej nawet po zamontowaniu komponentu (np. po pobraniu danych z API).
-     * * @param {DynamicSelectProps} prevProps - Poprzednie właściwości komponentu.
+     * domyślnej nawet po zamontowaniu komponentu.
+     * @param {DynamicSelectProps} prevProps - Poprzednie właściwości komponentu.
      */
     componentDidUpdate(prevProps: DynamicSelectProps) {
         if (prevProps.default_value !== this.props.default_value) {
@@ -222,6 +216,9 @@ export default class DynamicSelect
                 searchTerm: item,
                 isDropdownOpen: false
             });
+            if (this.inputRef.current) {
+                this.inputRef.current.blur();
+            }
         }
     };
     /**
@@ -249,6 +246,9 @@ export default class DynamicSelect
                 searchTerm: term,
                 isDropdownOpen: false
             });
+            if (this.inputRef.current) {
+                this.inputRef.current.blur();
+            }
         }
     };
 
@@ -272,128 +272,98 @@ export default class DynamicSelect
         const { label, id, allow_multiple = true, placeholder } = this.props;
         const { searchTerm, isDropdownOpen, selectedItems, selectedValue } = this.state;
 
+        let finalPlaceholder = placeholder;
+        if (!finalPlaceholder) {
+            const labelLower = label.toLowerCase();
+            if (labelLower.includes('tag')) finalPlaceholder = "Wybierz lub wpisz nowy tag";
+            else if (labelLower.includes('autor')) finalPlaceholder = "Wybierz lub wpisz nowego autora";
+            else if (labelLower.includes('wydawca')) finalPlaceholder = "Wybierz lub wpisz nowego wydawcę";
+            else if (labelLower.includes('język')) finalPlaceholder = "Wybierz lub wpisz nowy język";
+            else if (labelLower.includes('gatunek')) finalPlaceholder = "Wybierz lub wpisz nowy gatunek";
+            else finalPlaceholder = allow_multiple ? "Wybierz opcje..." : "Wybierz...";
+        }
+
         const filtered = this.getFilteredOptions();
-        /**
-        * Określa, czy aktualnie wpisana wartość
-        * nie istnieje jeszcze na liście opcji
-        * i może zostać dodana jako nowa.
-        */
         const isNewOption =
             searchTerm.trim() !== "" &&
             !this.props.children?.map(c => c.toLowerCase()).includes(searchTerm.toLowerCase());
 
-        const placeholderOverride = `
-        #${id}::placeholder {
-            color: #444 !important;
-            opacity: 1 !important;
-            -webkit-text-fill-color: #444 !important;
-        }
-    `;
-
         return (
-            <div className="form-group" ref={this.containerRef}>
-                <style>{placeholderOverride}</style>
+            <div className="ds-wrapper">
+                <div className="form-group" ref={this.containerRef}>
+                    <label htmlFor={id}>{label}:</label>
 
-                <label htmlFor={id}>{label}:</label>
+                    <div className={allow_multiple ? "multi-select-container" : "single-select-container"}>
+                        {allow_multiple &&
+                            selectedItems.map(item => (
+                                <Chip
+                                    key={item}
+                                    label={item}
+                                    onRemove={() => this.handleRemoveChip(item)}
+                                />
+                            ))}
 
-                <div className={allow_multiple ? "multi-select-container" : "single-select-container"}>
-
-                    {allow_multiple &&
-                        selectedItems.map(item => (
-                            <Chip
-                                key={item}
-                                label={item}
-                                onRemove={() => this.handleRemoveChip(item)}
-                            />
-                        ))}
-
-
-                    <div className="input-wrapper" style={{ position: "relative", flex: 1 }}>
-
-                        <input
-                            type="text"
-                            id={id}
-                            autoComplete="off"
-                            className={allow_multiple ? "multi-input" : "single-input"}
-                            placeholder={placeholder || (allow_multiple ? "Wybierz opcje..." : "Wybierz...")}
-                            value={searchTerm}
-                            onClick={() => this.setState({ isDropdownOpen: true })}
-                            onChange={(e) =>
-                                this.setState({
-                                    searchTerm: e.target.value,
-                                    isDropdownOpen: true
-                                })
-                            }
-                            style={arrowStyle}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    if (isNewOption) this.handleAddNew(e);
-                                    else if (filtered.length > 0) this.handleSelect(filtered[0]);
+                        <div className="input-wrapper" style={{ position: "relative", flex: 1 }}>
+                            <input
+                                type="text"
+                                id={id}
+                                ref={this.inputRef}
+                                autoComplete="off"
+                                className={allow_multiple ? "multi-input" : "single-input"}
+                                placeholder={finalPlaceholder}
+                                value={searchTerm}
+                                onClick={() => this.setState({ isDropdownOpen: true })}
+                                onChange={(e) =>
+                                    this.setState({
+                                        searchTerm: e.target.value,
+                                        isDropdownOpen: true
+                                    })
                                 }
-                            }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        if (isNewOption) this.handleAddNew(e);
+                                        else if (filtered.length > 0) this.handleSelect(filtered[0]);
+                                    }
+                                }}
+                            />
 
-                        />
+                            {isDropdownOpen && (filtered.length > 0 || isNewOption) && (
+                                <div className="ds-dropdown-results">
+                                    {isNewOption && (
+                                        <div
+                                            className="ds-dropdown-item"
+                                            style={{ fontWeight: "bold" }}
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                this.handleAddNew(e);
+                                            }}
+                                        >
+                                            Dodaj: "{searchTerm}"
+                                        </div>
+                                    )}
 
-                        {isDropdownOpen && (filtered.length > 0 || isNewOption) && (
-                            <div className="dropdown-results" style={dropdownStyle}>
-                                {isNewOption && (
-                                    <div
-                                        className="dropdown-item"
-                                        onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            this.handleAddNew(e);
-                                        }}
-                                        style={{ padding: "8px", fontWeight: "bold", cursor: "pointer" }}
-                                    >
-                                        Dodaj: "{searchTerm}"
-                                    </div>
-                                )}
+                                    {filtered.map(option => (
+                                        <div
+                                            key={option}
+                                            className={`ds-dropdown-item ${!allow_multiple && option === selectedValue ? 'selected' : ''}`}
+                                            onClick={() => this.handleSelect(option)}
+                                        >
+                                            {option}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
-                                {filtered.map(option => (
-                                    <div
-                                        key={option}
-                                        className="dropdown-item"
-                                        onClick={() => this.handleSelect(option)}
-                                        style={{
-                                            padding: "8px",
-                                            cursor: "pointer",
-                                            backgroundColor:
-                                                !allow_multiple && option === selectedValue
-                                                    ? "#F0F8FF"
-                                                    : "transparent"
-                                        }}
-                                    >
-                                        {option}
-                                    </div>
-                                ))}
-                            </div>
+                        {allow_multiple && (
+                            <Chip label="Dodaj" onRemove={this.handleAddNew} isAddButton />
                         )}
                     </div>
-
-                    {allow_multiple && (
-                        <Chip label="Dodaj" onRemove={this.handleAddNew} isAddButton />
-                    )}
                 </div>
             </div>
         );
     }
 
 }
-/**
- * Style CSS dla listy rozwijanej z wynikami wyszukiwania.
- * Odpowiadają za pozycjonowanie dropdownu pod inputem.
- */
-const dropdownStyle: React.CSSProperties = {
-    position: "absolute",
-    zIndex: 10,
-    top: "100%",
-    width: "100%",
-    backgroundColor: "white",
-    border: "1px solid #ccc",
-    borderRadius: "0.5em",
-    marginTop: "4px",
-    maxHeight: "200px",
-    overflowY: "auto"
 
-};
