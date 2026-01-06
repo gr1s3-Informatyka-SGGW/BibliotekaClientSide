@@ -4,6 +4,7 @@
 
 import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "./fake_catalog_data.ts";
 import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data.ts";
+import { SAMPLE_USERS } from "./fake_users_data.ts";
 
 import type {
     Book,
@@ -14,7 +15,8 @@ import type {
     CreditCardInfo,
     Session,
     User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
-    CatalogResponse
+    CatalogResponse,
+    UsersListResponse,
 } from "./server_types.ts";
 
 /**
@@ -290,20 +292,112 @@ export async function addBookInstanceRequest(book_id: number): Promise<{ instanc
     return await r.json();
 }
 // Users
-export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): Promise<UserInfo[]>{
-    throw Error("Not implemented exception")
+
+export async function fetchUserListRequest(
+    search_bar?: string,
+    sort?: SearchSort,
+    filter?: UserListSearchFilter,
+    page: number = 1
+): Promise<UsersListResponse> {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const PAGE_SIZE = 5;
+
+        // Pobieramy książki do mockowania danych
+        const generatedUsers: UserInfo[] = SAMPLE_USERS
+
+        // --- FILTROWANIE I SORTOWANIE ---
+        let filtered = [...generatedUsers];
+
+        if (filter?.status && filter.status.length > 0) {
+            filtered = filtered.filter(u => filter.status?.includes(u.status));
+        }
+
+        if (search_bar && search_bar !== "") {
+            const query = search_bar.toLocaleLowerCase();
+            filtered = filtered.filter(u =>
+                (u.name + " " + u.surname).toLocaleLowerCase().includes(query) ||
+                u.email.toLocaleLowerCase().includes(query)
+            );
+        }
+
+        if (sort) {
+            filtered.sort((a, b) => {
+                const dir = sort.direction === 'ASC' ? 1 : -1;
+                if (sort.key === 'surname') return a.surname.localeCompare(b.surname) * dir;
+                if (sort.key === 'name') return a.name.localeCompare(b.name) * dir;
+                return 0;
+            });
+        }
+
+        // --- LOGIKA PAGINACJI I ODPOWIEDZI ---
+        const totalUsers = filtered.length;
+        const totalPages = Math.ceil(totalUsers / PAGE_SIZE);
+
+        // Zabezpieczenie przed stroną poza zakresem
+        const safePage = Math.max(1, Math.min(page, totalPages || 1));
+        const startIndex = (safePage - 1) * PAGE_SIZE;
+        const paginatedUsers = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+
+        return {
+            users: paginatedUsers,
+            totalPages: totalPages,
+            totalUsers: totalUsers
+        };
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
-export async function removeUserRequest(user_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+
+export async function removeUserRequest(user_id: number) {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się usunąć użytkownika.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
-export async function blockUserRequest(user_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+export async function blockUserRequest(user_id: number) {
+    if (USE_MOCK) {
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się zablokować użytkownika. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
-export async function unblockUserRequest(user_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+export async function unblockUserRequest(user_id: number) {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się odblokować użytkownika. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
-export async function addAdminRequest(admin_info: User): Promise<void>{
-    throw Error("Not implemented exception")
+export async function addAdminRequest(admin_info: User): Promise<void> {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się dodać nowego bibliotekarza. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
 
 // Add Book View
