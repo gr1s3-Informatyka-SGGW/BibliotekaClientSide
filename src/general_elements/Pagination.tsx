@@ -44,8 +44,9 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }: Pagination
                 Poprz.
             </button>
 
-            <span className="bg-rose-100 text-rose-900 font-bold px-6 py-2 rounded-lg">
-                Strona {currentPage} z {totalPages}
+            <span className="bg-rose-100 text-rose-900 font-bold px-4 py-2 rounded-lg text-center whitespace-nowrap">
+                <span className="hidden sm:inline">Strona </span>
+                {currentPage} z {totalPages}
             </span>
 
             <button
