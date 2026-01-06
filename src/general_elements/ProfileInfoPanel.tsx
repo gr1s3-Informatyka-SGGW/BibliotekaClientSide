@@ -1,4 +1,4 @@
-import React, { Component, FormEvent, ChangeEvent } from 'react';
+import React, { Component, type FormEvent, type ChangeEvent } from 'react';
 import type { User } from '../../public/server_types.ts';
 import accountCircleIcon from '../assets/account_circle.svg';
 import Popup from "../../public/custom_components/Popup.tsx";
@@ -18,6 +18,21 @@ interface CardFormState {
 /**
  * Komponent panelu profilu użytkownika.
  * Zarządza wyświetlaniem danych, ich edycją oraz zmianą hasła i danych karty.
+ * @param params
+ * @param {User} praams.info
+ *
+ * @param state
+ * @param {User} state.user
+ * @param {UserFormState} state.formData
+ * @param {{ [key in keyof UserFormState]?: string }} fromErrors
+ * @param {CardFormState} state.cardData
+ * @param {boolean} state.isPasswordOpen
+ * @param {boolean} state.isCardOpen
+ *
+ * @param {boolean} editMode
+ *
+ *
+ * @extends Component Czy komponent jest w trybie edycji danych podstawowych
  */
 class ProfileInfoPanel extends Component<{ info: User }, {
     user: User,
@@ -27,9 +42,8 @@ class ProfileInfoPanel extends Component<{ info: User }, {
     isPasswordOpen: boolean,
     isCardOpen: boolean
 }> {
-    /** Czy komponent jest w trybie edycji danych podstawowych */
     editMode: boolean;
-    private mainColor = '#891E49';
+    private static mainColor = '#891E49';
 
     /**
      * @param props Właściwości komponentu zawierające obiekt User.
@@ -85,7 +99,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
     }
 
     /**
-     * Obsługuje wysyłkę formularza edycji danych użytkownika.
+     * @event handleGenealSubmit Obsługuje wysyłkę formularza edycji danych użytkownika.
      * @param e Zdarzenie formularza.
      */
     handleGeneralSubmit = (e: FormEvent) => {
@@ -112,7 +126,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
 
     /**
      * Zwraca komponent Popup z formularzem zmiany hasła.
-     * @returns Element JSX.Element.
+     * @returns JSX.Element.
      */
     changePassword() {
         return (
@@ -125,7 +139,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 <input type="password" required />
                 <div className="flex-row" style={{ gap: '0.5em', marginTop: '1em' }}>
                     <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isPasswordOpen: false })}>Odrzuć zmiany</button>
-                    <button type="submit" style={{ flex: 1, backgroundColor: this.mainColor, color: 'white' }}>Zapisz zmiany</button>
+                    <button type="submit" style={{ flex: 1, backgroundColor: ProfileInfoPanel.mainColor, color: 'white' }}>Zapisz zmiany</button>
                 </div>
             </Popup>
         );
@@ -133,7 +147,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
 
     /**
      * Zwraca komponent Popup z formularzem edycji danych karty płatniczej.
-     * @returns Element JSX.Element.
+     * @returns JSX.Element.
      */
     changeCardInfo() {
         const { cardData } = this.state;
@@ -156,7 +170,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 </div>
                 <div className="flex-row" style={{ gap: '0.5em', marginTop: '1em' }}>
                     <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isCardOpen: false })}>Odrzuć zmiany</button>
-                    <button type="submit" style={{ flex: 1, backgroundColor: this.mainColor, color: 'white' }}>Zapisz zmainy</button>
+                    <button type="submit" style={{ flex: 1, backgroundColor: ProfileInfoPanel.mainColor, color: 'white' }}>Zapisz zmainy</button>
                 </div>
             </Popup>
         );
@@ -180,7 +194,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      */
     render() {
         const { user, formData } = this.state;
-        const mainColor = this.mainColor;
+        const mainColor = ProfileInfoPanel.mainColor;
 
         const labelStyle: React.CSSProperties = { width: '130px', fontWeight: '600', color: mainColor, fontSize: '1.1em', flexShrink: 0 };
         const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', padding: '0.8em 0' };
