@@ -12,8 +12,6 @@
  */
 
 import "./UsersListView.css"
-import "../style.css";
-import '../input.css';
 import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../../public/server_types.ts";
 import {
     removeUserRequest,
@@ -27,7 +25,7 @@ import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchP
 import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
 import Popup from "../../public/custom_components/Popup.tsx";
 import { Pagination } from '../general_elements/Pagination.tsx';
-import { useState, useEffect, type JSX } from "react";
+import React, { useState, useEffect, type JSX } from "react";
 import UserComponent from './UserComponent.tsx';
 import { useSearchParams } from "react-router-dom";
 import iconGroup from "../assets/group.svg";
@@ -281,8 +279,7 @@ export default function UsersListView(): JSX.Element {
             </Popup>
 
             {/* Add Librarian */}
-            <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v) => !v && hidePopups()} onClose={hidePopups}>
-            </AddAdminForm>
+            <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v) => !v && hidePopups()} onClose={hidePopups}/>
 
             {/* Book Details Popup */}
             <BookDetailsPopup isOpen={shownPopup === "bookDetails"} setIsOpen={(v) => !v && hidePopups()} onClose={hidePopups} book={popupData.book} />

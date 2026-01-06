@@ -91,18 +91,18 @@ export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, on
           {/* Przyciski akcji zależne od statusu */}
           {userInfo.status === 'user' && (
             <button className="action-block" onClick={() => onBlockUser(userInfo)}>
-              <img src={iconBlock} alt="Zablokuj" /> Zablokuj
+              <img src={iconBlock} alt="" /> Zablokuj
             </button>
           )}
 
           {userInfo.status === 'blocked' && (
             <button className="action-block" onClick={() => onUnblockUser(userInfo)}>
-              <img src={iconBlock} alt="Odblokuj" /> Odblokuj
+              <img src={iconBlock} alt="" /> Odblokuj
             </button>
           )}
 
           <button className="action-delete" onClick={() => onRemoveUser(userInfo)}>
-            <img src={iconDelete} alt="Usuń" />
+            <img src={iconDelete} alt="" />
             {userInfo.status === 'admin' ? "Usuń bibliotekarza" : "Usuń użytkownika"}
           </button>
         </div>
