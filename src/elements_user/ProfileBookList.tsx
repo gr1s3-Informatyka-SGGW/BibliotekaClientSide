@@ -1,4 +1,4 @@
-import React, {Component, type ReactNode, useState} from "react";
+import React, { Component, type ReactNode, useState } from "react";
 import { type Rent, type Reservation } from "../../public/server_types.ts";
 import {
     cancelReservationRequest,
@@ -6,10 +6,9 @@ import {
     extendRentRequest,
     returnBookRequest
 } from "../../public/server_requests.ts";
-import { Alert } from "../../public/custom_components/Popup.tsx";
+import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
 import ScanButton from "./ScanButton.tsx";
 
-const mainColor = '#8b2346';
 
 /**
  * Główny kontener listy książek w profilu użytkownika.
@@ -21,7 +20,7 @@ const mainColor = '#8b2346';
  *
  * @returns JSX.Element
  */
-export default function ProfileBookList({ children, header, icon, count }: { children: ReactNode | ReservationComponent[] | RentComponent[] | ReservationComponent | RentComponent, header: string, icon: string, count?: number }) {
+export default function ProfileBookList({ children, header, icon }: { children: ReactNode | ReservationComponent[] | RentComponent[] | ReservationComponent | RentComponent, header: string, icon: string }) {
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -43,7 +42,7 @@ export default function ProfileBookList({ children, header, icon, count }: { chi
             <h3 className="header" style={{
                 display: 'flex',
                 alignItems: 'center',
-                color: mainColor,
+                color: '#8b2346',
                 fontSize: '1.2em',
                 marginBottom: '0em',
                 marginTop: '0em'
@@ -80,9 +79,10 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
     /**
      * @param {Object} props - Zawiera obiekt info typu Reservation.
      */
-    constructor(props: { info: Reservation }) {
+    constructor(props: any) {
         super(props);
         this.info = props.info;
+        this.state = { isDetailsOpen: false };
     }
 
     /** Wywołuje popup anulowania rezerwacji. */
@@ -125,10 +125,39 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
      * @param {string} code - Odczytany kod z czytnika QR.
      */
     onScanWithdraw(code: string) {
+        const { book } = this.info;
         const { showAlert } = this.props as any;
-        showAlert(
-            "Skanowanie QR",
-            `Zeskanowano kod: ${code}. Funkcja odbioru książki przez QR nie jest jeszcze zaimplementowana.`
+
+        // Prosta weryfikacja: czy kod QR zawiera ID książki
+        if (code === book.book_id?.toString()) {
+            this.withdrawBook();
+        } else {
+            showAlert("Błąd skanowania", "Zeskanowany kod nie odpowiada tej książce.");
+        }
+    }
+    /**
+     * Renderuje listę szczegółowych informacji o książce.
+     * @param {any} book - Obiekt danych książki do wyświetlenia.
+     * @returns {JSX.Element}
+     */
+    renderBookDetails(book: any) {
+        const labelStyle = { color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block' };
+        const rowStyle = { marginBottom: '8px', display: 'flex' };
+
+        return (
+            <div style={{ fontSize: '1em', color: '#333', textAlign: 'left' }}>
+                <div style={rowStyle}><span style={labelStyle}>Tytuł:</span> <span>{book.title}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Autor:</span> <span>{book.authors.join(", ")}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Rok wydania:</span> <span>{book.publish_year}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Wydawnictwo:</span> <span>{book.publisher}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>ISBN:</span> <span>{book.isbn_number}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Gatunek:</span> <span>{book.genre.join(", ")}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Język:</span> <span>{book.language}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Liczba stron:</span> <span>{book.length}</span></div>
+                <div style={{ marginTop: '15px', fontStyle: 'italic', color: '#666' }}>
+                    Tagi: {book.keywords.join(", ")}
+                </div>
+            </div>
         );
     }
     render() {
@@ -139,17 +168,19 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
         const diffTime = deadline.getTime() - now.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         const isReady = !isNaN(deadline.getTime()) && diffDays >= 0;
+        const { isDetailsOpen } = this.state as any;
         return (
             <div className="book-item" style={{ paddingBottom: '0.5em', display: 'block' }}>
                 <div style={{ marginBottom: '1em' }}>
                     <div
-                        style={{ color: mainColor, fontWeight: '500', fontSize: '1.1em', textDecoration: 'underline', cursor: 'pointer' }}
+                        onClick={() => this.setState({ isDetailsOpen: true })}
+                        style={{ color: '#8b2346', fontWeight: '500', fontSize: '1.1em', textDecoration: 'underline', cursor: 'pointer' }}
                     >
                         „{book.title}” - {authors}
                     </div>
-                    <div style={{ color: '#666', fontSize: '0.9em', fontStyle: 'italic', marginTop: '4px' }}>
+                    <div style={{ color: isReady ? '#666' : '#e00000', fontSize: '0.9em', fontStyle: 'italic', marginTop: '4px', fontWeight: isReady ? 'normal' : 'bold' }}>
                         {isReady
-                            ? (diffDays === 0 ? "Ostatni dzień na odbiór!" : `Pozostało dni na odbiór: ${diffDays}`)
+                            ? (diffDays === 0 ? "Ostatni dzień na odbiór!" : `Odbierz książkę w przeciągu ${diffDays} dni`)
                             : 'Termin odbioru minął'
                         }
                     </div>
@@ -157,7 +188,7 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button
                         onClick={() => this.cancelReservation()}
-                        style={{ backgroundColor: mainColor, color: 'white', border: 'none', padding: '8px 16px', borderRadius: '0.75em', cursor: 'pointer' }}
+                        style={{ backgroundColor: '#8b2346', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '0.75em', cursor: 'pointer' }}
                     >
                         Anuluj rezerwację
                     </button>
@@ -167,6 +198,25 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
                         </ScanButton>
                     )}
                 </div>
+                <Popup
+                    title="Szczegóły książki"
+                    isOpen={isDetailsOpen}
+                    setIsOpen={(val) => this.setState({ isDetailsOpen: val })}
+                >
+                    {this.renderBookDetails(book)}
+                    <div style={{
+                        marginTop: '20px', display: 'flex', justifyContent: 'center'
+                    }}>
+                        <button
+                            onClick={() => this.setState({ isDetailsOpen: false })}
+                            style={{
+                                backgroundColor: '#8b2346', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '0.75em', cursor: 'pointer'
+                            }}
+                        >
+                            Zamknij
+                        </button>
+                    </div>
+                </Popup>
             </div>
         );
     }
@@ -186,6 +236,7 @@ export class RentComponent extends Component<{ info: Rent }> {
     constructor(props: { info: Rent }) {
         super(props);
         this.info = props.info;
+        this.state = { isDetailsOpen: false };
     }
 
     /** Wywołuje popup przedłużenia terminu zwrotu. */
@@ -227,10 +278,39 @@ export class RentComponent extends Component<{ info: Rent }> {
      * @param {string} code - Odczytany kod z czytnika QR.
      */
     onScanReturn(code: string) {
+        const { book } = this.info;
         const { showAlert } = this.props as any;
-        showAlert(
-            "Skanowanie QR",
-            `Zeskanowano kod: ${code}. Funkcja zwrotu książki przez QR nie jest jeszcze zaimplementowana.`
+
+        // Prosta weryfikacja: czy kod QR zawiera ID książki
+        if (code === book.book_id?.toString()) {
+            this.returnBook();
+        } else {
+            showAlert("Błąd skanowania", "Zeskanowany kod nie odpowiada tej książce.");
+        }
+    }
+    /**
+     * Renderuje listę szczegółowych informacji o książce.
+     * @param {any} book - Obiekt danych książki do wyświetlenia.
+     * @returns {JSX.Element}
+     */
+    renderBookDetails(book: any) {
+        const labelStyle = { color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block' };
+        const rowStyle = { marginBottom: '8px', display: 'flex' };
+
+        return (
+            <div style={{ fontSize: '1em', color: '#333', textAlign: 'left' }}>
+                <div style={rowStyle}><span style={labelStyle}>Tytuł:</span> <span>{book.title}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Autor:</span> <span>{book.authors.join(", ")}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Rok wydania:</span> <span>{book.publish_year}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Wydawnictwo:</span> <span>{book.publisher}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>ISBN:</span> <span>{book.isbn_number}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Gatunek:</span> <span>{book.genre.join(", ")}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Język:</span> <span>{book.language}</span></div>
+                <div style={rowStyle}><span style={labelStyle}>Liczba stron:</span> <span>{book.length}</span></div>
+                <div style={{ marginTop: '15px', fontStyle: 'italic', color: '#666' }}>
+                    Tagi: {book.keywords.join(", ")}
+                </div>
+            </div>
         );
     }
     render() {
@@ -239,13 +319,14 @@ export class RentComponent extends Component<{ info: Rent }> {
         const now = new Date();
         const dueDate = return_date ? new Date(return_date) : new Date();
         const isOverdue = dueDate < now;
-
+        const { isDetailsOpen } = this.state as any;
         return (
 
             <div className="book-item" style={{ paddingBottom: '0.5em', display: 'block' }}>
                 <div style={{ marginBottom: '1em' }}>
                     <div
-                        style={{ color: mainColor, fontWeight: '500', fontSize: '1.1em', textDecoration: 'underline', cursor: 'pointer' }}
+                        onClick={() => this.setState({ isDetailsOpen: true })}
+                        style={{ color: '#8b2346', fontWeight: '500', fontSize: '1.1em', textDecoration: 'underline', cursor: 'pointer' }}
                     >
                         „{book.title}” - {authors}
                     </div>
@@ -258,16 +339,37 @@ export class RentComponent extends Component<{ info: Rent }> {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <button
-                        onClick={() => this.prolongRental()}
-                        style={{ backgroundColor: mainColor, color: 'white', border: 'none', padding: '8px 16px', borderRadius: '0.75em', cursor: 'pointer' }}
-                    >
-                        Przedłuż
-                    </button>
+                    {!isOverdue && (
+                        <button
+                            onClick={() => this.prolongRental()}
+                            style={{ backgroundColor: '#8b2346', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '0.75em', cursor: 'pointer' }}
+                        >
+                            Przedłuż
+                        </button>
+                    )}
                     <ScanButton pass_output={(val) => this.onScanReturn(val)}>
                         Zwróć
                     </ScanButton>
                 </div>
+                <Popup
+                    title="Szczegóły książki"
+                    isOpen={isDetailsOpen}
+                    setIsOpen={(val) => this.setState({ isDetailsOpen: val })}
+                >
+                    {this.renderBookDetails(book)}
+                    <div style={{
+                        marginTop: '20px', display: 'flex', justifyContent: 'center'
+                    }}>
+                        <button
+                            onClick={() => this.setState({ isDetailsOpen: false })}
+                            style={{
+                                backgroundColor: '#8b2346', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '0.75em', cursor: 'pointer'
+                            }}
+                        >
+                            Zamknij
+                        </button>
+                    </div>
+                </Popup>
             </div>
         );
     }
