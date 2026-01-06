@@ -1,7 +1,7 @@
 /**
  * @file Implementuje okno modalne wyświetlające szczegóły książki (BookDetailsPopup).
  * Komponent prezentuje dane bibliograficzne oraz umożliwia szybkie przejście do katalogu
- * poprzez kliknięcie w kluczowe pola (autor, wydawnictwo, gatunek, tagi).
+ * poprzez kliknięcie kluczowych pól (autor, wydawnictwo, gatunek, tagi).
  *
  * Funkcjonalności:
  * - Wyświetlanie sformatowanych szczegółów książki (Tytuł, Autorzy, ISBN, etc.).
@@ -11,7 +11,7 @@
  * @author Aleksander Grzegrzułka
  */
 
-import { type JSX } from "react";
+import React, { type JSX } from "react";
 import type { Book } from "../../public/server_types.ts";
 import Popup from "../../public/custom_components/Popup.tsx";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";

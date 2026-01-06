@@ -56,7 +56,7 @@ export default function UsersListView(): JSX.Element {
 
     const [totalPages, setTotalPages] = useState(1);
 
-    // State - Wyszukiwanie i Filtry
+    // State — Wyszukiwanie i Filtry
     const [search, setSearch] = useState<SearchPanelReturn | undefined>(() => {
         const q = searchParams.get("q");
         return q ? { search: q } : undefined;
@@ -188,7 +188,7 @@ export default function UsersListView(): JSX.Element {
             setResetToken(prev => prev + 1);
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e ?? "Wystąpił nieznany błąd");
-            setPopupData({ title: "Błąd odblowowania", message: msg });
+            setPopupData({ title: "Błąd odblokowania", message: msg });
             setShownPopup("error");
         }
     };

@@ -10,7 +10,7 @@
  * @author Aleksander Grzegrzułka
  */
 
-import React, { useState, type JSX } from 'react';
+import React, {type JSX } from 'react';
 import type { UserInfo, Book, Rent, Reservation } from "../../public/server_types.ts";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 import iconAccount from "../assets/account_circle.svg";
@@ -31,7 +31,7 @@ import Collapsible from '../../public/custom_components/Collapsible.tsx';
  * @property onBlockUser - Funkcja wywoływana przy próbie zablokowania użytkownika
  * @property onUnblockUser - Funkcja wywoływana przy próbie odblokowania użytkownika
  * @property onRemoveUser - Funkcja wywoływana przy próbie usunięcia użytkownika/bibliotekarza
- * @property onBookClick - Funkcja wywoływana po kliknięciu w tytuł książki w celu pokazania szczegółów
+ * @property onBookClick - Funkcja wywoływana po kliknięciu tytuł książki w celu pokazania szczegółów
  */
 interface UserComponentProps {
   userInfo: UserInfo;
@@ -174,7 +174,7 @@ export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, on
 
 /**
  * Komponent pomocniczy renderujący wiersz tabeli wypożyczeń.
- * Oblicza automatycznie status przeterminowania oraz koszt kary (15.00 zł za dzień zwłoki).
+ * Oblicza automatycznie status przeterminowania oraz koszt kary (15 zł za dzień zwłoki).
  * @component
  * @param {Object} props
  * @param {Rent} props.rent - Obiekt reprezentujący pojedyncze wypożyczenie.
