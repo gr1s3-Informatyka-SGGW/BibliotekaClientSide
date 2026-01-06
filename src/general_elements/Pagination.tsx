@@ -1,10 +1,10 @@
 /**
  * @file Implementuje komponent paginacji używany do nawigacji między stronami wyników w katalogu.
- * * Funkcjonalności komponentu:
+ * Funkcjonalności komponentu:
  * - Blokowanie przycisków nawigacji na pierwszej i ostatniej stronie.
  * - Wyświetlanie aktualnego numeru strony oraz całkowitej liczby stron.
  * - Obsługa płynnego przejścia między podstronami za pomocą callbacku.
- * * @author Aleksander Grzegrzułka
+ * @author Aleksander Grzegrzułka
  */
 
 import { type JSX } from 'react';
@@ -26,7 +26,7 @@ interface PaginationProps {
 /**
  * Komponent funkcyjny Pagination.
  * Renderuje pasek nawigacji stronami.
- * * @param {PaginationProps} props — parametry wejściowe komponentu
+ * @param {PaginationProps} props — parametry wejściowe komponentu
  * @returns {JSX.Element} Wyrenderowany interfejs nawigacji
  */
 export const Pagination = ({ currentPage, totalPages, onPageChange }: PaginationProps): JSX.Element => {
@@ -44,8 +44,9 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }: Pagination
                 Poprz.
             </button>
 
-            <span className="bg-rose-100 text-rose-900 font-bold px-6 py-2 rounded-lg">
-                Strona {currentPage} z {totalPages}
+            <span className="bg-rose-100 text-rose-900 font-bold px-4 py-2 rounded-lg text-center whitespace-nowrap">
+                <span className="hidden sm:inline">Strona </span>
+                {currentPage} z {totalPages}
             </span>
 
             <button
