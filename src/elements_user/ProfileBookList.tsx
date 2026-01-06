@@ -1,6 +1,4 @@
-import '../assets/book_ribbon.svg'
-import '../assets/book.svg'
-import React, { Component, useState } from "react";
+import React, {Component, type ReactNode, useState} from "react";
 import { type Rent, type Reservation } from "../../public/server_types.ts";
 import {
     cancelReservationRequest,
@@ -15,13 +13,15 @@ const mainColor = '#8b2346';
 
 /**
  * Główny kontener listy książek w profilu użytkownika.
- * Obsługuje wyświetlanie nagłówka z ikoną oraz zarządza globalnym stanem komponentu Alert dla podelementów.
- * * @param {Object} props
+ * Obsługuje wyświetlanie nagłówka z ikoną oraz zarządza globalnym stanem komponentu Alert dla pod elementów.
+ * @param {Object} props
  * @param {ReservationComponent[] | RentComponent[]} props.children - Lista komponentów rezerwacji lub wypożyczeń.
  * @param {string} props.header - Tytuł sekcji (np. "Moje rezerwacje").
- * @param {ImageBitmap} props.icon - Ikona wyświetlana przy nagłówku.
+ * @param {string} props.icon - Ścieżka do ikony wyświetlanej przy nagłówku.
+ *
+ * @returns JSX.Element
  */
-export default function ProfileBookList({ children, header, icon, count }: { children: ReservationComponent[] | RentComponent[], header: string, icon: ImageBitmap, count?: number }) {
+export default function ProfileBookList({ children, header, icon, count }: { children: ReactNode | ReservationComponent[] | RentComponent[] | ReservationComponent | RentComponent, header: string, icon: string, count?: number }) {
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -49,7 +49,8 @@ export default function ProfileBookList({ children, header, icon, count }: { chi
                 marginTop: '0em'
             }}>
                 <img src={icon as any} alt="" style={{ height: '1.2em', marginRight: '0.5em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
-                {header} {children ? `(${React.Children.count(children)})` : ''}            </h3>
+                {header} {children ? `(${React.Children.count(children)})` : ''}
+            </h3>
             <div className="books-stack" style={{ display: 'flex', flexDirection: 'column', gap: '1.5em' }}>
                 {React.Children.map(children as any, (child) =>
                     React.isValidElement(child) ? React.cloneElement(child, { showAlert } as any) : child
@@ -70,9 +71,10 @@ export default function ProfileBookList({ children, header, icon, count }: { chi
 
 /**
  * Reprezentuje pojedynczą pozycję na liście rezerwacji.
+ * @prop {Reservation} info Dane o rezerwacji.
+ * @extends Component
  */
 export class ReservationComponent extends Component<{ info: Reservation }> {
-    /** Dane o rezerwacji. */
     info: Reservation;
 
     /**
@@ -148,7 +150,7 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
                     <div style={{ color: '#666', fontSize: '0.9em', fontStyle: 'italic', marginTop: '4px' }}>
                         {isReady
                             ? (diffDays === 0 ? "Ostatni dzień na odbiór!" : `Pozostało dni na odbiór: ${diffDays}`)
-                            : 'Oczekuje na dostępność lub termin odbioru minął'
+                            : 'Termin odbioru minął'
                         }
                     </div>
                 </div>
@@ -172,9 +174,10 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
 
 /**
  * Reprezentuje pojedynczą pozycję na liście aktualnych wypożyczeń.
+ * @prop {Rent} info Dane o wypożyczeniu.
+ * @extends Component
  */
 export class RentComponent extends Component<{ info: Rent }> {
-    /** Dane o wypożyczeniu. */
     info: Rent;
 
     /**
