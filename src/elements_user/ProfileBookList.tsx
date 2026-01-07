@@ -12,7 +12,7 @@ import ScanButton from "./ScanButton.tsx";
 
 /**
  * Główny kontener listy książek w profilu użytkownika.
- * Obsługuje wyświetlanie nagłówka z ikoną oraz zarządza globalnym stanem komponentu Alert dla pod elementów.
+ * Obsługuje wyświetlanie nagłówka z ikoną oraz zarządza globalnym stanem komponentu Alert dla pod-elementów.
  * @param {Object} props
  * @param {ReservationComponent[] | RentComponent[]} props.children - Lista komponentów rezerwacji lub wypożyczeń.
  * @param {string} props.header - Tytuł sekcji (np. "Moje rezerwacje").
@@ -140,7 +140,7 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
      * @param {any} book - Obiekt danych książki do wyświetlenia.
      * @returns {JSX.Element}
      */
-    renderBookDetails(book: any) {
+    renderBookDetails(book: any){
         const labelStyle = { color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block' };
         const rowStyle = { marginBottom: '8px', display: 'flex' };
 
@@ -293,7 +293,7 @@ export class RentComponent extends Component<{ info: Rent }> {
      * @param {any} book - Obiekt danych książki do wyświetlenia.
      * @returns {JSX.Element}
      */
-    renderBookDetails(book: any) {
+    renderBookDetails(book: any){
         const labelStyle = { color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block' };
         const rowStyle = { marginBottom: '8px', display: 'flex' };
 
