@@ -1,9 +1,11 @@
 /**
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
+ *
+ *
  * */
 
-import type { Book, User } from "../../public/server_types.ts";
+import type { Book, User, RentFullInfo } from "../../public/server_types.ts";
 import { extendRentRequest, fetchRentLog, returnBookRequest } from "../../public/server_requests.ts";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 import React, { useState, useEffect, useCallback } from "react";
@@ -34,35 +36,32 @@ import borrowIcon from '../../src/assets/borrow.svg';
  * @type {number}
  */
 
-const ITEMS_PER_PAGE: number = 3;
+const ITEMS_PER_PAGE = 3;
 
 /**
  * Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
+ * Rozszerza podstawowy typ serwerowy RentFullInfo o pola obliczane po stronie klienta.
+ *
+ * - Server `return_to_date` (Deadline) -> UI `return_date`
+ * - Server `return_date` (Faktyczny zwrot) -> UI `actualReturnDate`
  *
  * @interface ExtendedRentInfo
- * @property {number} id - Unikalny identyfikator rekordu wypożyczenia.
- * @property {User} user - Obiekt użytkownika, który wypożyczył książkę.
- * @property {Book} book - Obiekt książki będącej przedmiotem wypożyczenia.
+ * @extends {Omit<RentFullInfo, 'borrow_date' | 'return_date' | 'return_to_date' | 'status'>}
+ * @property {number} id - Unikalny identyfikator wypożyczenia.
  * @property {Date} borrow_date - Data i czas rozpoczęcia wypożyczenia.
  * @property {Date} return_date - Planowany termin zwrotu książki (data wymagalności).
- * @property {'active' | 'returned_pending'} status - Aktualny status wypożyczenia:
- * - `'active'`: Wypożyczenie aktywne, książka znajduje się u użytkownika.
- * - `'returned_pending'`: Książka została zwrócona przez użytkownika, oczekuje na zatwierdzenie.
+ * @property {'active' | 'returned_pending'} status - Status wypożyczenia.
  * @property {number} fineAmount - Kwota naliczonej kary (np. 0, jeśli brak opóźnień).
- * @property {string} fineCurrency - Kod waluty kary (np. "PLN").
- * @property {Date} [actualReturnDate] - Rzeczywista data zwrotu książki (opcjonalna, wypełniona przy zwrocie).
+ * @property {Date} [actualReturnDate] - Rzeczywista data zwrotu książki.
  */
 
-export interface ExtendedRentInfo {
-    id: number;
-    user: User;
-    book: Book;
+export interface ExtendedRentInfo extends Omit<RentFullInfo, 'borrow_date' | 'return_date' | 'return_to_date'> {
+    id: number; // <--- NAPRAWIONO: Dodano brakujące pole ID
     borrow_date: Date;
-    return_date: Date;
-    status: 'active' | 'returned_pending' | 'returned_finished' | 'overdue';
+    return_date: Date; // To jest DEADLINE (return_to_date z serwera)
+    status: 'active' | 'returned_pending';
     fineAmount: number;
-    fineCurrency: string;
-    actualReturnDate?: Date;
+    actualReturnDate?: Date; // To jest FAKTYCZNY ZWROT (return_date z serwera)
 }
 
 /**
@@ -70,7 +69,7 @@ export interface ExtendedRentInfo {
  *
  * @interface RentedBooksListViewProps
  * @property {ExtendedRentInfo[]} [initialData] - Opcjonalny zestaw danych początkowych dla widoku.
- * Przydatny przy testowaniu, renderowaniu po stronie serwera (SSR) lub w Storybooku.
+ * Przydatny przy testowaniu, renderowaniu po stronie serwera.
  * Jeśli nie zostanie podany, komponent samodzielnie pobierze dane z serwera po zamontowaniu.
  */
 
@@ -80,30 +79,28 @@ interface RentedBooksListViewProps {
 
 /**
  * Komponent widoku /rented-books.
- * Zarządza wyświetlaniem, filtrowaniem i obsługą procesów wypożyczeń oraz zwrotów książek.
+ * Służy do zarządzania procesem wypożyczeń, oferując wgląd w listę, filtrowanie oraz akcje na rekordach.
  *
- * @returns {React.JSX.Element} Główny widok listy wypożyczeń.
+ * @returns {React.JSX.Element} Pełny widok strony zarządzania wypożyczeniami.
  *
- * @requires NavSidebar - Pasek nawigacji bocznej.
- * @requires SearchPanel - Komponent obsługujący pasek wyszukiwania i kontenery filtrów.
- * @requires CustomSelect - Komponent wyboru (dropdown) do filtrowania statusów i sortowania.
- * @requires FilterResetButton - Przycisk resetujący wszystkie aktywne filtry.
- * @requires Pagination - Komponent do nawigacji między stronami wyników.
- * @requires Popup - Modal wyświetlający szczegóły użytkownika lub książki.
- * @requires Alert - Okno dialogowe potwierdzające krytyczne akcje (zwrot/przedłużenie).
+ * @requires NavSidebar - Element nawigacyjny aplikacji (panel boczny).
+ * @requires SearchPanel - Panel obsługujący logikę wyszukiwania i kontener filtrów.
+ * @requires CustomSelect - Komponent wyboru, umożliwiający filtrowanie (np. po statusie) i sortowanie wyników.
+ * @requires FilterResetButton - Przycisk do szybkiego resetowania wszystkich aktywnych filtrów.
+ * @requires Pagination - Komponent stronicowania, umożliwiający nawigację po podzielonych wynikach.
+ * @requires Popup - Okna modalne wyświetlające szczegóły użytkownika lub książki.
+ * @requires Alert - Okno dialogowe do potwierdzania krytycznych akcji (zwrot, przedłużenie).
  */
-export default function RentedBooksListView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
-    /** Lista aktualnie wyświetlanych wypożyczeń (po filtracji/paginacji). */
-    const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
+export default function RentedBooksListView({ initialData }: RentedBooksListViewProps) {
 
+    /** Lista aktualnie przetworzonych i wyświetlanych wypożyczeń. */
+    const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
     const [searchQuery, setSearchQuery] = useState("");
-    /** Przechowuje stan surowych filtrów przekazywanych do logiki biznesowej/API. */
+    /** Przechowuje surowe wartości filtrów do zapytań API/logiki. */
     const [filters, setFilters] = useState<any>({});
-    /** Przechowuje stan aktywnych filtrów dla komponentów UI (np. zaznaczone opcje w Select). */
-    const [activeFilters, setActiveFilters] = useState<{ [key: string]: string[] }>({});
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -112,69 +109,76 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
     const [isBookPopupOpen, setIsBookPopupOpen] = useState(false);
 
-    /**
-     * Konfiguracja globalnego alertu (modala potwierdzenia).
-     * Służy do obsługi potwierdzeń dla akcji 'prolong' (przedłużenie) oraz 'return' (zwrot).
+    /** * Konfiguracja globalnego alertu (potwierdzenia akcji).
+     * Używana zarówno do potwierdzania przedłużenia, jak i zwrotu książki, oraz wyświetlania błędów.
      */
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
         title: string;
         message: string;
         onAccept?: () => void;
-        type?: 'prolong' | 'return';
+        type?: 'prolong' | 'return' | 'error';
     }>({ isOpen: false, title: "", message: "" });
 
+    /** Przechowuje stan aktywnych filtrów w UI (dla komponentów Select). */
+    const [activeFilters, setActiveFilters] = useState<{ [key: string]: string[] }>({});
 
     /**
-     * Mapuje surowe dane z API na format `ExtendedRentInfo`.
-     * Odpowiada za:
-     * 1. Konwersję stringów dat na obiekty `Date`.
-     * 2. Wyliczenie statusu (np. wykrycie opóźnienia 'overdue').
-     * 3. Kalkulację kar finansowych dla opóźnionych zwrotów.
+     * Przetwarza surowe dane na ujednolicony format `ExtendedRentInfo`.
+     * Dostosowane do struktury gdzie `return_to_date` to deadline, a `return_date` to faktyczny zwrot.
      *
-     * @param {any} rawData - Surowe dane (tablica lub obiekt z kluczem `items`).
-     * @returns {ExtendedRentInfo[]} Przetworzona lista wypożyczeń.
+     * @param {any} rawData - Surowe dane wejściowe (tablica lub obiekt z polem `items`).
+     * @returns {ExtendedRentInfo[]} Lista sformatowanych obiektów wypożyczeń.
      */
     const processApiData = (rawData: any): ExtendedRentInfo[] => {
         const dataArray = Array.isArray(rawData) ? rawData : (rawData?.items || []);
 
         return dataArray.map((item: any) => {
-            const returnDate = new Date(item.return_date);
             const borrowDate = new Date(item.borrow_date);
+
+            const deadlineDate = new Date(item.return_to_date);
+
+            const actualReturnDate = item.return_date ? new Date(item.return_date) : undefined;
+
             const now = new Date();
 
             let status: ExtendedRentInfo['status'] = 'active';
             let calculatedFine = 0;
 
-            if (item.is_returned || item.status === 'returned' || item.status === 'returned_pending') {
+            if (actualReturnDate) {
                 status = 'returned_pending';
-            } else if (now > returnDate) {
-                // Jeśli po terminie, oznaczamy jako overdue i naliczamy karę
-                status = 'overdue'; // UWAGA: Zgodnie z interfejsem status powinien być 'active' | 'returned_pending', ale logika kodu używa 'overdue' wewnętrznie.
-                const daysOver = Math.ceil((now.getTime() - returnDate.getTime()) / (1000 * 60 * 60 * 24));
-                calculatedFine = daysOver * 10;
+
+                if (actualReturnDate > deadlineDate) {
+                    const daysOver = Math.ceil((actualReturnDate.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+                    calculatedFine = daysOver * 10;
+                }
+            } else {
+                if (now > deadlineDate) {
+                    const daysOver = Math.ceil((now.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+                    calculatedFine = daysOver * 10;
+                }
             }
 
             return {
+                ...item,
                 id: item.id || item.rent_id,
                 user: item.user,
                 book: item.book,
                 borrow_date: borrowDate,
-                return_date: returnDate,
-                status: status, // Należy upewnić się, że 'overdue' jest obsługiwane przez interfejs ExtendedRentInfo, jeśli nie, należy to poprawić w typach.
+                return_date: deadlineDate,
+                status: status,
                 fineAmount: item.fineAmount || calculatedFine,
-                fineCurrency: 'PLN',
-                actualReturnDate: item.actual_return_date ? new Date(item.actual_return_date) : undefined
+                actualReturnDate: actualReturnDate
             };
         });
     };
 
-
     /**
-     * Odświeża dane w widoku.
-     * Działa w dwóch trybach:
-     * 1. **Tryb lokalny (Initial Data):** Filtruje i sortuje dostarczoną tablicę (np. dla testów).
-     * 2. **Tryb API:** Wysyła zapytanie do serwera z parametrami paginacji, sortowania i filtrów.
+     * Asynchroniczna funkcja odświeżająca dane w widoku.
+     * * Działa w dwóch trybach:
+     * 1. **Tryb lokalny (gdy `initialData` jest dostępne):** Filtruje i sortuje dostarczoną tablicę po stronie klienta.
+     * 2. **Tryb serwerowy:** Wysyła zapytanie do API (`fetchRentLog`) z parametrami wyszukiwania i filtrowania.
+     * * Wywoływana przy zmianie filtrów, zapytania wyszukiwania lub danych wejściowych.
      */
     const refreshData = useCallback(async () => {
         setIsLoading(true);
@@ -202,7 +206,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                 if (filters.po_terminie && filters.po_terminie.includes('any')) {
                     const now = new Date();
                     processedData = processedData.filter(item =>
-                        item.status === 'overdue' || (item.status === 'active' && now > item.return_date)
+                        item.status === 'active' && now > item.return_date
                     );
                 }
 
@@ -236,36 +240,39 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 
         } catch (error) {
             console.error("Błąd podczas pobierania danych:", error);
+            setAlertConfig({
+                isOpen: true,
+                title: "Błąd serwera",
+                message: "Nie udało się pobrać danych o wypożyczeniach. Sprawdź połączenie z internetem.",
+                onAccept: () => setAlertConfig(prev => ({...prev, isOpen: false})),
+                type: 'error'
+            });
         } finally {
             setIsLoading(false);
         }
     }, [initialData, searchQuery, filters]);
 
     useEffect(() => {
-        refreshData();
+        const loadData = async () => {
+            await refreshData();
+        };
+        loadData();
     }, [refreshData]);
 
-    /**
-     * @event handleSearch Obsługuje zdarzenie wyszukiwania z komponentu SearchPanel.
-     * Resetuje widok do pierwszej strony.
-     */
+
     const handleSearch = (data: SearchPanelReturn) => {
         setSearchQuery(data.search);
         setFilters(data.filter);
         setCurrentPage(1);
     };
 
-    /**
-     * @event handleFilterChange Obsługuje zmianę wartości w filtrach typu Select.
-     * Aktualizuje zarówno stan widoku (activeFilters), jak i stan logiczny (filters).
-     */
     const handleFilterChange = (key: string) => (values: string[]) => {
         setActiveFilters(prev => ({ ...prev, [key]: values }));
         setFilters((prev: any) => ({ ...prev, [key]: values }));
     };
 
     /**
-     * Czyści wszystkie filtry i wyszukiwanie, przywracając widok do stanu początkowego.
+     * Resetuje wszystkie aktywne filtry, wyszukiwanie i wraca do pierwszej strony.
      */
     const handleResetFilters = () => {
         setActiveFilters({});
@@ -290,7 +297,13 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                     await refreshData();
                 } catch (error) {
                     console.error("Błąd przedłużania:", error);
-                    alert("Wystąpił błąd podczas komunikacji z serwerem.");
+                    setAlertConfig({
+                        isOpen: true,
+                        title: "Niepowodzenie",
+                        message: "Wystąpił błąd podczas przedłużania wypożyczenia.",
+                        onAccept: () => setAlertConfig(prev => ({...prev, isOpen: false})),
+                        type: 'error'
+                    });
                 }
             },
             type: 'prolong'
@@ -298,21 +311,27 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     };
 
     /**
-     * @event handleReturn Inicjuje proces zwrotu książki.
+     * Inicjuje proces zwrotu książki.
      * Wyświetla alert z informacją o naliczonej karze i prosi o potwierdzenie odbioru.
      */
     const handleReturn = (rent: ExtendedRentInfo) => {
         setAlertConfig({
             isOpen: true,
             title: "Potwierdzenie zwrotu",
-            message: `Czy potwierdzasz odbiór książki "${rent.book.title}" od użytkownika ${rent.user.name} ${rent.user.surname}? \nKara do zapłaty: ${rent.fineAmount} ${rent.fineCurrency}`,
+            message: `Czy potwierdzasz odbiór książki "${rent.book.title}" od użytkownika ${rent.user.name} ${rent.user.surname}? \nKara do zapłaty: ${rent.fineAmount}`,
             onAccept: async () => {
                 try {
                     await returnBookRequest(rent.id);
                     await refreshData();
                 } catch (error) {
                     console.error("Błąd zwrotu:", error);
-                    alert("Wystąpił błąd podczas komunikacji z serwerem.");
+                    setAlertConfig({
+                        isOpen: true,
+                        title: "Niepowodzenie",
+                        message: "Wystąpił błąd podczas zatwierdzania zwrotu.",
+                        onAccept: () => setAlertConfig(prev => ({...prev, isOpen: false})),
+                        type: 'error'
+                    });
                 }
             },
             type: 'return'
@@ -388,10 +407,18 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                 icon={userIcon}
             >
                 {selectedUser && (
-                    <div className="flex-column" style={{gap: '10px'}}>
-                        <div><strong>Imię i nazwisko:</strong> {selectedUser.name} {selectedUser.surname}</div>
-                        <div><strong>Email:</strong> {selectedUser.email}</div>
-                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'inherit' }}>
+                        <tbody>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Imię i nazwisko:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedUser.name} {selectedUser.surname}</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Email:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedUser.email}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 )}
             </Popup>
 
@@ -402,12 +429,26 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                 icon={bookIcon}
             >
                 {selectedBook && (
-                    <div className="flex-column" style={{gap: '8px'}}>
-                        <div><strong>Tytuł:</strong> {selectedBook.title}</div>
-                        <div><strong>Autor:</strong> {selectedBook.authors.join(", ")}</div>
-                        <div><strong>Wydawnictwo:</strong> {selectedBook.publisher} ({selectedBook.publish_year})</div>
-                        <div><strong>ISBN:</strong> {selectedBook.isbn_number}</div>
-                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'inherit' }}>
+                        <tbody>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Tytuł:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.title}</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Autor:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.authors.join(", ")}</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Wydawnictwo:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.publisher} ({selectedBook.publish_year})</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>ISBN:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.isbn_number}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 )}
             </Popup>
 
@@ -420,7 +461,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                 title={alertConfig.title}
                 message={alertConfig.message}
                 onAccept={alertConfig.onAccept}
-                icon={alertConfig.type === 'return' ? checkIcon : refreshIcon}
+                icon={alertConfig.type === 'error' ? errorIcon : (alertConfig.type === 'return' ? checkIcon : refreshIcon)}
             />
         </>
     );
@@ -428,22 +469,15 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 
 /**
  * Komponent, który prezentuje jeden wpis dotyczący wypożyczenia książki.
- * Na podstawie terminu zwrotu i obecnej daty komponent ustala status wypożyczenia: Aktywne (przed terminem zwrotu), Przeterminowane (po terminie, dla którego naliczona jest opłata) i Archiwalne (książka zostałą zwrócona).
- * Dla Aktywnych wypożyczeń komponent umozliwia przedłużenie wypożyczenia (przez guzik "Przedłóż Wypożyczenie")
- * Dla Przeterminowanych informuje o naliczonej opłacie.
- * @prop props
- * @prop {RentFullInfo} props.rent_info - dane książki
- *
- * @requires extendRentRequest przedłuża czas wypożyczenia książki
- * @requires fetchRentLog pobiera informacje o wypożyczeniach do wyświetlenia
- * */
-
+ * Na podstawie terminu zwrotu i obecnej daty komponent ustala status wypożyczenia.
+ * @component
+ */
 class RentedBookComponent extends React.Component<{
     /** Obiekt zawierający pełne dane o wypożyczeniu, użytkowniku, książce i karach. */
     rent_info: ExtendedRentInfo,
-    /** Funkcja wywoływana po kliknięciu, w nazwę użytkownika. */
+    /** Funkcja wywoływana po kliknięciu w nazwę użytkownika. */
     onUserClick: () => void,
-    /** Funkcja wywoływana po kliknięciu, w tytuł książki. */
+    /** Funkcja wywoływana po kliknięciu w tytuł książki. */
     onBookClick: () => void,
     /** Funkcja wywoływana w celu przedłużenia wypożyczenia. */
     onExtend: () => void,
@@ -453,10 +487,6 @@ class RentedBookComponent extends React.Component<{
 
     /**
      * Formatuje obiekt daty do czytelnego polskiego formatu (RRRR-MM-DD).
-     *
-     * @private
-     * @param {Date} date - Obiekt daty do sformatowania.
-     * @returns {string} Sformatowana data jako ciąg znaków.
      */
     private formatDate(date: Date): string {
         return date.toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '-');
@@ -464,12 +494,6 @@ class RentedBookComponent extends React.Component<{
 
     /**
      * Oblicza bezwzględną różnicę w dniach pomiędzy dwiema datami.
-     * Używana do wyświetlania liczby dni pozostałych do zwrotu lub dni opóźnienia.
-     *
-     * @private
-     * @param {Date} date1 - Pierwsza data.
-     * @param {Date} date2 - Druga data.
-     * @returns {number} Liczba dni (zaokrąglona w górę).
      */
     private getDaysDiff(date1: Date, date2: Date): number {
         const diffTime = Math.abs(date2.getTime() - date1.getTime());
@@ -478,18 +502,14 @@ class RentedBookComponent extends React.Component<{
 
     /**
      * Renderuje interfejs karty wypożyczenia.
-     * Wewnątrz metody obliczane są flagi logiczne (np. `isOverdue`, `isReturnedPending`)
-     * decydujące o stylu panelu (kolorach) i wyświetlanych ikonach.
-     *
-     * @returns {React.JSX.Element} Wyrenderowany element panelu.
      */
     render() {
         const { rent_info, onUserClick, onBookClick, onReturn } = this.props;
 
         const isReturnedPending = rent_info.status === 'returned_pending';
-        const isReturnedFinished = rent_info.status === 'returned_finished'; // Uwaga: status ten nie występuje w interfejsie ExtendedRentInfo, ale jest w logice
-        const isAnyReturned = isReturnedPending || isReturnedFinished;
-        const isOverdue = rent_info.status === 'overdue' || (!isAnyReturned && new Date() > rent_info.return_date);
+        const isAnyReturned = isReturnedPending;
+
+        const isOverdue = !isReturnedPending && new Date() > rent_info.return_date;
 
         let daysDiff = 0;
         if (isAnyReturned && rent_info.actualReturnDate) {
@@ -594,7 +614,7 @@ class RentedBookComponent extends React.Component<{
                                 {isAnyReturned ? "Naliczona kara" : (rent_info.fineAmount > 0 ? "Kara do zapłaty" : "Kara")}
                             </span>
                             <span className={rent_info.fineAmount > 0 ? "fine-red" : "fine-black"}>
-                                {rent_info.fineAmount.toFixed(2)} {rent_info.fineCurrency}
+                                {rent_info.fineAmount.toFixed(2)}
                             </span>
                         </div>
                     </div>
@@ -616,12 +636,9 @@ class RentedBookComponent extends React.Component<{
     }
 
     /**
-     * Obsługuje logikę przedłużania wypożyczenia.
-     * Wywoływana przez kliknięcie przycisku "Przedłuż wypożyczenie".
-     * Przekazuje intencję do komponentu nadrzędnego poprzez props `onExtend`.
-     *
+     * @event extendRent wywoływany przez kliknięcie guzika "Przedłóż wypożyczenie" wysyła prośbę o przedłużenie wypożyczenia na serwer z użyciem funkcji extendRentRequest
      * @private
-     */
+     * */
     private extendRent(){
         this.props.onExtend();
     }
