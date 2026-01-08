@@ -213,15 +213,17 @@ export interface UserInfo{
 
 
 /**
- * @type RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
+ * @interface RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
  * @param {User} user - użytkownik, który wypożyczył książkę
  * @param {Book} book - wypożyczona książka
  * @param {Date} borrow_date - data wypożyczenia
- * @param {Date} return_date - data zwrotu
+ * @param {Date|null} return_date - data w której użytkownik dokonał zwrotu. null, gdy jeszcze nie dokonano zwrotu.
+ * @param {Date} return_to_date - data, do której musi zostać dokonany zwrot, aby nie zostały naliczone opłaty
  * */
 export interface RentFullInfo{
     user:User
     book: Book
     borrow_date: Date
-    return_date: Date
+    return_date: Date| null
+    return_to_date: Date
 }

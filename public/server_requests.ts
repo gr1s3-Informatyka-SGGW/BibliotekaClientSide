@@ -323,6 +323,6 @@ export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
     return await r.json();
 }
 // Rent log
-export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo>{
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo[]>{
     throw Error("Not implemented exception")
 }
