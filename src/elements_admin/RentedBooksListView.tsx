@@ -1,8 +1,6 @@
 /**
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
- *
- *
  * */
 
 import type { Book, User } from "../../public/server_types.ts";
@@ -36,7 +34,7 @@ import borrowIcon from '../../src/assets/borrow.svg';
  * @type {number}
  */
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE: number = 3;
 
 /**
  * Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
@@ -94,7 +92,7 @@ interface RentedBooksListViewProps {
  * @requires Popup - Modal wyświetlający szczegóły użytkownika lub książki.
  * @requires Alert - Okno dialogowe potwierdzające krytyczne akcje (zwrot/przedłużenie).
  */
-export default function RentedBooksListView({ initialData }: RentedBooksListViewProps) {
+export default function RentedBooksListView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
     /** Lista aktualnie wyświetlanych wypożyczeń (po filtracji/paginacji). */
     const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
 
@@ -248,7 +246,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     }, [refreshData]);
 
     /**
-     * Obsługuje zdarzenie wyszukiwania z komponentu SearchPanel.
+     * @event handleSearch Obsługuje zdarzenie wyszukiwania z komponentu SearchPanel.
      * Resetuje widok do pierwszej strony.
      */
     const handleSearch = (data: SearchPanelReturn) => {
@@ -258,8 +256,8 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     };
 
     /**
-     * Obsługuje zmianę wartości w filtrach typu Select.
-     * Aktualizuje zarówno stan widoku (activeFilters) jak i stan logiczny (filters).
+     * @event handleFilterChange Obsługuje zmianę wartości w filtrach typu Select.
+     * Aktualizuje zarówno stan widoku (activeFilters), jak i stan logiczny (filters).
      */
     const handleFilterChange = (key: string) => (values: string[]) => {
         setActiveFilters(prev => ({ ...prev, [key]: values }));
@@ -300,7 +298,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     };
 
     /**
-     * Inicjuje proces zwrotu książki.
+     * @event handleReturn Inicjuje proces zwrotu książki.
      * Wyświetla alert z informacją o naliczonej karze i prosi o potwierdzenie odbioru.
      */
     const handleReturn = (rent: ExtendedRentInfo) => {
@@ -443,9 +441,9 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 class RentedBookComponent extends React.Component<{
     /** Obiekt zawierający pełne dane o wypożyczeniu, użytkowniku, książce i karach. */
     rent_info: ExtendedRentInfo,
-    /** Funkcja wywoływana po kliknięciu w nazwę użytkownika. */
+    /** Funkcja wywoływana po kliknięciu, w nazwę użytkownika. */
     onUserClick: () => void,
-    /** Funkcja wywoływana po kliknięciu w tytuł książki. */
+    /** Funkcja wywoływana po kliknięciu, w tytuł książki. */
     onBookClick: () => void,
     /** Funkcja wywoływana w celu przedłużenia wypożyczenia. */
     onExtend: () => void,

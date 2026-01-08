@@ -419,7 +419,48 @@ export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
 
     return await r.json();
 }
-// Rent log
-export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo>{
-    throw Error("Not implemented exception")
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo[]>{
+    if(!USE_MOCK)
+        throw Error("Not implemented exception");
+    let book:Book = {
+        title: "Ogniem i mieczem",
+        authors: ['Henryk Sienkiewicz', "Andrzej Duda"],
+        publish_year: 1985,
+        isbn_number: "978-83-7583-610-3",
+        length: 835,
+        language: "Polski",
+        publisher: "Nasza księgarnia",
+        keywords: ["Nudne", "Test", "Smoki"],
+        genre: ["Fantazy", "Sci-Fi"]
+    }
+    return [{
+        user: {name: 'Andrzej', surname: 'Kowalski', email: 'pływać@gmail.com'},
+        book: book,
+        borrow_date: new Date('12.20.2025'),
+        return_date: new Date('01.10.2026'),
+        return_to_date:  new Date('01.8.2026')
+    },
+        {
+            user: {name: 'Anna', surname: 'Grabowska', email: 'konno@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date('01.8.2026')
+        },
+        {
+            user: {name: 'Maja', surname: 'Poznańska', email: 'metrem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: new Date('01.08.2026'),
+            return_to_date:  new Date('01.06.2026')
+        },
+        {
+            user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date('01.06.2026')
+        }
+    ]
 }
+// Rent log
