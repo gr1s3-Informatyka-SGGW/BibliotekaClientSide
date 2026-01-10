@@ -1,8 +1,7 @@
 /**
- * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
+ * Plik implementujący widok strony /rented-books dla administratora.
+ * Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
- *
- *
  * */
 
 import type { Book, User, RentFullInfo } from "../../public/server_types.ts";
@@ -36,7 +35,7 @@ import borrowIcon from '../../src/assets/borrow.svg';
  * @type {number}
  */
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE: number = 3;
 
 /**
  * Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
@@ -91,7 +90,7 @@ interface RentedBooksListViewProps {
  * @requires Popup - Okna modalne wyświetlające szczegóły użytkownika lub książki.
  * @requires Alert - Okno dialogowe do potwierdzania krytycznych akcji (zwrot, przedłużenie).
  */
-export default function RentedBooksListView({ initialData }: RentedBooksListViewProps) {
+export default function RentedBooksListView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
 
     /** Lista aktualnie przetworzonych i wyświetlanych wypożyczeń. */
     const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
@@ -198,8 +197,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                 if (filters.status && filters.status.length > 0 && !filters.status.includes('any')) {
                     processedData = processedData.filter(item => {
                         if (filters.status.includes('active') && item.status === 'active') return true;
-                        if (filters.status.includes('returned_pending') && item.status === 'returned_pending') return true;
-                        return false;
+                        return (filters.status.includes('returned_pending') && item.status === 'returned_pending')
                     });
                 }
 
@@ -318,7 +316,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
         setAlertConfig({
             isOpen: true,
             title: "Potwierdzenie zwrotu",
-            message: `Czy potwierdzasz odbiór książki "${rent.book.title}" od użytkownika ${rent.user.name} ${rent.user.surname}? \nKara do zapłaty: ${rent.fineAmount}`,
+            message: `Czy potwierdzasz odbiór książki "${rent.book.title}" od użytkownika ${rent.user.name} ${rent.user.surname}? \nKara do zapłaty: ${rent.fineAmount} zł`,
             onAccept: async () => {
                 try {
                     await returnBookRequest(rent.id);
@@ -475,9 +473,9 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 class RentedBookComponent extends React.Component<{
     /** Obiekt zawierający pełne dane o wypożyczeniu, użytkowniku, książce i karach. */
     rent_info: ExtendedRentInfo,
-    /** Funkcja wywoływana po kliknięciu w nazwę użytkownika. */
+    /** Funkcja wywoływana po kliknięciu, w nazwę użytkownika. */
     onUserClick: () => void,
-    /** Funkcja wywoływana po kliknięciu w tytuł książki. */
+    /** Funkcja wywoływana po kliknięciu, w tytuł książki. */
     onBookClick: () => void,
     /** Funkcja wywoływana w celu przedłużenia wypożyczenia. */
     onExtend: () => void,
@@ -486,7 +484,7 @@ class RentedBookComponent extends React.Component<{
 }, any> {
 
     /**
-     * Formatuje obiekt daty do czytelnego polskiego formatu (RRRR-MM-DD).
+     * Formatuje obiekt daty do czytelnego polskiego formatu (YYYY-MM-DD).
      */
     private formatDate(date: Date): string {
         return date.toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '-');
@@ -511,7 +509,7 @@ class RentedBookComponent extends React.Component<{
 
         const isOverdue = !isReturnedPending && new Date() > rent_info.return_date;
 
-        let daysDiff = 0;
+        let daysDiff;
         if (isAnyReturned && rent_info.actualReturnDate) {
             daysDiff = this.getDaysDiff(rent_info.actualReturnDate, rent_info.return_date);
         } else {

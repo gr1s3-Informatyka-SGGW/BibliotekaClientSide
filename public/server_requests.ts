@@ -453,14 +453,14 @@ export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filte
             book: book,
             borrow_date: new Date('12.20.2025'),
             return_date: new Date('01.08.2026'),
-            return_to_date:  new Date('01.06.2026')
+            return_to_date: new Date(Date.now()+2*24*60*10000)
         },
         {
             user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
             book: book,
             borrow_date: new Date('12.20.2025'),
             return_date: null,
-            return_to_date:  new Date('01.06.2026')
+            return_to_date:  new Date(Date.now()+2*24*60*10000)
         }
     ]
     let result = page == 1 ? [book_list[0], book_list[1], book_list[2]] : [book_list[3], book_list[4]]
