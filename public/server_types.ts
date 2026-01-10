@@ -195,6 +195,18 @@ export interface UsersListResponse {
 }
 
 /**
+ * @interface UsersListResponse - Struktura odpowiedzi dla listy użytkowników
+ * @prop {UserInfo[]} users - Lista użytkowników dla bieżącej strony
+ * @prop {number} totalPages - Całkowita liczba stron wyników
+ * @prop {number} totalUsers - Łączna liczba użytkowników spełniających filtry
+ */
+export interface UsersListResponse {
+    users: UserInfo[];
+    totalPages: number;
+    totalUsers: number;
+}
+
+/**
  * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
  * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
  * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
