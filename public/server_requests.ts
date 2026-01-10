@@ -422,7 +422,7 @@ export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
 export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo[]>{
     if(!USE_MOCK)
         throw Error("Not implemented exception");
-    let book:Book = {
+    const book:Book = {
         title: "Ogniem i mieczem",
         authors: ['Henryk Sienkiewicz', "Andrzej Duda"],
         publish_year: 1985,
@@ -452,14 +452,14 @@ export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filte
             book: book,
             borrow_date: new Date('12.20.2025'),
             return_date: new Date('01.08.2026'),
-            return_to_date:  new Date('01.06.2026')
+            return_to_date: new Date(Date.now()+2*24*60*10000)
         },
         {
             user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
             book: book,
             borrow_date: new Date('12.20.2025'),
             return_date: null,
-            return_to_date:  new Date('01.06.2026')
+            return_to_date:  new Date(Date.now()+2*24*60*10000)
         }
     ]
 }
