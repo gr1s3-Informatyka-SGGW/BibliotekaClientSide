@@ -71,7 +71,7 @@ const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: Se
         }
     } catch {
         return Promise.resolve(
-            { books: [], totalPages: 0, totalResults: 0 }
+            { result: [], totalPages: 0, totalResults: 0 }
         )
     }
 }
@@ -268,7 +268,7 @@ function CatalogView(): JSX.Element {
             currentPage,
         );
 
-        setBooks(result.books);
+        setBooks(result.result);
         setTotalPages(result.totalPages);
         setTotalBookCount(result.totalResults);
 

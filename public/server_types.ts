@@ -172,12 +172,12 @@ export interface UserListSearchFilter extends IFilter{
 /**
  * @type PagedResponse - generyczny interfejs odpowiedzi serwera dla zapytań zwracających odpowiedź podzieloną na strony, aby uniknąć przesyłania niepotrzebnych danych
  * @template T Typ stronicowanej treści
- * @prop {T[]} books - lista obiektów książek zwrócona dla bieżącej strony
+ * @prop {T[]} result - lista obiektów książek zwrócona dla bieżącej strony
  * @prop {number} totalPages - całkowita liczba stron dostępnych dla wybranych kryteriów wyszukiwania
  * @prop {number} totalResults - łączna liczba wszystkich obiektów w bazie danych spełniających nałożone filtry
  * */
 export interface PagedResponse<T > {
-    books: T[];
+    result: T[];
     totalPages: number;
     totalResults: number;
 }

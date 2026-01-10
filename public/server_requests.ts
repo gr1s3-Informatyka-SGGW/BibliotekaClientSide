@@ -212,7 +212,7 @@ export async function fetchUserCatalogRequest(
     const { items, totalPages } = paginate(results, page, 10);
     const totalBooks = results.length;
     const userBooks = (items as BookAdmin[]).map(toBookUser);
-    return { books: userBooks, totalPages, totalResults: totalBooks };
+    return { result: userBooks, totalPages, totalResults: totalBooks };
 }
 
 export async function rentBookRequest(book_id: number): Promise<void>{
@@ -238,7 +238,7 @@ export const fetchAdminCatalogRequest = async (
 
     const { items, totalPages } = paginate(results, page, 10);
     const totalBooks = results.length;
-    return { books: items as BookAdmin[], totalPages, totalResults: totalBooks };
+    return { result: items as BookAdmin[], totalPages, totalResults: totalBooks };
 };
 export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
     const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
