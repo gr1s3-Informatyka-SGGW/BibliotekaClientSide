@@ -170,16 +170,16 @@ export interface UserListSearchFilter extends IFilter{
     status?: ('user'|'admin'|'blocked')[]
 }
 /**
- * @type CatalogResponse - generyczny interfejs odpowiedzi serwera dla widoku katalogu
- * @template T Typ rozszerzający typ Book, zawierający informacje o książce
- * @prop {T[]} books - lista obiektów książek (BookUser[] lub BookAdmin[]) zwrócona dla bieżącej strony
+ * @type PagedResponse - generyczny interfejs odpowiedzi serwera dla zapytań zwracających odpowiedź podzieloną na strony, aby uniknąć przesyłania niepotrzebnych danych
+ * @template T Typ stronicowanej treści
+ * @prop {T[]} books - lista obiektów książek zwrócona dla bieżącej strony
  * @prop {number} totalPages - całkowita liczba stron dostępnych dla wybranych kryteriów wyszukiwania
- * @prop {number} totalBooks - łączna liczba wszystkich książek w bazie danych spełniających nałożone filtry
+ * @prop {number} totalResults - łączna liczba wszystkich obiektów w bazie danych spełniających nałożone filtry
  * */
-export interface CatalogResponse<T extends Book> {
+export interface PagedResponse<T > {
     books: T[];
     totalPages: number;
-    totalBooks: number;
+    totalResults: number;
 }
 
 /**

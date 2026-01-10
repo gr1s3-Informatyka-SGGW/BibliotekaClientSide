@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
-import { type BookSearchFilter, type SearchSort, type CatalogResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
+import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
 import "./catalog.css";
 import "../style.css";
@@ -59,10 +59,10 @@ import InstanceQR from "../elements_admin/InstanceQR.tsx";
  * @param {SearchSort} [sort] - Obiekt definiujący klucz i kierunek sortowania.
  * @param {BookSearchFilter} [filter] - Obiekt zawierający wybrane kategorie filtrów.
  * @param {number} [page=1] - Numer żądanej strony wyników.
- * @returns { Promise<CatalogResponse<Book>>} Obiekt z listą książek oraz liczbą wszystkich stron i książek.
+ * @returns { Promise<PagedResponse<Book>>} Obiekt z listą książek oraz liczbą wszystkich stron i książek.
  */
 const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: SearchSort, filter?: BookSearchFilter, page: number = 1):
-    Promise<CatalogResponse<Book>> => {
+    Promise<PagedResponse<Book>> => {
     try {
         if (isLibrarian) {
             return fetchAdminCatalogRequest(search_bar, sort, filter, page);
@@ -71,7 +71,7 @@ const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: Se
         }
     } catch {
         return Promise.resolve(
-            { books: [], totalPages: 0, totalBooks: 0 }
+            { books: [], totalPages: 0, totalResults: 0 }
         )
     }
 }
@@ -270,7 +270,7 @@ function CatalogView(): JSX.Element {
 
         setBooks(result.books);
         setTotalPages(result.totalPages);
-        setTotalBookCount(result.totalBooks);
+        setTotalBookCount(result.totalResults);
 
         window.scrollTo({
             top: 0,
