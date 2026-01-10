@@ -1,3 +1,7 @@
+/**
+ * Plik implemenetujący widok storny
+ * */
+
 import React, { Component, type FormEvent, type ChangeEvent } from 'react';
 import type { User } from '../../public/server_types.ts';
 import accountCircleIcon from '../assets/account_circle.svg';
@@ -23,6 +27,7 @@ interface CardFormState {
 }
 
 
+type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword']?: string };
 
 /**
  * Komponent panelu profilu użytkownika.
@@ -30,8 +35,8 @@ interface CardFormState {
  * @component
  * @example
  * <ProfileInfoPanel info={userData} />
- * @param {Object} props - Właściwości komponentu.
- * @param {User} props.info - Obiekt zawierający dane zalogowanego użytkownika.
+ * @property {Object} props - Właściwości komponentu.
+ * @property {User} props.info - Obiekt zawierający dane zalogowanego użytkownika.
  * @property {Object} state - Stan wewnętrzny komponentu.
  * @property {User} state.user - Aktualne dane użytkownika wyświetlane w profilu.
  * @property {UserFormState} state.formData - Dane tymczasowe przechowywane podczas edycji formularza.
@@ -40,7 +45,6 @@ interface CardFormState {
  * @property {boolean} state.isPasswordOpen - Czy popup zmiany hasła jest widoczny.
  * @property {boolean} state.isCardOpen - Czy popup edycji karty jest widoczny.
  */
-type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword']?: string };
 class ProfileInfoPanel extends Component<{ info: User }, {
     user: User,
     formData: UserFormState,
@@ -141,7 +145,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
     }
 
     /**
-      * Obsługuje proces zatwierdzania formularza edycji profilu.
+      * @event handleGeneralSubmit Obsługuje proces zatwierdzania formularza edycji profilu.
       * Przeprowadza walidację wszystkich pól, aktualizuje stan użytkownika
       * i wyłącza tryb edycji w przypadku sukcesu.
       * @param {FormEvent} e - Zdarzenie przesłania formularza.
@@ -172,7 +176,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * Renderuje okno modalne (Popup) do zmiany hasła.
      * @returns {React.ReactNode} Komponent Popup zmiany hasła.
      */
-    changePassword() {
+    changePassword(): React.ReactNode {
         const { formErrors } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
         const errorStyle: React.CSSProperties = { color: '#d32f2f', fontSize: '0.75rem', marginTop: '0.2em' };
@@ -228,7 +232,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * Renderuje okno modalne (Popup) do edycji danych karty płatniczej.
      * @returns {React.ReactNode} Komponent Popup edycji karty.
      */
-    changeCardInfo() {
+    changeCardInfo(): React.ReactNode {
         const { cardData, formErrors } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
 
@@ -336,7 +340,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
     }
 
     /**
-     * Obsługuje wysyłkę formularza danych karty.
+     * @event handleCardSubmit Obsługuje wysyłkę formularza danych karty.
      * @param e Zdarzenie formularza.
      */
     handleCardSubmit = (e: FormEvent) => {
