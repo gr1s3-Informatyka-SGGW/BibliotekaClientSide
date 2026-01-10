@@ -110,7 +110,7 @@ export default function UsersListView(): JSX.Element {
 
                 const result = await fetchUserListRequest(search?.search, sorting, filter, currentPage);
 
-                setUsers(result.users);
+                setUsers(result.result);
                 setTotalPages(result.totalPages);
             } catch (e) {
                 const msg = e instanceof Error ? e.message : String(e ?? "W wyniku nieznanego błędu nie udało się pobrać listy użytkowników.");
