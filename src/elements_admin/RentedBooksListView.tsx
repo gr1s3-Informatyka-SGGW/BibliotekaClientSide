@@ -37,7 +37,7 @@ import borrowIcon from '../../src/assets/borrow.svg';
  * @constant
  * @type {number}
  */
-const ITEMS_PER_PAGE: number = 10;
+const ITEMS_PER_PAGE: number = 3;
 
 /**
  * Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
@@ -117,7 +117,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     const processApiData = (rawData: any): ExtendedRentInfo[] => {
         const dataArray = Array.isArray(rawData) ? rawData : (rawData?.result || rawData?.items || []);
 
-        return dataArray.map((item: any) => {
+        return dataArray.map((item: any,index: number) => {
             const borrowDate = new Date(item.borrow_date);
             const deadlineDate = new Date(item.return_to_date);
             const actualReturnDate = item.return_date ? new Date(item.return_date) : undefined;
@@ -141,7 +141,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 
             return {
                 ...item,
-                id: item.id || item.rent_id,
+                id: item.id || item.rent_id || (index + 1000),
                 user: item.user,
                 book: item.book,
                 borrow_date: borrowDate,
@@ -218,8 +218,16 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                     filters,
                     currentPage
                 );
+                const safeResponse = rawData as any; // <--- Rzutowanie na any, aby ominąć sprawdzanie typów dla .items
+                let rawItems = safeResponse.result || safeResponse.items || [];
 
-                const processedData = processApiData(rawData);
+                if (rawItems.length > ITEMS_PER_PAGE) {
+                    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+                    const end = start + ITEMS_PER_PAGE;
+                    rawItems = rawItems.slice(start, end);
+                }
+                const processedData = processApiData(rawItems);
+
 
                 let finalData = processedData;
                 if (filters.po_terminie && filters.po_terminie.includes('any')) {
