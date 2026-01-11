@@ -86,69 +86,217 @@ export class TargetNotFoundError extends RequestError{
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export function loginRequest(email: string, password: string): Session{
-    // mock admin
-    if (email === "admin@test.com" && password === "adminADMIN123!@#") {
-        return {
-            user: {
-                name: "Admin",
-                surname: "Adminowicz",
-                email: email,
-            },
-            access: "admin",
-            token: "mock-admin-token",
-        };
-    }
+    
+    return fetch('api/users/login', {
+        method: 'POST',
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({email, password})
+    })
+    .then(async (response) => {
+        const data = await response.json();
 
-    // mock normal user
-    if (email === "user@test.com" && password === "userUSER123!@#") {
-        return {
-            user: {
-                name: "User",
-                surname: "Userowicz",
-                email: email
-            },
-            access: "user",
-            token: "mock-user-token"
+        if(!response.ok){
+            if(response.status === 400 || response.status === 401){
+                throw new InvalidRequestDataError(
+                    "Logowanie nieudane",
+                    false,
+                    response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+                );
+            }
+            if(response.status === 500){
+                throw new InvalidRequestDataError(
+                    "Serwer odrzucił żądanie",
+                    true,
+                    data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
+                )
+            }
+
+            throw new RequestError(
+                "Nieoczekiwany błąd zapytania",
+                data.message,
+                response.status
+            );
         }
-    }
 
-    // login failure
-    throw new RequestError("Wystąpił nieprzewidziany błąd przy logowaniu")
-
+        const session : Session = {
+            token : data.token,
+            access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
+            user: data.user
+        };
+        return session;
+    }) as unknown as Session;
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
-    const existingEmails = ["admin@test.com", "user@test.com"];
-    if (existingEmails.includes(email)) {
-        throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
+    const response = await fetch("api/users/register", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }, 
+        body: JSON.stringify({
+            name: name,
+            surname: surname,
+            email: email,
+            password: password,
+            cardNumber: card_info.number,
+            expirationDate: card_info.exp_date,
+            cvv: card_info.cvv
+        }),
+    });
+
+    const data = await response.json();
+
+    if(response.status === 201){
+        console.log("Rejestracja udana:", data.message);
+        return;
     }
 
-    console.log("REGISTER USER:", {
-        name,
-        surname,
-        email,
-        password,
-        card_info
-    });
+    if(response.status === 409){
+        throw new InvalidRequestDataError("Błąd rejestracji", 
+            true
+            ,"Użytkownik o tym mailu już istnieje");
+    }
+    throw new RequestError(response.status.toString());
+
 }
 export async function resetPasswordRequest(email: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/newPassword", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            email: email
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd resetowania", 
+            true,
+            "Nie znaleziono użytkownika o podanym adresie email."
+        );
+    }
+    throw new RequestError(response.status.toString());
+
 }
 
 // ProfileView
 export async function fetchUserInfoRequest(): Promise<User>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/loginInfo", {
+        method: "GET",
+        headers:{
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+    });
+
+    if(response.status === 200){
+        return await response.json();
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd profilu",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response= await fetch("/api/users/editClientData", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            name: name,
+            surname: surname
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd edycji danych", 
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu lub brak danych do zmiany."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/editClientCreditCard", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            number: number,
+            cvv: cvv,
+            exp_date: exp_date 
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd karty płatniczej", 
+            true,
+            "Nie znaleziono użytkownika lub podano niepoprawne dane karty."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/newPassword", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            old_password: old_password,
+            new_password: new_password
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd zmiany hasła", 
+            true,
+            "Stare hasło jest niepoprawne lub sesja wygasła."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function cancelReservationRequest(reservation_id: number): Promise<void>{
@@ -168,7 +316,28 @@ export async function returnBookRequest(rend_id: number): Promise<void>{
 
 
 export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/borrowedBooks", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    if(response.status === 200){
+        const data = await response.json();
+        return data as Book[];
+    }
+
+    if (response.status === 400) {
+        throw new InvalidRequestDataError(
+            "Błąd pobierania wypożyczeń", 
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu."
+        );
+    } 
+
+    throw new RequestError(response.status.toString());
 }
 
 // Katalog - Ogólne
