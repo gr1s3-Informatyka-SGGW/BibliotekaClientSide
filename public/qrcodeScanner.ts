@@ -23,6 +23,8 @@ if (!ctx) {
 let streamActive = false;
 let scanning = false;
 
+window.onQRScanned = undefined;
+
 async function startCamera(): Promise<void> {
   resultDiv.textContent = "Uruchamianie kamery";
 
@@ -72,16 +74,14 @@ function tick(): void {
 
     const imageData = ctx.getImageData(sx, sy, sw, sh);
 
-    const code = jsQR(
-      imageData.data,
-      imageData.width,
-      imageData.height
-    );
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
 
     if (code) {
       scanning = false;
       resultDiv.innerHTML = `Odczytano: <b>${code.data}</b>`;
       scanArea.style.borderColor = "lime";
+
+      (window as any).onQRScanned?.(code.data);
     }
   }
 
