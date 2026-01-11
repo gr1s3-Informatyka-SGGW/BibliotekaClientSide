@@ -14,7 +14,8 @@ import type {
     CreditCardInfo,
     Session,
     User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
-    PagedResponse
+    PagedResponse,
+    UsersListResponse, Reservation, Rent,
 } from "./server_types.ts";
 
 /**
@@ -75,30 +76,6 @@ export class TargetNotFoundError extends RequestError{
 
 }
 
-function adminHeaders() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new AccessDeniedError("Brak tokenu administratora");
-  }
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-}
-
-function authHeaders() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new AccessDeniedError("Brak tokenu użytkownika");
-  }
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-}
-
 // Login page requests
 /**
  * Wysyła zapytanie w celu weryfikacji logowania użytkownika
@@ -110,889 +87,551 @@ function authHeaders() {
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export function loginRequest(email: string, password: string): Session{
-    // mock admin
-    if (email === "admin@test.com" && password === "adminADMIN123!@#") {
-        return {
-            user: {
-                name: "Admin",
-                surname: "Adminowicz",
-                email: email,
-            },
-            access: "admin",
-            token: "mock-admin-token",
-        };
-    }
 
-    // mock normal user
-    if (email === "user@test.com" && password === "userUSER123!@#") {
-        return {
-            user: {
-                name: "User",
-                surname: "Userowicz",
-                email: email
-            },
-            access: "user",
-            token: "mock-user-token"
+    return fetch('api/users/login', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({email, password})
+    })
+    .then(async (response) => {
+        const data = await response.json();
+
+        if(!response.ok){
+            if(response.status === 400 || response.status === 401){
+                throw new InvalidRequestDataError(
+                    "Logowanie nieudane",
+                    false,
+                    response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+                );
+            }
+            if(response.status === 500){
+                throw new InvalidRequestDataError(
+                    "Serwer odrzucił żądanie",
+                    true,
+                    data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
+                )
+            }
+
+            throw new RequestError(
+                "Nieoczekiwany błąd zapytania",
+                data.message,
+                response.status
+            );
         }
-    }
 
-    // login failure
-    throw new RequestError("Wystąpił nieprzewidziany błąd przy logowaniu")
-
+        const session : Session = {
+            token : data.token,
+            access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
+            user: data.user
+        };
+        return session;
+    }) as unknown as Session;
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
-    const existingEmails = ["admin@test.com", "user@test.com"];
-    if (existingEmails.includes(email)) {
-        throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
+    const response = await fetch("api/users/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            name: name,
+            surname: surname,
+            email: email,
+            password: password,
+            cardNumber: card_info.number,
+            expirationDate: card_info.exp_date,
+            cvv: card_info.cvv
+        }),
+    });
+
+    const data = await response.json();
+
+    if(response.status === 201){
+        console.log("Rejestracja udana:", data.message);
+        return;
     }
 
-    console.log("REGISTER USER:", {
-        name,
-        surname,
-        email,
-        password,
-        card_info
-    });
+    if(response.status === 409){
+        throw new InvalidRequestDataError("Błąd rejestracji",
+            true
+            ,"Użytkownik o tym mailu już istnieje");
+    }
+    throw new RequestError(response.status.toString());
+
 }
 export async function resetPasswordRequest(email: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/newPassword", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            email: email
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd resetowania",
+            true,
+            "Nie znaleziono użytkownika o podanym adresie email."
+        );
+    }
+    throw new RequestError(response.status.toString());
+
 }
 
 // ProfileView
 export async function fetchUserInfoRequest(): Promise<User>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/loginInfo", {
+        method: "GET",
+        headers:{
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+    });
+
+    if(response.status === 200){
+        return await response.json();
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd profilu",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response= await fetch("/api/users/editClientData", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            name: name,
+            surname: surname
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd edycji danych",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu lub brak danych do zmiany."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/editClientCreditCard", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            number: number,
+            cvv: cvv,
+            exp_date: exp_date
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd karty płatniczej",
+            true,
+            "Nie znaleziono użytkownika lub podano niepoprawne dane karty."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
+    const response = await fetch("/api/users/newPassword", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            old_password: old_password,
+            new_password: new_password
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd zmiany hasła",
+            true,
+            "Stare hasło jest niepoprawne lub sesja wygasła."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
+}
+
+export async function cancelReservationRequest(reservation_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+export async function claimReservationRequest(reservation_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-/**
- * Anuluje rezerwację książki.
- *
- * @param {number} reservation_id Id rezerwacji
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function cancelReservationRequest(
-  reservation_id: number
-): Promise<void> {
-  if (reservation_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
-  }
-
-  const r = await fetch("/api/books/cancelReservation", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ reservation_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd anulowania rezerwacji");
-  }
+export async function extendRentRequest(rent_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
 
-/**
- * Odbiera zarezerwowaną książkę.
- *
- * @param {number} reservation_id Id rezerwacji
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function claimReservationRequest(
-  reservation_id: number
-): Promise<void> {
-  if (reservation_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
-  }
-
-  const r = await fetch("/api/books/takeBook", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ reservation_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd odbioru rezerwacji");
-  }
+export async function returnBookRequest(rend_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
 
-/**
- * Przedłuża wypożyczenie książki.
- *
- * @param {number} rent_id Id wypożyczenia
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function extendRentRequest(rent_id: number): Promise<void> {
-  if (rent_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
-  }
-
-  const r = await fetch("/api/books/extendRent", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ rent_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd przedłużania wypożyczenia");
-  }
-}
-
-/**
- * Zwraca wypożyczoną książkę.
- *
- * @param {number} rent_id Id wypożyczenia
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function returnBookRequest(rent_id: number): Promise<void> {
-  if (rent_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
-  }
-
-  const r = await fetch("/api/books/returnBook", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ rent_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd zwrotu książki");
-  }
-}
 
 export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/borrowedBooks", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    if(response.status === 200){
+        const data = await response.json();
+        return data as Book[];
+    }
+
+    if (response.status === 400) {
+        throw new InvalidRequestDataError(
+            "Błąd pobierania wypożyczeń",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 // Katalog - Ogólne
 
-/**
- * Pobiera listę autorów dostępnych w systemie.
- *
- * @returns {Promise<string[]>} Lista autorów
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchAuthorsRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/authors", {
-    headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania autorów");
-  }
-
-  return await r.json();
+export async function fetchAuthorsRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_AUTHORS;
 }
 
-/**
- * Pobiera listę tagów książek.
- *
- * @returns {Promise<string[]>} Lista tagów
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchTagsRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/tags", {
-    headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania tagów");
-  }
-
-  return await r.json();
+export async function fetchTagsRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_TAGS;
 }
 
-/**
- * Pobiera listę gatunków książek.
- *
- * @returns {Promise<string[]>} Lista gatunków
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchGenresRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/genres", {
-    headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania gatunków");
-  }
-
-  return await r.json();
+export async function fetchGenresRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_GENRES;
 }
 
-/**
- * Pobiera listę wydawców.
- *
- * @returns {Promise<string[]>} Lista wydawców
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchPublishersRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/publishers", {
-    headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania wydawców");
-  }
-
-  return await r.json();
+export async function  fetchPublishersRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_PUBLISHERS;
 }
 
-/**
- * Pobiera listę języków.
- *
- * @returns {Promise<string[]>} Lista języków
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchLanguagesRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/languages", {
-    headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania języków");
-  }
-
-  return await r.json();
+export async function fetchLanguagesRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_LANGUAGES;
 }
-
 // Katalog - User
-/**
- * Pobiera katalog książek dla użytkownika.
- *
- * @param {string} search Fragment tytułu
- * @param {SearchSort} [sort] Informacje o sortowaniu
- * @param {BookSearchFilter} [filter] Filtry wyszukiwania
- * @param {number} [page=1] Numer strony
- *
- * @returns {Promise<PagedResponse<BookUser>>} Stronicowany katalog książek
- *
- * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
- * @throws {InvalidRequestDataError} Gdy numer strony jest niepoprawny
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
 export async function fetchUserCatalogRequest(
-  search: string,
-  sort?: SearchSort,
-  filter?: BookSearchFilter,
-  page: number = 1
-): Promise<PagedResponse<BookUser>> {
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
+): Promise<PagedResponse<BookUser>>{
+    wait(randDelay());
 
-  if (page < 1) {
-    throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
-  }
+    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
+    results = applySort(results, sort);
 
-  const r = await fetch("/api/books/search", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ search, sort, filter, page }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania katalogu");
-  }
-
-  return await r.json();
+    const { items, totalPages } = paginate(results, page, 10);
+    const totalBooks = results.length;
+    const userBooks = (items as BookAdmin[]).map(toBookUser);
+    return { result: userBooks, totalPages, totalResults: totalBooks };
 }
 
-/**
- * Wypożycza książkę.
- *
- * @param {number} book_id Id książki
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
- * @throws {InvalidRequestDataError} Gdy id książki jest niepoprawne
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function rentBookRequest(book_id: number): Promise<void> {
-  if (book_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
-  }
-
-  const r = await fetch("/api/books/rentBook", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ book_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd wypożyczenia książki");
-  }
+export async function rentBookRequest(book_id: number, instance_id?: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-
-/**
- * Rezerwuje książkę.
- *
- * @param {number} book_id Id książki
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function reserveBookRequest(book_id: number): Promise<void> {
-  if (book_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
-  }
-
-  const r = await fetch("/api/books/reserveBook", {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ book_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd rezerwacji książki");
-  }
+export async function reserveBookRequest(book_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-
-/**
- * Pobiera szczegóły książki dla użytkownika.
- *
- * @param {number} book_id Identyfikator książki
- *
- * @returns {Promise<BookUser>} Dane książki
- *
- * @throws {AccessDeniedError}
- * @throws {TargetNotFoundError} Gdy książka nie istnieje
- * @throws {RequestError}
- */
-export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
-  const r = await fetch(`/api/books/${book_id}`, {
-    method: "GET",
-    headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    if (r.status === 400) {
-      throw new TargetNotFoundError("Nie znaleziono książki");
-    }
-    throw new RequestError("Błąd pobierania książki");
-  }
-
-  return await r.json();
+export const fetchUserBookRequest = async (book_id: number): Promise<BookUser> => {
+    return toBookUser(await fetchAdminBookRequest(book_id));
 }
-
 // Katalog - Admin
-/**
- * Pobiera katalog książek dla widoku administratora z paginacją i filtrami.
- * 
- * @param {number} page Numer strony
- * @param {number} limit Liczba elementów na stronę
- * @param {BookSearchFilter | undefined} filter Filtry wyszukiwania
- * @param {SearchSort | undefined} sort Sortowanie wyników
- * 
- * @returns {Promise<PagedResponse<BookAdmin>>}
- * 
- * @throws {InvalidRequestDataError} Gdy podano niepoprawne dane zapytania
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchAdminCatalogRequest(
-  page: number,
-  limit: number,
-  filter?: BookSearchFilter,
-  sort?: SearchSort
-): Promise<PagedResponse<BookAdmin>> {
-  if (page <= 0 || limit <= 0) {
-    throw new InvalidRequestDataError(
-      "Niepoprawne dane paginacji",
-      false
-    );
-  }
+export const fetchAdminCatalogRequest = async (
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
+): Promise<PagedResponse<BookAdmin>> => {
+    wait(randDelay());
 
-  const r = await fetch("/api/books/search", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({
-      page,
-      limit,
-      filter,
-      sort,
-    }),
-  });
+    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
+    results = applySort(results, sort);
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania katalogu administratora");
-  }
-
-  return (await r.json()) as PagedResponse<BookAdmin>;
+    const { items, totalPages } = paginate(results, page, 10);
+    const totalBooks = results.length;
+    return { result: items as BookAdmin[], totalPages, totalResults: totalBooks };
+};
+export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
+    const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
+    if (!bookAdmin) { throw `Nie znaleziono książki o book_id = ${book_id}` }
+    return bookAdmin;
 }
 
-/**
- * Pobiera szczegółowe informacje o książce dla pracownika.
- *
- * @param {number} book_id Identyfikator książki
- * 
- * @returns {Promise<BookAdmin>} Dane książki wraz z egzemplarzami i rezerwacjami
- *
- * @throws {InvalidRequestDataError} Gdy nie podano id książki
- * @throws {TargetNotFoundError} Gdy książka nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu pracownika
- * @throws {RequestError} Gdy wystąpił inny błąd serwera
- */
-export async function fetchAdminBookRequest(
-  book_id: number
-): Promise<BookAdmin> {
-  if (!book_id) {
-    throw new InvalidRequestDataError("Brak id książki", false);
-  }
-
-  const r = await fetch(`/api/books/worker/book/${book_id}`, {
-    method: "GET",
-    headers: adminHeaders(),
-  });
-
-  if (r.status === 403) {
-    throw new AccessDeniedError("Brak uprawnień do pobrania książki");
-  }
-
-  if (r.status === 404) {
-    throw new TargetNotFoundError("Nie znaleziono książki");
-  }
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania danych książki");
-  }
-
-  return (await r.json()) as BookAdmin;
+export async function editBookRequest(book:Book){
+    const r = await fetch("/api/book/update", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(book)
+    })
+    if (!r.ok) throw Error()
 }
-
-/**
- * Edytuje dane istniejącej książki.
- *
- * @param {Book} book Zaktualizowane dane książki
- *
- * @returns {Promise<void>}
- *
- * @throws {InvalidRequestDataError} Gdy brak id książki lub dane są niepoprawne
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function editBookRequest(book: Book): Promise<void> {
-  if (!book?.book_id) {
-    throw new InvalidRequestDataError("Brak id książki", false);
-  }
-
-  const r = await fetch("/api/users/books/edit", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify(book),
-  });
-
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Nie można edytować książki", true);
-  }
-  if (!r.ok) {
-    throw new RequestError("Błąd edycji książki");
-  }
-}
-
-/**
- * Usuwa książkę z systemu.
- *
- * @param {number} book_id Identyfikator książki
- *
- * @returns {Promise<void>}
- *
- * @throws {InvalidRequestDataError} Gdy nie podano id książki
- * @throws {TargetNotFoundError} Gdy książka nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
 export async function removeBookRequest(book_id: number): Promise<void> {
-  if (!book_id) {
-    throw new InvalidRequestDataError("Brak id książki", false);
-  }
+    const index = SAMPLE_BOOKS.findIndex(book => book.book_id === book_id);
 
-  const r = await fetch("/api/users/books/delete", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_ksiazki: book_id }),
-  });
-
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono książki");
-  }
-  if (!r.ok) {
-    throw new RequestError("Błąd usuwania książki");
-  }
+    if (index !== -1) {
+        SAMPLE_BOOKS.splice(index, 1);
+    }
 }
-
-/**
- * Usuwa egzemplarz książki z systemu.
- * 
- * @param {number} instance_id Identyfikator egzemplarza
- * 
- * @returns {Promise<void>}
- * 
- * @throws {InvalidRequestDataError} Gdy nie podano id egzemplarza
- * @throws {TargetNotFoundError} Gdy egzemplarz nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function removeBookInstanceRequest(instance_id: number): Promise<void> {
-  if (!instance_id) {
-    throw new InvalidRequestDataError("Brak id egzemplarza", false);
-  }
-
-  const r = await fetch("/api/users/copies/delete", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_egzemplarza: instance_id }),
-  });
-
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono egzemplarza");
-  }
-  if (!r.ok) {
-    throw new RequestError("Błąd usuwania egzemplarza");
-  }
+export async function removeBookInstanceRequest(instance_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-
-/**
- * Oznacza egzemplarz książki jako zniszczony.
- * 
- * @param {number} instance_id Identyfikator egzemplarza
- * 
- * @returns {Promise<void>}
- * 
- * @throws {InvalidRequestDataError} Gdy nie podano id egzemplarza
- * @throws {TargetNotFoundError} Gdy egzemplarz nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function markDamagedBookInstanceRequest(instance_id: number): Promise<void> {
-  if (!instance_id) {
-    throw new InvalidRequestDataError("Brak id egzemplarza", false);
-  }
-
-  const r = await fetch("/api/users/copies/markDestroyed", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_egzemplarza: instance_id }),
-  });
-
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono egzemplarza");
-  }
-  if (!r.ok) {
-    throw new RequestError("Błąd oznaczania egzemplarza jako zniszczony");
-  }
+export async function markDamagedBookInstanceRequest(instance_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-
-/**
- * Oznacza egzemplarz książki jako niezniszczony.
- * 
- * @param {number} instance_id Identyfikator egzemplarza
- * 
- * @returns {Promise<void>}
- * 
- * @throws {InvalidRequestDataError} Gdy nie podano id egzemplarza
- * @throws {TargetNotFoundError} Gdy egzemplarz nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function markMendedBookInstanceRequest(
-  instance_id: number
-): Promise<void> {
-  if (!instance_id) {
-    throw new InvalidRequestDataError("Brak id egzemplarza", false);
-  }
-
-  const r = await fetch("/api/users/copies/markUndestroyed", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_egzemplarza: instance_id }),
-  });
-
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono egzemplarza");
-  }
-  if (!r.ok) {
-    throw new RequestError("Błąd oznaczania egzemplarza jako niezniszczony");
-  }
+export async function markMendedBookInstanceRequest(instance_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
+let mockInstanceCounter = 1;
+export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
+    if (USE_MOCK) {
+        const fakeId = mockInstanceCounter++;
+        console.log("MOCK addBookInstanceRequest:", book_id, "->", fakeId);
 
-/**
- * Dodaje nowy egzemplarz książki.
- *
- * @param {number} book_id Id książki
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function addBookInstanceRequest(book_id: number): Promise<void> {
-  if (book_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
-  }
+        return {
+            instance_id: fakeId
+        };
+    }
+    const r = await fetch("/api/book-instance/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ book_id })
+    });
 
-  const r = await fetch("/api/books/addCopy", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ book_id }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd dodawania egzemplarza");
-  }
+    if (!r.ok) throw Error();
+    return await r.json();
 }
-
 // Users
-/**
- * Pobiera listę użytkowników dla administratora.
- *
- * @param {UserListSearchFilter} [filter] Filtry wyszukiwania
- * @param {number} [page=1] Numer strony
- *
- * @returns {Promise<PagedResponse<UserInfo>>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
+
 export async function fetchUserListRequest(
-  filter?: UserListSearchFilter,
-  page: number = 1
+    search_bar?: string,
+    sort?: SearchSort,
+    filter?: UserListSearchFilter,
+    page: number = 1
 ): Promise<PagedResponse<UserInfo>> {
+    if (USE_MOCK) {
+        new Promise(resolve => setTimeout(resolve, 500));
 
-  if (page < 1) {
-    throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
-  }
+        const PAGE_SIZE = 5;
 
-  const r = await fetch("/api/users/listUsers", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ filter, page }),
-  });
+        // Pobieramy książki do mockowania danych
+        const generatedUsers: UserInfo[] = SAMPLE_USERS
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania użytkowników");
-  }
+        // --- FILTROWANIE I SORTOWANIE ---
+        let filtered = [...generatedUsers];
 
-  return await r.json();
-}
+        if (filter?.status && filter.status.length > 0) {
+            filtered = filtered.filter(u => filter.status?.includes(u.status));
+        }
 
-/**
- * Usuwa użytkownika z systemu.
- *
- * @param {string} email Email użytkownika
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function removeUserRequest(email: string): Promise<void> {
-  if (!email) {
-    throw new InvalidRequestDataError("Email jest wymagany", false);
-  }
+        if (search_bar && search_bar !== "") {
+            const query = search_bar.toLocaleLowerCase();
+            filtered = filtered.filter(u =>
+                (u.name + " " + u.surname).toLocaleLowerCase().includes(query) ||
+                u.email.toLocaleLowerCase().includes(query)
+            );
+        }
 
-  const r = await fetch("/api/users/deleteUser", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ email }),
-  });
+        if (sort) {
+            filtered.sort((a, b) => {
+                const dir = sort.direction === 'ASC' ? 1 : -1;
+                if (sort.key === 'surname') return a.surname.localeCompare(b.surname) * dir;
+                if (sort.key === 'name') return a.name.localeCompare(b.name) * dir;
+                return 0;
+            });
+        }
 
-  if (!r.ok) {
-    throw new RequestError("Błąd usuwania użytkownika");
-  }
-}
+        // --- LOGIKA PAGINACJI I ODPOWIEDZI ---
+        const totalUsers = filtered.length;
+        const totalPages = Math.ceil(totalUsers / PAGE_SIZE);
 
-/**
- * Zmienia status blokady użytkownika.
- *
- * @param {number} userId Id użytkownika
- * @param {boolean} status true = zablokuj, false = odblokuj
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function toggleUserBlockRequest(
-  userId: number,
-  status: boolean
-): Promise<void> {
-  if (!userId || userId <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID użytkownika", false);
-  }
+        // Zabezpieczenie przed stroną poza zakresem
+        const safePage = Math.max(1, Math.min(page, totalPages || 1));
+        const startIndex = (safePage - 1) * PAGE_SIZE;
+        const paginatedUsers = filtered.slice(startIndex, startIndex + PAGE_SIZE);
 
-  const r = await fetch("/api/users/toggleBlock", {
-    method: "POST",
-    headers: {
-      ...adminHeaders(),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      userId,
-      status,
-    }),
-  });
-
-  if (!r.ok) {
-    if (r.status === 400) {
-      throw new RequestError(
-        "Nie można zmienić statusu blokady użytkownika"
-      );
+        return {
+            result: paginatedUsers,
+            totalPages: totalPages,
+            totalResults: totalUsers
+        };
+    } else {
+        throw Error("Not implemented exception");
     }
+}
 
-    if (r.status === 403) {
-      throw new AccessDeniedError("Brak uprawnień WORKER");
+export async function removeUserRequest(user_id: number) {
+    if (USE_MOCK) {
+        new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się usunąć użytkownika.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
     }
-
-    throw new RequestError("Błąd serwera");
-  }
 }
+export async function blockUserRequest(user_id: number) {
+    if (USE_MOCK) {
 
-export async function blockUserRequest(userId: number): Promise<void> {
-  return toggleUserBlockRequest(userId, true);
+        new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się zablokować użytkownika. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
-
-export async function unblockUserRequest(userId: number): Promise<void> {
-  return toggleUserBlockRequest(userId, false);
+export async function unblockUserRequest(user_id: number) {
+    if (USE_MOCK) {
+        new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się odblokować użytkownika. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
-
-/**
- * Rejestruje nowego pracownika/admina.
- *
- * @param name Imię pracownika
- * @param surname Nazwisko pracownika
- * @param email Email pracownika
- * @param password Hasło pracownika
- * @param phone Numer telefonu pracownika
- * 
- * @returns {Promise<void>}
- *
- * @throws {InvalidRequestDataError} Gdy brakuje wymaganych danych
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy użytkownik już istnieje lub wystąpił błąd serwera
- */
-export async function addAdminRequest(
-  name: string,
-  surname: string,
-  email: string,
-  password: string,
-  phone: string
-): Promise<void> {
-  if (!name || !surname || !email || !password || !phone) {
-    throw new InvalidRequestDataError("Brak wymaganych danych", false);
-  }
-
-  const r = await fetch("/api/users/registerWorker", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ name, surname, email, password, phone }),
-  });
-
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Nieprawidłowe dane rejestracji", false);
-  }
-
-  if (r.status === 409) {
-    throw new RequestError("Użytkownik o podanym adresie email już istnieje");
-  }
-
-  if (!r.ok) {
-    throw new RequestError("Błąd serwera podczas tworzenia użytkownika");
-  }
+export async function addAdminRequest(admin_info: User, password: string): Promise<void> {
+    if (USE_MOCK) {
+        new Promise(resolve => setTimeout(resolve, 600));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się dodać nowego bibliotekarza. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
 
 // Add Book View
-/**
- * Dodaje nową książkę.
- *
- * @param {Book} book Dane książki
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function addBookRequest(book: Book): Promise<void> {
-  const r = await fetch("/api/books/addBook", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify(book),
-  });
+const USE_MOCK = true;
+export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
+    if (USE_MOCK) {
+        return { book_id: Date.now() };
+    }
+    const r = await fetch("/api/book/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book)
+    });
 
-  if (!r.ok) {
-    throw new RequestError("Błąd dodawania książki");
-  }
+    if (!r.ok) throw Error();
+
+    return await r.json();
 }
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter, page: number = 1): Promise<PagedResponse<RentFullInfo>>{
+    if(!USE_MOCK)
+        throw Error("Not implemented exception");
+    const book:Book = {
+        title: "Ogniem i mieczem",
+        authors: ['Henryk Sienkiewicz', "Andrzej Duda"],
+        publish_year: 1985,
+        isbn_number: "978-83-7583-610-3",
+        length: 835,
+        language: "Polski",
+        publisher: "Nasza księgarnia",
+        keywords: ["Nudne", "Test", "Smoki"],
+        genre: ["Fantazy", "Sci-Fi"]
+    }
+    const RENTLOGS_PER_PAGE = 3
+    const book_list = [{
+        user: {name: 'Andrzej', surname: 'Kowalski', email: 'pływać@gmail.com'},
+        book: book,
+        borrow_date: new Date('12.20.2025'),
+        return_date: new Date('01.10.2026'),
+        return_to_date:  new Date('01.8.2026')
+    },
+        {
+            user: {name: 'Anna', surname: 'Grabowska', email: 'konno@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date('01.8.2026')
+        },
+        {
+            user: {name: 'Maja', surname: 'Poznańska', email: 'metrem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: new Date('01.08.2026'),
+            return_to_date: new Date(Date.now()+2*24*60*10000)
+        },
+        {
+            user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date(Date.now()+2*24*60*10000)
+        }
+    ]
+    let result = page == 1 ? [book_list[0], book_list[1], book_list[2]] : [book_list[3], book_list[4]]
 
-// Rent log
-/**
- * Pobiera log wypożyczeń.
- *
- * @param {RentLogSearchFilter} [filter] Filtry logu
- * @param {number} [page=1] Numer strony
- *
- * @returns {Promise<PagedResponse<RentFullInfo>>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function fetchRentLog(
-  filter?: RentLogSearchFilter,
-  page: number = 1
-): Promise<PagedResponse<RentFullInfo>> {
+    return {
+        result: result, totalPages: 2, totalResults: 5
 
-  if (page < 1) {
-    throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
-  }
-
-  const r = await fetch("/api/books/listRentedBooks", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ filter, page }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania logu wypożyczeń");
-  }
-
-  return await r.json();
+    }
 }
