@@ -1,8 +1,9 @@
 /**
- * Plik implemenetujący widok storny
+ * Plik implementujący widok strony
+ * @author Natalia Bardadyn
  * */
 
-import React, { Component, type FormEvent, type ChangeEvent } from 'react';
+import React, { Component, type FormEvent } from 'react';
 import type { User } from '../../public/server_types.ts';
 import accountCircleIcon from '../assets/account_circle.svg';
 import Popup from "../../public/custom_components/Popup.tsx";
@@ -27,8 +28,6 @@ interface CardFormState {
     cvv: string;
 }
 
-
-
 /**
  * Komponent panelu profilu użytkownika.
  * Zarządza wyświetlaniem danych, ich edycją oraz zmianą hasła i danych karty.
@@ -40,7 +39,7 @@ interface CardFormState {
  * @property {Object} state - Stan wewnętrzny komponentu.
  * @property {User} state.user - Aktualne dane użytkownika wyświetlane w profilu.
  * @property {UserFormState} state.formData - Dane tymczasowe przechowywane podczas edycji formularza.
- * @property {Record<string, string>} state.formErrors - Obiekt przechowujący komunikaty błędów walidacji pol formularza.
+ * @property {Record<string, string>} state.formErrors - Obiekt przechowujący komunikaty błędów walidacji pól formularza.
  * @property {CardFormState} state.cardData - Dane formularza nowej karty płatniczej.
  * @property {boolean} state.isPasswordOpen - Czy popup zmiany hasła jest widoczny.
  * @property {boolean} state.isCardOpen - Czy popup edycji karty jest widoczny.
@@ -138,7 +137,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * lub widok podglądu, w zależności od trybu edycji (this.editMode).
      * @returns {React.ReactNode} Elementy JSX sekcji danych ogólnych.
      */
-    changeGeneralInfo() {
+    changeGeneralInfo()/*: React.ReactNode*/ {
         if (this.editMode) {
             this.setState({
                 formData: {
@@ -188,7 +187,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * Renderuje okno modalne (Popup) do zmiany hasła.
      * @returns {React.ReactNode} Komponent Popup zmiany hasła.
      */
-    changePassword() {
+    changePassword(): React.ReactNode {
         const { formErrors, passwordData } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
         const errorStyle: React.CSSProperties = { color: '#d32f2f', fontSize: '0.75rem', marginTop: '0.2em' };
@@ -295,7 +294,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * Renderuje okno modalne (Popup) do edycji danych karty płatniczej.
      * @returns {React.ReactNode} Komponent Popup edycji karty.
      */
-    changeCardInfo() {
+    changeCardInfo(): React.ReactNode {
         const { cardData, formErrors } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
 
