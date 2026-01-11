@@ -14,8 +14,7 @@ import type {
     CreditCardInfo,
     Session,
     User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
-    PagedResponse,
-    UsersListResponse, Reservation, Rent,
+    CatalogResponse
 } from "./server_types.ts";
 
 /**
@@ -87,57 +86,57 @@ export class TargetNotFoundError extends RequestError{
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export function loginRequest(email: string, password: string): Session{
-
+    
     return fetch('api/users/login', {
         method: 'POST',
-        headers: {
+        headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({email, password})
     })
-        .then(async (response) => {
-            const data = await response.json();
+    .then(async (response) => {
+        const data = await response.json();
 
-            if(!response.ok){
-                if(response.status === 400 || response.status === 401){
-                    throw new InvalidRequestDataError(
-                        "Logowanie nieudane",
-                        false,
-                        response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
-                    );
-                }
-                if(response.status === 500){
-                    throw new InvalidRequestDataError(
-                        "Serwer odrzucił żądanie",
-                        true,
-                        data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
-                    )
-                }
-
-                throw new RequestError(
-                    "Nieoczekiwany błąd zapytania",
-                    data.message,
-                    response.status
+        if(!response.ok){
+            if(response.status === 400 || response.status === 401){
+                throw new InvalidRequestDataError(
+                    "Logowanie nieudane",
+                    false,
+                    response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
                 );
             }
+            if(response.status === 500){
+                throw new InvalidRequestDataError(
+                    "Serwer odrzucił żądanie",
+                    true,
+                    data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
+                )
+            }
 
-            const session : Session = {
-                token : data.token,
-                access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
-                user: data.user
-            };
-            return session;
-        }) as unknown as Session;
+            throw new RequestError(
+                "Nieoczekiwany błąd zapytania",
+                data.message,
+                response.status
+            );
+        }
+
+        const session : Session = {
+            token : data.token,
+            access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
+            user: data.user
+        };
+        return session;
+    }) as unknown as Session;
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
     const response = await fetch("api/users/register", {
         method: "POST",
-        headers: {
+        headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
+        }, 
         body: JSON.stringify({
             name: name,
             surname: surname,
@@ -157,7 +156,7 @@ export async function registerRequest(name:string, surname:string, email:string,
     }
 
     if(response.status === 409){
-        throw new InvalidRequestDataError("Błąd rejestracji",
+        throw new InvalidRequestDataError("Błąd rejestracji", 
             true
             ,"Użytkownik o tym mailu już istnieje");
     }
@@ -167,7 +166,7 @@ export async function registerRequest(name:string, surname:string, email:string,
 export async function resetPasswordRequest(email: string): Promise<void>{
     const response = await fetch("/api/users/newPassword", {
         method: "POST",
-        headers: {
+        headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
@@ -182,7 +181,7 @@ export async function resetPasswordRequest(email: string): Promise<void>{
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd resetowania",
+            "Błąd resetowania", 
             true,
             "Nie znaleziono użytkownika o podanym adresie email."
         );
@@ -235,7 +234,7 @@ export async function changeClientDataRequest(name: string, surname: string): Pr
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd edycji danych",
+            "Błąd edycji danych", 
             true,
             "Nie znaleziono użytkownika dla podanego tokenu lub brak danych do zmiany."
         );
@@ -253,7 +252,7 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
         body: JSON.stringify({
             number: number,
             cvv: cvv,
-            exp_date: exp_date
+            exp_date: exp_date 
         }),
     });
 
@@ -263,7 +262,7 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd karty płatniczej",
+            "Błąd karty płatniczej", 
             true,
             "Nie znaleziono użytkownika lub podano niepoprawne dane karty."
         );
@@ -291,7 +290,7 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd zmiany hasła",
+            "Błąd zmiany hasła", 
             true,
             "Stare hasło jest niepoprawne lub sesja wygasła."
         );
@@ -332,11 +331,11 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
 
     if (response.status === 400) {
         throw new InvalidRequestDataError(
-            "Błąd pobierania wypożyczeń",
+            "Błąd pobierania wypożyczeń", 
             true,
             "Nie znaleziono użytkownika dla podanego tokenu."
         );
-    }
+    } 
 
     throw new RequestError(response.status.toString());
 }
@@ -373,8 +372,8 @@ export async function fetchUserCatalogRequest(
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
-): Promise<PagedResponse<BookUser>>{
-    wait(randDelay());
+): Promise<CatalogResponse<BookUser>>{
+    await wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
     results = applySort(results, sort);
@@ -382,10 +381,10 @@ export async function fetchUserCatalogRequest(
     const { items, totalPages } = paginate(results, page, 10);
     const totalBooks = results.length;
     const userBooks = (items as BookAdmin[]).map(toBookUser);
-    return { result: userBooks, totalPages, totalResults: totalBooks };
+    return { books: userBooks, totalPages, totalBooks };
 }
 
-export async function rentBookRequest(book_id: number, instance_id?: number): Promise<void>{
+export async function rentBookRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 export async function reserveBookRequest(book_id: number): Promise<void>{
@@ -400,15 +399,15 @@ export const fetchAdminCatalogRequest = async (
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
-): Promise<PagedResponse<BookAdmin>> => {
-    wait(randDelay());
+): Promise<CatalogResponse<BookAdmin>> => {
+    await wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
     results = applySort(results, sort);
 
     const { items, totalPages } = paginate(results, page, 10);
     const totalBooks = results.length;
-    return { result: items as BookAdmin[], totalPages, totalResults: totalBooks };
+    return { books: items as BookAdmin[], totalPages, totalBooks };
 };
 export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
     const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
@@ -460,112 +459,20 @@ export async function addBookInstanceRequest(book_id: number): Promise<{ instanc
     return await r.json();
 }
 // Users
-
-export async function fetchUserListRequest(
-    search_bar?: string,
-    sort?: SearchSort,
-    filter?: UserListSearchFilter,
-    page: number = 1
-): Promise<PagedResponse<UserInfo>> {
-    if (USE_MOCK) {
-        new Promise(resolve => setTimeout(resolve, 500));
-
-        const PAGE_SIZE = 5;
-
-        // Pobieramy książki do mockowania danych
-        const generatedUsers: UserInfo[] = SAMPLE_USERS
-
-        // --- FILTROWANIE I SORTOWANIE ---
-        let filtered = [...generatedUsers];
-
-        if (filter?.status && filter.status.length > 0) {
-            filtered = filtered.filter(u => filter.status?.includes(u.status));
-        }
-
-        if (search_bar && search_bar !== "") {
-            const query = search_bar.toLocaleLowerCase();
-            filtered = filtered.filter(u =>
-                (u.name + " " + u.surname).toLocaleLowerCase().includes(query) ||
-                u.email.toLocaleLowerCase().includes(query)
-            );
-        }
-
-        if (sort) {
-            filtered.sort((a, b) => {
-                const dir = sort.direction === 'ASC' ? 1 : -1;
-                if (sort.key === 'surname') return a.surname.localeCompare(b.surname) * dir;
-                if (sort.key === 'name') return a.name.localeCompare(b.name) * dir;
-                return 0;
-            });
-        }
-
-        // --- LOGIKA PAGINACJI I ODPOWIEDZI ---
-        const totalUsers = filtered.length;
-        const totalPages = Math.ceil(totalUsers / PAGE_SIZE);
-
-        // Zabezpieczenie przed stroną poza zakresem
-        const safePage = Math.max(1, Math.min(page, totalPages || 1));
-        const startIndex = (safePage - 1) * PAGE_SIZE;
-        const paginatedUsers = filtered.slice(startIndex, startIndex + PAGE_SIZE);
-
-        return {
-            result: paginatedUsers,
-            totalPages: totalPages,
-            totalResults: totalUsers
-        };
-    } else {
-        throw Error("Not implemented exception");
-    }
+export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): Promise<UserInfo[]>{
+    throw Error("Not implemented exception")
 }
-
-export async function removeUserRequest(user_id: number) {
-    if (USE_MOCK) {
-        new Promise(resolve => setTimeout(resolve, 300));
-        if (Math.random() > 0.5) {
-            throw new Error("Nie udało się usunąć użytkownika.");
-        } else {
-            return;
-        }
-    } else {
-        throw Error("Not implemented exception");
-    }
+export async function removeUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-export async function blockUserRequest(user_id: number) {
-    if (USE_MOCK) {
-
-        new Promise(resolve => setTimeout(resolve, 300));
-        if (Math.random() > 0.5) {
-            throw new Error("Nie udało się zablokować użytkownika. Błąd połączenia lub brak uprawnień.");
-        } else {
-            return;
-        }
-    } else {
-        throw Error("Not implemented exception");
-    }
+export async function blockUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-export async function unblockUserRequest(user_id: number) {
-    if (USE_MOCK) {
-        new Promise(resolve => setTimeout(resolve, 300));
-        if (Math.random() > 0.5) {
-            throw new Error("Nie udało się odblokować użytkownika. Błąd połączenia lub brak uprawnień.");
-        } else {
-            return;
-        }
-    } else {
-        throw Error("Not implemented exception");
-    }
+export async function unblockUserRequest(user_id: number): Promise<void>{
+    throw Error("Not implemented exception")
 }
-export async function addAdminRequest(admin_info: User, password: string): Promise<void> {
-    if (USE_MOCK) {
-        new Promise(resolve => setTimeout(resolve, 600));
-        if (Math.random() > 0.5) {
-            throw new Error("Nie udało się dodać nowego bibliotekarza. Błąd połączenia lub brak uprawnień.");
-        } else {
-            return;
-        }
-    } else {
-        throw Error("Not implemented exception");
-    }
+export async function addAdminRequest(admin_info: User): Promise<void>{
+    throw Error("Not implemented exception")
 }
 
 // Add Book View
@@ -584,54 +491,7 @@ export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
 
     return await r.json();
 }
-export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter, page: number = 1): Promise<PagedResponse<RentFullInfo>>{
-    if(!USE_MOCK)
-        throw Error("Not implemented exception");
-    const book:Book = {
-        title: "Ogniem i mieczem",
-        authors: ['Henryk Sienkiewicz', "Andrzej Duda"],
-        publish_year: 1985,
-        isbn_number: "978-83-7583-610-3",
-        length: 835,
-        language: "Polski",
-        publisher: "Nasza księgarnia",
-        keywords: ["Nudne", "Test", "Smoki"],
-        genre: ["Fantazy", "Sci-Fi"]
-    }
-    const RENTLOGS_PER_PAGE = 3
-    const book_list = [{
-        user: {name: 'Andrzej', surname: 'Kowalski', email: 'pływać@gmail.com'},
-        book: book,
-        borrow_date: new Date('12.20.2025'),
-        return_date: new Date('01.10.2026'),
-        return_to_date:  new Date('01.8.2026')
-    },
-        {
-            user: {name: 'Anna', surname: 'Grabowska', email: 'konno@gmail.com'},
-            book: book,
-            borrow_date: new Date('12.20.2025'),
-            return_date: null,
-            return_to_date:  new Date('01.8.2026')
-        },
-        {
-            user: {name: 'Maja', surname: 'Poznańska', email: 'metrem@gmail.com'},
-            book: book,
-            borrow_date: new Date('12.20.2025'),
-            return_date: new Date('01.08.2026'),
-            return_to_date: new Date(Date.now()+2*24*60*10000)
-        },
-        {
-            user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
-            book: book,
-            borrow_date: new Date('12.20.2025'),
-            return_date: null,
-            return_to_date:  new Date(Date.now()+2*24*60*10000)
-        }
-    ]
-    let result = page == 1 ? [book_list[0], book_list[1], book_list[2]] : [book_list[3], book_list[4]]
-
-    return {
-        result: result, totalPages: 2, totalResults: 5
-
-    }
+// Rent log
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo[]>{
+    throw Error("Not implemented exception")
 }
