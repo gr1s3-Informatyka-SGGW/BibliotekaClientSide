@@ -1,72 +1,104 @@
-import { useEffect, useRef } from "react";
-import jsQR from "jsqr";
+declare function jsQR(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number
+): { data: string } | null;
 
-interface QRScannerProps {
-  onScan: (value: string) => void;
+const video = document.getElementById("video") as HTMLVideoElement | null;
+const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
+const resultDiv = document.getElementById("result") as HTMLDivElement | null;
+const scanArea = document.getElementById("scan-area") as HTMLDivElement | null;
+const startBtn = document.getElementById("start") as HTMLButtonElement | null;
+const restartBtn = document.getElementById("restart") as HTMLButtonElement | null;
+
+if (!video || !canvas || !resultDiv || !scanArea || !startBtn || !restartBtn) {
+  throw new Error("QR Scanner: Missing required DOM elements");
 }
 
-const QRScanner = ({ onScan }: QRScannerProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const scanningRef = useRef(true);
+const ctx = canvas.getContext("2d");
+if (!ctx) {
+  throw new Error("QR Scanner: Cannot get canvas 2D context");
+}
 
-  useEffect(() => {
-    let stream: MediaStream;
+let streamActive = false;
+let scanning = false;
 
-    const startCamera = async () => {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
+async function startCamera(): Promise<void> {
+  resultDiv.textContent = "Uruchamianie kamery";
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        requestAnimationFrame(tick);
-      }
-    };
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
 
-    const tick = () => {
-      if (!videoRef.current || !canvasRef.current || !scanningRef.current) {
-        return;
-      }
+    video.srcObject = stream;
+    await video.play();
 
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+    streamActive = true;
+    scanning = true;
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    resultDiv.textContent = "Czekam na kod";
+    startBtn.style.display = "none";
+    restartBtn.style.display = "inline-block";
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
+    requestAnimationFrame(tick);
+  } catch (err) {
+    console.error("Błąd kamery:", err);
+    const message =
+      err instanceof Error ? err.message : "Nieznany błąd kamery";
+    resultDiv.textContent = "Błąd kamery: " + message;
+  }
+}
 
-      if (code) {
-        scanningRef.current = false;
-        onScan(code.data);
-        stream.getTracks().forEach(t => t.stop());
-        return;
-      }
+function tick(): void {
+  if (!streamActive || !scanning) return;
 
-      requestAnimationFrame(tick);
-    };
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    startCamera();
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    return () => {
-      scanningRef.current = false;
-      stream?.getTracks().forEach(t => t.stop());
-    };
-  }, [onScan]);
+    const area = scanArea.getBoundingClientRect();
+    const videoRect = video.getBoundingClientRect();
 
-  return (
-    <div>
-      <video ref={videoRef} style={{ width: "100%" }} />
-      <canvas ref={canvasRef} style={{ display: "none" }} />
-      <p>Skanuj kod QR…</p>
-    </div>
-  );
-};
+    const scaleX = canvas.width / videoRect.width;
+    const scaleY = canvas.height / videoRect.height;
 
-export default QRScanner;
+    const sx = Math.floor((area.left - videoRect.left) * scaleX);
+    const sy = Math.floor((area.top - videoRect.top) * scaleY);
+    const sw = Math.floor(area.width * scaleX);
+    const sh = Math.floor(area.height * scaleY);
+
+    const imageData = ctx.getImageData(sx, sy, sw, sh);
+
+    const code = jsQR(
+      imageData.data,
+      imageData.width,
+      imageData.height
+    );
+
+    if (code) {
+      scanning = false;
+      resultDiv.innerHTML = `Odczytano: <b>${code.data}</b>`;
+      scanArea.style.borderColor = "lime";
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+startBtn.addEventListener("click", startCamera);
+
+restartBtn.addEventListener("click", async () => {
+  if (video.srcObject) {
+    const stream = video.srcObject as MediaStream;
+    stream.getTracks().forEach((track) => track.stop());
+  }
+
+  streamActive = false;
+  scanning = false;
+  scanArea.style.borderColor = "red";
+
+  await startCamera();
+});
