@@ -4,7 +4,6 @@
 
 import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "./fake_catalog_data.ts";
 import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data.ts";
-import { SAMPLE_USERS } from "./fake_users_data.ts";
 
 import type {
     Book,
@@ -88,228 +87,284 @@ export class TargetNotFoundError extends RequestError{
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export function loginRequest(email: string, password: string): Session{
-    // mock admin
-    if (email === "admin@test.com" && password === "adminADMIN123!@#") {
-        return {
-            user: {
-                name: "Admin",
-                surname: "Adminowicz",
-                email: email,
-            },
-            access: "admin",
-            token: "mock-admin-token",
-        };
-    }
 
-    // mock normal user
-    if (email === "user@test.com" && password === "userUSER123!@#") {
-        return {
-            user: {
-                name: "User",
-                surname: "Userowicz",
-                email: email
-            },
-            access: "user",
-            token: "mock-user-token"
+    return fetch('api/users/login', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({email, password})
+    })
+    .then(async (response) => {
+        const data = await response.json();
+
+        if(!response.ok){
+            if(response.status === 400 || response.status === 401){
+                throw new InvalidRequestDataError(
+                    "Logowanie nieudane",
+                    false,
+                    response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+                );
+            }
+            if(response.status === 500){
+                throw new InvalidRequestDataError(
+                    "Serwer odrzucił żądanie",
+                    true,
+                    data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
+                )
+            }
+
+            throw new RequestError(
+                "Nieoczekiwany błąd zapytania",
+                data.message,
+                response.status
+            );
         }
-    }
 
-    // login failure
-    throw new RequestError("Wystąpił nieprzewidziany błąd przy logowaniu")
-
+        const session : Session = {
+            token : data.token,
+            access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
+            user: data.user
+        };
+        return session;
+    }) as unknown as Session;
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
-    const existingEmails = ["admin@test.com", "user@test.com"];
-    if (existingEmails.includes(email)) {
-        throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
+    const response = await fetch("api/users/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            name: name,
+            surname: surname,
+            email: email,
+            password: password,
+            cardNumber: card_info.number,
+            expirationDate: card_info.exp_date,
+            cvv: card_info.cvv
+        }),
+    });
+
+    const data = await response.json();
+
+    if(response.status === 201){
+        console.log("Rejestracja udana:", data.message);
+        return;
     }
+
+    if(response.status === 409){
+        throw new InvalidRequestDataError("Błąd rejestracji",
+            true
+            ,"Użytkownik o tym mailu już istnieje");
+    }
+    throw new RequestError(response.status.toString());
+
 }
 export async function resetPasswordRequest(email: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/newPassword", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            email: email
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd resetowania",
+            true,
+            "Nie znaleziono użytkownika o podanym adresie email."
+        );
+    }
+    throw new RequestError(response.status.toString());
+
 }
 
 // ProfileView
 export async function fetchUserInfoRequest(): Promise<User>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/loginInfo", {
+        method: "GET",
+        headers:{
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+    });
+
+    if(response.status === 200){
+        return await response.json();
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd profilu",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response= await fetch("/api/users/editClientData", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            name: name,
+            surname: surname
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd edycji danych",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu lub brak danych do zmiany."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/editClientCreditCard", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            number: number,
+            cvv: cvv,
+            exp_date: exp_date
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd karty płatniczej",
+            true,
+            "Nie znaleziono użytkownika lub podano niepoprawne dane karty."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
-    throw Error("Not implemented exception")
+    const response = await fetch("/api/users/newPassword", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+            old_password: old_password,
+            new_password: new_password
+        }),
+    });
+
+    if(response.status === 200){
+        return;
+    }
+
+    if(response.status === 400){
+        throw new InvalidRequestDataError(
+            "Błąd zmiany hasła",
+            true,
+            "Stare hasło jest niepoprawne lub sesja wygasła."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 export async function cancelReservationRequest(reservation_id: number): Promise<void>{
-    wait(randDelay());
     throw Error("Not implemented exception")
 }
 export async function claimReservationRequest(reservation_id: number): Promise<void>{
-    wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 export async function extendRentRequest(rent_id: number): Promise<void>{
-    wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 export async function returnBookRequest(rend_id: number): Promise<void>{
-    wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 
-export async function fetchBorrowedBooksRequest(): Promise<Rent[]>{
-    wait(randDelay());
-    return [
-        {
-            book: {
-                book_id: 101,
-                title: "Władca Pierścieni: Drużyna Pierścienia",
-                authors: ["J.R.R. Tolkien"],
-                isbn_number: "978-83-7298-953-6",
-                publish_year: 1954,
-                publisher: "George Allen & Unwin",
-                genre: ["Fantasy", "Przygoda"],
-                language: "Polski",
-                length: 423,
-                keywords: ["Pierścień", "Hobbit"]
-            },
-            borrow_date: new Date("2025-01-01"),
-            return_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // teraz + dwa dni
-        },
-        {
-            book: {
-                book_id: 102,
-                title: "Harry Potter i Kamień Filozoficzny",
-                authors: ["J.K. Rowling"],
-                isbn_number: "978-83-7278-162-8",
-                publish_year: 1997,
-                publisher: "Media Rodzina",
-                genre: ["Fantasy"],
-                language: "Polski",
-                length: 320,
-                keywords: ["Magia", "Czarodziej"]
-            },
-            borrow_date: new Date("2025-01-10"),
-            return_date:  new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // teraz - dwa dni
-        },
-        {
-            book: {
-                book_id: 103,
-                title: "Wiedźmin: Ostatnie życzenie",
-                authors: ["Andrzej Sapkowski"],
-                isbn_number: "978-83-7578-845-5",
-                publish_year: 1993,
-                publisher: "superNOWA",
-                genre: ["Fantasy"],
-                language: "Polski",
-                length: 288,
-                keywords: ["Wiedźmin", "Potwory"]
-            },
-            borrow_date: new Date("2025-01-15"),
-            return_date: new Date("2025-02-15")
-        },
-        {
-            book: {
-                book_id: 104,
-                title: "1984",
-                authors: ["George Orwell"],
-                isbn_number: "978-83-7779-483-2",
-                publish_year: 1949,
-                publisher: "Muza",
-                genre: ["Dystopia", "Science Fiction"],
-                language: "Polski",
-                length: 328,
-                keywords: ["Totalitaryzm", "Kontrola"]
-            },
-            borrow_date: new Date("2025-01-20"),
-            return_date: new Date("2025-02-20")
+export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
+    const response = await fetch("/api/users/borrowedBooks", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
         }
-    ];
-}
+    });
 
-export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
-    wait(randDelay());
-    return [
-        {
-            book: {
-                book_id: 201,
-                title: "Hobbit, czyli tam i z powrotem",
-                authors: ["J.R.R. Tolkien"],
-                isbn_number: "978-83-244-0308-0",
-                publish_year: 1937,
-                publisher: "SuperNowa",
-                genre: ["Fantasy"],
-                language: "Polski",
-                length: 310,
-                keywords: ["Smok", "Bilbo"]
-            },
-            reserve_to: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-        },
-        {
-            book: {
-                book_id: 202,
-                title: "Solaris",
-                authors: ["Stanisław Lem"],
-                isbn_number: "978-83-08-04803-6",
-                publish_year: 1961,
-                publisher: "Wydawnictwo Literackie",
-                genre: ["Science Fiction"],
-                language: "Polski",
-                length: 204,
-                keywords: ["Kosmos", "Planeta"]
-            },
-            reserve_to: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-        },
-        {
-            book: {
-                book_id: 203,
-                title: "Zbrodnia i kara",
-                authors: ["Fiodor Dostojewski"],
-                isbn_number: "978-83-240-3297-8",
-                publish_year: 1866,
-                publisher: "Znak",
-                genre: ["Klasyka", "Thriller psychologiczny"],
-                language: "Polski",
-                length: 672,
-                keywords: ["Moralność", "Wina"]
-            },
-            reserve_to: new Date("2025-02-10")
-        }
-    ];
+    if(response.status === 200){
+        const data = await response.json();
+        return data as Book[];
+    }
+
+    if (response.status === 400) {
+        throw new InvalidRequestDataError(
+            "Błąd pobierania wypożyczeń",
+            true,
+            "Nie znaleziono użytkownika dla podanego tokenu."
+        );
+    }
+
+    throw new RequestError(response.status.toString());
 }
 
 // Katalog - Ogólne
 
 export async function fetchAuthorsRequest(): Promise<string[]>{
-    wait(randDelay());
+    await wait(randDelay());
     return SAMPLE_AUTHORS;
 }
 
 export async function fetchTagsRequest(): Promise<string[]>{
-    wait(randDelay());
+    await wait(randDelay());
     return SAMPLE_TAGS;
 }
 
 export async function fetchGenresRequest(): Promise<string[]>{
-    wait(randDelay());
+    await wait(randDelay());
     return SAMPLE_GENRES;
 }
 
 export async function  fetchPublishersRequest(): Promise<string[]>{
-    wait(randDelay());
+    await wait(randDelay());
     return SAMPLE_PUBLISHERS;
 }
 
 export async function fetchLanguagesRequest(): Promise<string[]>{
-    wait(randDelay());
+    await wait(randDelay());
     return SAMPLE_LANGUAGES;
 }
 // Katalog - User
@@ -389,6 +444,7 @@ let mockInstanceCounter = 1;
 export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
     if (USE_MOCK) {
         const fakeId = mockInstanceCounter++;
+        console.log("MOCK addBookInstanceRequest:", book_id, "->", fakeId);
 
         return {
             instance_id: fakeId
@@ -579,4 +635,3 @@ export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filte
 
     }
 }
-
