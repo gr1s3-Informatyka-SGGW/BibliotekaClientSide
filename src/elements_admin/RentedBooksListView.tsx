@@ -1,10 +1,7 @@
 /**
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
- *
- *
  * */
-
 
 import type { Book, User, RentFullInfo } from "../../public/server_types.ts";
 import { extendRentRequest, fetchRentLog, returnBookRequest } from "../../public/server_requests.ts";
@@ -17,8 +14,6 @@ import { CustomSelect, CustomOption, FilterResetButton } from "../../public/cust
 import ToggleButton from "../../public/custom_components/ToggleButton.tsx";
 import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
 import './RentedBookListView.css';
-import '../style.css'
-import '../input.css'
 
 import bookIcon from '../../src/assets/book.svg';
 import userIcon from '../../src/assets/mail.svg';
@@ -69,7 +64,7 @@ export interface ExtendedRentInfo extends Omit<RentFullInfo, 'borrow_date' | 're
 interface RentedBooksListViewProps {
     /**
      * Opcjonalne dane początkowe. Jeśli podane, komponent działa w trybie "offline" (lokalnym),
-     * filtrując i sortując tę tablicę zamiast wysyłać zapytania do API.
+     * filtrując i sortując tę tablicę, zamiast wysyłać zapytania do API.
      */
     initialData?: ExtendedRentInfo[];
 }
@@ -404,7 +399,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                                     onReturn={() => handleReturn(rent)}
                                 />
                             ))}
-                            {!isLoading && currentRents.length === 0 && <p style={{textAlign:'center', width:'100%'}}>Brak wyników</p>}
+                            {currentRents.length === 0 && <p style={{textAlign:'center', width:'100%'}}>Brak wyników</p>}
                         </div>
                     )}
                 </div>
