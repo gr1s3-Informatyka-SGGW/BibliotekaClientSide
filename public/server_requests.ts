@@ -419,7 +419,55 @@ export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
 
     return await r.json();
 }
-// Rent log
 export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter, page: number = 1): Promise<PagedResponse<RentFullInfo>>{
-    throw Error("Not implemented exception")
+    if(!USE_MOCK)
+        throw Error("Not implemented exception");
+    const book:Book = {
+        title: "Ogniem i mieczem",
+        authors: ['Henryk Sienkiewicz', "Andrzej Duda"],
+        publish_year: 1985,
+        isbn_number: "978-83-7583-610-3",
+        length: 835,
+        language: "Polski",
+        publisher: "Nasza księgarnia",
+        keywords: ["Nudne", "Test", "Smoki"],
+        genre: ["Fantazy", "Sci-Fi"]
+    }
+    const RENTLOGS_PER_PAGE = 3
+    const book_list = [{
+        user: {name: 'Andrzej', surname: 'Kowalski', email: 'pływać@gmail.com'},
+        book: book,
+        borrow_date: new Date('12.20.2025'),
+        return_date: new Date('01.10.2026'),
+        return_to_date:  new Date('01.8.2026')
+    },
+        {
+            user: {name: 'Anna', surname: 'Grabowska', email: 'konno@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date('01.8.2026')
+        },
+        {
+            user: {name: 'Maja', surname: 'Poznańska', email: 'metrem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: new Date('01.08.2026'),
+            return_to_date: new Date(Date.now()+2*24*60*10000)
+        },
+        {
+            user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date(Date.now()+2*24*60*10000)
+        }
+    ]
+    let result = page == 1 ? [book_list[0], book_list[1], book_list[2]] : [book_list[3], book_list[4]]
+
+    return {
+        result: book_list, totalPages: 2, totalResults: 5
+
+    }
 }
+
