@@ -1,6 +1,6 @@
 /**
  * Plik implementujący widok strony
- * @author Natalia Bardadyn
+ * @author Natalia Bardadyn, Olimpia Dejko
  * */
 
 import React, { Component, type FormEvent } from 'react';
@@ -209,6 +209,9 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 <div style={{ minWidth: '300px' }}>
                     <form className="flex-column" style={{ gap: '1em' }} onSubmit={(e) => {
                         e.preventDefault();
+                        if (isInvalid) {
+                            return;
+                        }
                         console.log("Zmiana hasła:", this.state.passwordData);
                         this.setState({ isPasswordOpen: false });
                     }}>
@@ -218,33 +221,65 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                             <input
                                 type="password"
                                 required
+                                placeholder=""
                                 value={passwordData.oldPass}
                                 onChange={(e) => this.setState({
                                     passwordData: { ...passwordData, oldPass: e.target.value }
                                 })}
+                                style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
                             />
                         </div>
 
                         <div className="flex-column">
                             <label>Nowe hasło:</label>
-                            <input
-                                type="password"
-                                required
-                                value={passwordData.newPass}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    const result = validators.password(val);
-                                    this.setState({
-                                        passwordData: { ...passwordData, newPass: val },
-                                        formErrors: {
-                                            ...formErrors,
-                                            password: result.ok ? undefined : (result.reason || 'Słabe hasło'),
-                                            confirmPassword: val === passwordData.confirmPass ? undefined : 'Hasła nie są identyczne'
-                                        }
-                                    });
-                                }}
-                            />
-                            {formErrors.password && <span style={errorStyle}>{formErrors.password}</span>}
+                            {formErrors.password ? (
+                                <CustomTooltip title={formErrors.password}>
+                                    <input
+                                        type="password"
+                                        required
+                                        placeholder=""
+                                        value={passwordData.newPass}
+                                        style={{
+                                            padding: '8px',
+                                            borderRadius: '0.75em',
+                                            border: formErrors.password ? '1px solid #d32f2f' : '1px solid #ccc',
+                                            backgroundColor: formErrors.password ? '#fff8f8' : 'white',
+                                            outline: 'none'
+                                        }}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const result = validators.password(val);
+                                            this.setState({
+                                                passwordData: { ...passwordData, newPass: val },
+                                                formErrors: {
+                                                    ...formErrors,
+                                                    password: result.ok ? undefined : (result.reason || 'Słabe hasło'),
+                                                    confirmPassword: val === passwordData.confirmPass ? undefined : 'Hasła nie są identyczne'
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </CustomTooltip>
+                            ) : (
+                                <input
+                                    type="password"
+                                    required
+                                    placeholder=""
+                                    value={passwordData.newPass}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        const result = validators.password(val);
+                                        this.setState({
+                                            passwordData: { ...passwordData, newPass: val },
+                                            formErrors: {
+                                                ...formErrors,
+                                                password: result.ok ? undefined : (result.reason || 'Słabe hasło'),
+                                                confirmPassword: val === passwordData.confirmPass ? undefined : 'Hasła nie są identyczne'
+                                            }
+                                        });
+                                    }}
+                                />
+                            )}
                         </div>
 
                         <div className="flex-column">
@@ -252,7 +287,15 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                             <input
                                 type="password"
                                 required
+                                placeholder=""
                                 value={passwordData.confirmPass}
+                                style={{
+                                    padding: '8px',
+                                    borderRadius: '0.75em',
+                                    border: formErrors.confirmPassword ? '1px solid #d32f2f' : '1px solid #ccc',
+                                    backgroundColor: formErrors.confirmPassword ? '#fff8f8' : 'white',
+                                    outline: 'none'
+                                }}
                                 onChange={(e) => {
                                     const val = e.target.value;
                                     this.setState({
@@ -268,17 +311,20 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                         </div>
 
                         <div className="flex-row responsive-buttons" style={{ gap: '0.5em', marginTop: '1em' }}>
-                            <button
-                                type="button"
-                                className="boring"
-                                style={{ flex: 1 }}
-                                onClick={() => this.setState({ isPasswordOpen: false, formErrors: {} })}
-                            >
+                            <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isPasswordOpen: false, formErrors: {} })}>
                                 Odrzuć zmiany
                             </button>
                             <button
                                 type="submit"
-                                style={{ flex: 1, backgroundColor: mainColor, color: 'white', border: 'none', cursor: 'pointer' }}
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: mainColor,
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    borderRadius: '8px',
+                                    padding: '0.9em'
+                                }}
                             >
                                 Zapisz zmiany
                             </button>
@@ -298,102 +344,145 @@ class ProfileInfoPanel extends Component<{ info: User }, {
         const { cardData, formErrors } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
 
-        const errorStyle: React.CSSProperties = {
-            color: '#d32f2f',
-            fontSize: '0.75rem',
-            marginTop: '0.2em',
-            fontWeight: '500'
-        };
-
         return (
             <Popup
                 title="Zmień dane karty"
                 isOpen={this.state.isCardOpen}
                 setIsOpen={(val) => {
-                    const newValue = typeof val === 'function'
-                        ? val(this.state.isCardOpen)
-                        : val;
-
+                    const newValue = typeof val === 'function' ? val(this.state.isCardOpen) : val;
                     this.setState({ isCardOpen: newValue, formErrors: {} });
                 }}
             >
                 <div style={{ minWidth: '300px' }}>
                     <form onSubmit={this.handleCardSubmit} className="flex-column" style={{ gap: '1em' }}>
+
+                        {/* Numer Karty z Tooltipem */}
                         <div className="flex-column">
                             <label>Numer karty:</label>
-                            <input
-                                name="cardNumber"
-                                type="text"
-                                placeholder="XXXX XXXX XXXX XXXX"
-                                value={cardData.cardNumber}
-                                style={{ padding: '8px', border: formErrors.cardNumber ? '1px solid red' : '1px solid #ccc' }}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    this.setState({
-                                        cardData: { ...cardData, cardNumber: val },
-                                        formErrors: { ...formErrors, cardNumber: this.validateCardField('cardNumber', val) || undefined }
-                                    });
-                                }}
-                                required
-                            />
-                            {formErrors.cardNumber && <span style={errorStyle}>{formErrors.cardNumber}</span>}
+                            {formErrors.cardNumber ? (
+                                <CustomTooltip title={formErrors.cardNumber}>
+                                    <input
+                                        name="cardNumber"
+                                        type="text"
+                                        placeholder="XXXX XXXX XXXX XXXX"
+                                        value={cardData.cardNumber}
+                                        style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            this.setState({
+                                                cardData: { ...cardData, cardNumber: val },
+                                                formErrors: { ...formErrors, cardNumber: this.validateCardField('cardNumber', val) || undefined }
+                                            });
+                                        }}
+                                        required
+                                    />
+                                </CustomTooltip>
+                            ) : (
+                                <input
+                                    name="cardNumber"
+                                    type="text"
+                                    placeholder="XXXX XXXX XXXX XXXX"
+                                    value={cardData.cardNumber}
+                                    style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        this.setState({
+                                            cardData: { ...cardData, cardNumber: val },
+                                            formErrors: { ...formErrors, cardNumber: this.validateCardField('cardNumber', val) || undefined }
+                                        });
+                                    }}
+                                    required
+                                />
+                            )}
                         </div>
 
                         <div className="flex-row" style={{ gap: '1em' }}>
+                            {/* Data Wygaśnięcia z Tooltipem */}
                             <div className="flex-column" style={{ flex: 1 }}>
                                 <label>Data wygaśnięcia:</label>
-                                <input
-                                    name="expiryDate"
-                                    type="text"
-                                    placeholder="MM/YY"
-                                    value={cardData.expiryDate}
-                                    style={{ padding: '8px', border: formErrors.expiryDate ? '1px solid red' : '1px solid #ccc' }}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        this.setState({
-                                            cardData: { ...cardData, expiryDate: val },
-                                            formErrors: { ...formErrors, expiryDate: this.validateCardField('expiryDate', val) || undefined }
-                                        });
-                                    }}
-                                    required
-                                />
-                                {formErrors.expiryDate && <span style={errorStyle}>{formErrors.expiryDate}</span>}
+                                {formErrors.expiryDate ? (
+                                    <CustomTooltip title={formErrors.expiryDate}>
+                                        <input
+                                            name="expiryDate"
+                                            type="text"
+                                            placeholder="MM/YY"
+                                            value={cardData.expiryDate}
+                                            style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                this.setState({
+                                                    cardData: { ...cardData, expiryDate: val },
+                                                    formErrors: { ...formErrors, expiryDate: this.validateCardField('expiryDate', val) || undefined }
+                                                });
+                                            }}
+                                            required
+                                        />
+                                    </CustomTooltip>
+                                ) : (
+                                    <input
+                                        name="expiryDate"
+                                        type="text"
+                                        placeholder="MM/YY"
+                                        value={cardData.expiryDate}
+                                        style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            this.setState({
+                                                cardData: { ...cardData, expiryDate: val },
+                                                formErrors: { ...formErrors, expiryDate: this.validateCardField('expiryDate', val) || undefined }
+                                            });
+                                        }}
+                                        required
+                                    />
+                                )}
                             </div>
 
+                            {/* CVV z Tooltipem */}
                             <div className="flex-column" style={{ flex: 1 }}>
                                 <label>CVV:</label>
-                                <input
-                                    name="cvv"
-                                    type="text"
-                                    placeholder="CVV"
-                                    value={cardData.cvv}
-                                    style={{ padding: '8px', border: formErrors.cvv ? '1px solid red' : '1px solid #ccc' }}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        this.setState({
-                                            cardData: { ...cardData, cvv: val },
-                                            formErrors: { ...formErrors, cvv: this.validateCardField('cvv', val) || undefined }
-                                        });
-                                    }}
-                                    required
-                                />
-                                {formErrors.cvv && <span style={errorStyle}>{formErrors.cvv}</span>}
+                                {formErrors.cvv ? (
+                                    <CustomTooltip title={formErrors.cvv}>
+                                        <input
+                                            name="cvv"
+                                            type="text"
+                                            placeholder="CVV"
+                                            value={cardData.cvv}
+                                            style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                this.setState({
+                                                    cardData: { ...cardData, cvv: val },
+                                                    formErrors: { ...formErrors, cvv: this.validateCardField('cvv', val) || undefined }
+                                                });
+                                            }}
+                                            required
+                                        />
+                                    </CustomTooltip>
+                                ) : (
+                                    <input
+                                        name="cvv"
+                                        type="text"
+                                        placeholder="CVV"
+                                        value={cardData.cvv}
+                                        style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            this.setState({
+                                                cardData: { ...cardData, cvv: val },
+                                                formErrors: { ...formErrors, cvv: this.validateCardField('cvv', val) || undefined }
+                                            });
+                                        }}
+                                        required
+                                    />
+                                )}
                             </div>
                         </div>
 
                         <div className="flex-row responsive-buttons" style={{ gap: '0.5em', marginTop: '1em' }}>
-                            <button
-                                type="button"
-                                className="boring"
-                                style={{ flex: 1 }}
-                                onClick={() => this.setState({ isCardOpen: false, formErrors: {} })}
-                            >
+                            <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isCardOpen: false, formErrors: {} })}>
                                 Odrzuć zmiany
                             </button>
-                            <button
-                                type="submit"
-                                style={{ flex: 1, backgroundColor: mainColor, color: 'white', border: 'none', cursor: 'pointer' }}
-                            >
+                            <button type="submit" style={{ flex: 1, backgroundColor: mainColor, color: 'white', border: 'none', cursor: 'pointer', borderRadius: '8px', padding: '0.9em' }}>
                                 Zapisz zmiany
                             </button>
                         </div>
@@ -438,92 +527,104 @@ class ProfileInfoPanel extends Component<{ info: User }, {
         const inputStyle: React.CSSProperties = {
             flex: '0 1 300px',
             padding: '8px',
-            borderRadius: '4px',
+            borderRadius: '12px',
             border: '1px solid #ccc',
             minWidth: '180px'
         };
-        const injectInvalidStyle = `
-input:invalid { 
-    outline: 2px solid #d32f2f !important; 
-    border-color: transparent !important; 
-    background-color: #fff8f8; 
-}
 
-input:valid {
-    outline: none !important;
-}    
-    .profile-data-container {
-        width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        margin-bottom: 1.5em;
-        -webkit-overflow-scrolling: touch;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .profile-row { 
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important; 
-        padding: 0.8em 0 !important;
-        min-width: max-content; 
-    }
-
-    .profile-label { 
-        width: 140px !important; 
-        flex-shrink: 0 !important;
-        margin-right: 1em;
-    }
-
-    .table-input {
-        width: 300px !important;
-        padding: 6px 8px !important;
-        border: 1px solid #ccc !important;
-        border-radius: 4px !important;
-        font-size: 1em !important;
-        margin: 0 !important;
-    }
-`;
-        const labelStyle: React.CSSProperties = { width: '130px', fontWeight: '600', color: mainColor, fontSize: '1.1em', flexShrink: 0 };
+        const labelStyle: React.CSSProperties = { width: '130px', fontWeight: '600', color: mainColor, fontSize: '1em', flexShrink: 0 };
         const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center' };
-        const valueStyle: React.CSSProperties = { fontSize: '1.1em', color: '#333' };
+        const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         const errorStyle: React.CSSProperties = { color: '#d32f2f', fontSize: '0.75rem', marginTop: '0.2em', display: 'block' };
         const isClient = (this.props as any).access !== 'admin';
         return (
-            <div className="panel flex-column" style={{ background: 'white', padding: '1.5em', borderRadius: '12px', width: '100%', maxWidth: '325px', margin: '0 auto', boxShadow: '0 2px 15px rgba(0,0,0,0.08)' }}>
-                <style>{`
-                    input:invalid { border-color: #d32f2f !important; background-color: #fff8f8; }
-                    form, .flex-column, .flex-row {
-                        box-shadow: none !important;
-                        border: none !important;
-                    }
-                    .profile-data-container {
-                        width: 100%;
-                        overflow-x: auto;
-                        overflow-y: hidden;
-                        margin-bottom: 1.5em;
-                        -webkit-overflow-scrolling: touch;
-                        display: flex;
-                        flex-direction: column;
-                    }
-                    .profile-data-container::-webkit-scrollbar { height: 4px; }
-                    .profile-data-container::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
-                    .profile-row { 
-                        display: flex !important;
-                        padding: 0.3em 0 !important;
-                        min-width: max-content; 
-                    }
-                    @media (max-width: 480px) {
-                        .responsive-buttons { flex-direction: row !important;  }
-                        .full-width-mobile { width: 100% !important; margin-top: 0.5em !important; }
-                    }
+            <div className="panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: '100%', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
+                <style>{`  
+                input:not(:placeholder-shown):invalid { 
+                outline: 2px solid #d32f2f !important; 
+                border-color: transparent !important; 
+                background-color: #fff8f8;
+                } 
+                
+                input:placeholder-shown {
+                outline: none !important;
+                background-color: white !important;
+                border: 1px solid #ccc !important;
+                }
+
+                input:valid {
+                    outline: none !important;
+                }    
+                .profile-data-container {
+                    width: 100%;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    margin-bottom: 1.5em;
+                    -webkit-overflow-scrolling: touch;
+                    display: flex;
+                    flex-direction: column;
+                    
+                }
+
+                .profile-row { 
+                    display: flex !important;
+                    flex-direction: row !important;
+                    align-items: center !important; 
+                    padding: 0.8em 0 !important;
+                    min-width: max-content; 
+                }
+
+                .profile-label { 
+                    width: 140px !important; 
+                    flex-shrink: 0 !important;
+                    margin-right: 1em;
+                }
+
+                .table-input {
+                    width: 300px !important;
+                    padding: 6px 8px !important;
+                    border: 1px solid #ccc !important;
+                    border-radius: 4px !important;
+                    font-size: 1em !important;
+                    margin: 0 !important;
+                }
+
+                form, .flex-row {
+                    box-shadow: none !important;
+                    border: none !important;
+                    
+                }
+                .profile-data-container {
+                    width: 100%;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    margin-bottom: 1.5em;
+                    -webkit-overflow-scrolling: touch;
+                    display: flex;
+                    flex-direction: column;
+                    
+                }
+                .profile-data-container::-webkit-scrollbar { height: 4px; }
+                .profile-data-container::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
+                .profile-row { 
+                    display: flex !important;
+                    padding: 0.3em 0 !important;
+                    min-width: max-content;
+                        
+                }
+                @media (max-width: 480px) {
+                    .responsive-buttons { flex-direction: row !important;  }
+                    .full-width-mobile { width: 100% !important; margin-top: 0.5em !important; }
+                }
+                .profile-row > div > div {
+                    width: 100%;
+                }   
                 `}</style>
 
-                {/* Nagłówek panelu */}
-                <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0.5em' }}>
-                    <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0.5em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
-                    <h2 style={{ margin: 0, color: mainColor, fontWeight: '500', fontSize: '1.6em' }}>Twój profil</h2>
+
+                <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
+                    <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
+                    <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
                 </div>
                 <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
 
@@ -535,13 +636,30 @@ input:valid {
                             </label>
 
                             {this.editMode ? (
-                                <div style={{ flex: '0 1 300px', maxWidth: '70%' }}>
-                                    <CustomTooltip title={formErrors[field] || ""}>
+                                <div style={{ flex: '0 1 300px', width: '100%', maxWidth: '300px' }}>
+                                    {formErrors[field] ? (
+
+                                        <CustomTooltip title={formErrors[field] || ""}>
+                                            <input
+                                                name={field}
+                                                type={field === 'email' ? 'email' : 'text'}
+                                                value={formData[field]}
+                                                style={{ ...inputStyle, width: '100%' }}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    this.setState(p => ({
+                                                        formData: { ...p.formData, [field]: val },
+                                                        formErrors: { ...p.formErrors, [field]: this.validateField(field, val) || undefined }
+                                                    }));
+                                                }}
+                                            />
+                                        </CustomTooltip>
+                                    ) : (
                                         <input
                                             name={field}
                                             type={field === 'email' ? 'email' : 'text'}
                                             value={formData[field]}
-                                            style={inputStyle}
+                                            style={{ ...inputStyle, width: '100%' }}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 this.setState(p => ({
@@ -550,7 +668,7 @@ input:valid {
                                                 }));
                                             }}
                                         />
-                                    </CustomTooltip>
+                                    )}
                                 </div>
                             ) : (
                                 <span className="profile-value" style={valueStyle}>{user[field]}</span>
@@ -571,36 +689,21 @@ input:valid {
                 <div className="flex-column" style={{ gap: '1em' }}>
                     {this.editMode ? (
                         <>
-                            {this.state.showGeneralError && (
-                                <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginBottom: '-0.5em' }}>
-                                    Nie można zapisać: popraw błędy w polach.
-                                </span>
-                            )}
-
+                            {this.state.showGeneralError && <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginTop: '-1.5em', marginBottom: '-0.5em', display: 'block' }}>Nie można zapisać: popraw błędy w polach.</span>}
                             <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
-                                <button type="button" className="boring" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, padding: '0.9em', borderRadius: '8px' }}>
-                                    Odrzuć zmiany
-                                </button>
-                                <button onClick={this.handleGeneralSubmit} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
-                                    Zapisz zmiany
-                                </button>
+                                <button type="button" className="boring" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, padding: '0.9em', borderRadius: '8px' }}>Odrzuć zmiany</button>
+                                <button onClick={this.handleGeneralSubmit} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zapisz zmiany</button>
                             </div>
                         </>
                     ) : (
                         <>
                             <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
-                                <button type="button" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
-                                    Edytuj profil
-                                </button>
-                                {isClient && user.credit_card_number && (
-                                    <button type="button" onClick={() => this.setState({ isCardOpen: true })} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
-                                        Zmień dane karty
-                                    </button>
-                                )}
+                                <button type="button" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Edytuj profil</button>
+                                <button type="button" onClick={() => this.setState({ isPasswordOpen: true })} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zmień hasło</button>
                             </div>
-                            <button type="button" className="full-width-mobile" onClick={() => this.setState({ isPasswordOpen: true })} style={{ backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '0.5em' }}>
-                                Zmień hasło
-                            </button>
+                            {isClient && user.credit_card_number && (
+                                <button type="button" className="full-width-mobile" onClick={() => this.setState({ isCardOpen: true })} style={{ width: '100%', backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '0.2em' }}>Zmień dane karty</button>
+                            )}
                         </>
                     )}
                 </div>
