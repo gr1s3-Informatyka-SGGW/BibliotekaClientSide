@@ -27,6 +27,7 @@ interface CardFormState {
     expiryDate: string;
     cvv: string;
 }
+type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword']?: string };
 
 /**
  * Komponent panelu profilu użytkownika.
@@ -34,8 +35,8 @@ interface CardFormState {
  * @component
  * @example
  * <ProfileInfoPanel info={userData} />
- * @param {Object} props - Właściwości komponentu.
- * @param {User} props.info - Obiekt zawierający dane zalogowanego użytkownika.
+ * @property {Object} props - Właściwości komponentu.
+ * @property {User} props.info - Obiekt zawierający dane zalogowanego użytkownika.
  * @property {Object} state - Stan wewnętrzny komponentu.
  * @property {User} state.user - Aktualne dane użytkownika wyświetlane w profilu.
  * @property {UserFormState} state.formData - Dane tymczasowe przechowywane podczas edycji formularza.
@@ -44,8 +45,8 @@ interface CardFormState {
  * @property {boolean} state.isPasswordOpen - Czy popup zmiany hasła jest widoczny.
  * @property {boolean} state.isCardOpen - Czy popup edycji karty jest widoczny.
  */
-type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword']?: string };
-class ProfileInfoPanel extends Component<{ info: User }, {
+
+class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
     user: User,
     formData: UserFormState,
     formErrors: AllErrors,
@@ -57,17 +58,17 @@ class ProfileInfoPanel extends Component<{ info: User }, {
     },
     isPasswordOpen: boolean,
     isCardOpen: boolean,
-    showGeneralError: boolean
+    showGeneralError: boolean,
+    editMode: boolean
 }> {
-    editMode: boolean;
+
     private static mainColor = '#891E49';
 
     /**
      * @param props Właściwości komponentu zawierające obiekt User.
      */
-    constructor(props: { info: User }) {
+    constructor(props: { info: User, access?: string }) {
         super(props);
-        this.editMode = false;
 
         this.state = {
             user: props.info,
@@ -81,7 +82,8 @@ class ProfileInfoPanel extends Component<{ info: User }, {
             passwordData: { oldPass: '', newPass: '', confirmPass: '' },
             isPasswordOpen: false,
             isCardOpen: false,
-            showGeneralError: false
+            showGeneralError: false,
+            editMode: false
         };
     }
 
@@ -138,8 +140,9 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * @returns {React.ReactNode} Elementy JSX sekcji danych ogólnych.
      */
     changeGeneralInfo()/*: React.ReactNode*/ {
-        if (this.editMode) {
+        if (this.state.editMode) {
             this.setState({
+                editMode: false,
                 formData: {
                     name: this.state.user.name,
                     surname: this.state.user.surname,
@@ -147,13 +150,13 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 },
                 formErrors: {}
             });
+        } else {
+            this.setState({ editMode: true });
         }
-        this.editMode = !this.editMode;
-        this.forceUpdate();
     }
 
     /**
-      * Obsługuje proces zatwierdzania formularza edycji profilu.
+      * @event handleGeneralSubmit Obsługuje proces zatwierdzania formularza edycji profilu.
       * Przeprowadza walidację wszystkich pól, aktualizuje stan użytkownika
       * i wyłącza tryb edycji w przypadku sukcesu.
       * @param {FormEvent} e - Zdarzenie przesłania formularza.
@@ -172,13 +175,11 @@ class ProfileInfoPanel extends Component<{ info: User }, {
         if (isValid) {
             this.setState(prevState => ({
                 user: { ...prevState.user, ...formData },
-                showGeneralError: false, // Ukryj błąd ogólny
-                formErrors: {}
+                showGeneralError: false,
+                formErrors: {},
+                editMode: false
             }));
-            this.editMode = false;
-            this.forceUpdate();
         } else {
-            // Pokaż błędy w polach (dla tooltipów) i komunikat nad przyciskiem
             this.setState({ formErrors: errors, showGeneralError: true });
         }
     };
@@ -212,7 +213,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                         if (isInvalid) {
                             return;
                         }
-                        console.log("Zmiana hasła:", this.state.passwordData);
+                        //console.log("Zmiana hasła:", this.state.passwordData);
                         this.setState({ isPasswordOpen: false });
                     }}>
 
@@ -356,7 +357,6 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 <div style={{ minWidth: '300px' }}>
                     <form onSubmit={this.handleCardSubmit} className="flex-column" style={{ gap: '1em' }}>
 
-                        {/* Numer Karty z Tooltipem */}
                         <div className="flex-column">
                             <label>Numer karty:</label>
                             {formErrors.cardNumber ? (
@@ -397,7 +397,6 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                         </div>
 
                         <div className="flex-row" style={{ gap: '1em' }}>
-                            {/* Data Wygaśnięcia z Tooltipem */}
                             <div className="flex-column" style={{ flex: 1 }}>
                                 <label>Data wygaśnięcia:</label>
                                 {formErrors.expiryDate ? (
@@ -437,7 +436,6 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                                 )}
                             </div>
 
-                            {/* CVV z Tooltipem */}
                             <div className="flex-column" style={{ flex: 1 }}>
                                 <label>CVV:</label>
                                 {formErrors.cvv ? (
@@ -482,7 +480,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                             <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isCardOpen: false, formErrors: {} })}>
                                 Odrzuć zmiany
                             </button>
-                            <button type="submit" style={{ flex: 1, backgroundColor: mainColor, color: 'white', border: 'none', cursor: 'pointer', borderRadius: '8px', padding: '0.9em' }}>
+                            <button type="submit" style={{ flex: 1, backgroundColor: ProfileInfoPanel.mainColor, color: 'white', border: 'none', cursor: 'pointer', borderRadius: '8px', padding: '0.9em' }}>
                                 Zapisz zmiany
                             </button>
                         </div>
@@ -493,7 +491,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
     }
 
     /**
-     * Obsługuje wysyłkę formularza danych karty.
+     * @event handleCardSubmit Obsługuje wysyłkę formularza danych karty.
      * @param e Zdarzenie formularza.
      */
     handleCardSubmit = (e: FormEvent) => {
@@ -521,8 +519,8 @@ class ProfileInfoPanel extends Component<{ info: User }, {
      * Renderuje interfejs użytkownika panelu profilu.
      */
     render() {
-        const { user, formData, formErrors } = this.state;
-        const isAdmin = (this.props as any).access === 'admin';
+        const { user, formData, formErrors, editMode } = this.state;
+        const isClient = this.props.access !== 'admin';
         const mainColor = ProfileInfoPanel.mainColor;
         const inputStyle: React.CSSProperties = {
             flex: '0 1 300px',
@@ -535,10 +533,8 @@ class ProfileInfoPanel extends Component<{ info: User }, {
         const labelStyle: React.CSSProperties = { width: '130px', fontWeight: '600', color: mainColor, fontSize: '1em', flexShrink: 0 };
         const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center' };
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
-        const errorStyle: React.CSSProperties = { color: '#d32f2f', fontSize: '0.75rem', marginTop: '0.2em', display: 'block' };
-        const isClient = (this.props as any).access !== 'admin';
         return (
-            <div className="panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: '100%', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
+            <div className="panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: 'calc(100% - 20px)', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
                 <style>{`  
                 input:not(:placeholder-shown):invalid { 
                 outline: 2px solid #d32f2f !important; 
@@ -614,7 +610,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 }
                 @media (max-width: 480px) {
                     .responsive-buttons { flex-direction: row !important;  }
-                    .full-width-mobile { width: 100% !important; margin-top: 0.5em !important; }
+                    .full-width-mobile { width: 100% !important; margin-top: 0.5em !important; margin-right: 9.5em !important;}
                 }
                 .profile-row > div > div {
                     width: 100%;
@@ -635,7 +631,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                                 {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
                             </label>
 
-                            {this.editMode ? (
+                            {editMode ? (
                                 <div style={{ flex: '0 1 300px', width: '100%', maxWidth: '300px' }}>
                                     {formErrors[field] ? (
 
@@ -687,7 +683,7 @@ class ProfileInfoPanel extends Component<{ info: User }, {
                 </div>
 
                 <div className="flex-column" style={{ gap: '1em' }}>
-                    {this.editMode ? (
+                    {editMode ? (
                         <>
                             {this.state.showGeneralError && <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginTop: '-1.5em', marginBottom: '-0.5em', display: 'block' }}>Nie można zapisać: popraw błędy w polach.</span>}
                             <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
