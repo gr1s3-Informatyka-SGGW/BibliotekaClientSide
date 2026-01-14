@@ -87,6 +87,18 @@ function adminHeaders() {
   };
 }
 
+function authHeaders() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    throw new AccessDeniedError("Brak tokenu użytkownika");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 // Login page requests
 /**
  * Wysyła zapytanie w celu weryfikacji logowania użytkownika
@@ -163,21 +175,56 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
     throw Error("Not implemented exception")
 }
 
-export async function cancelReservationRequest(reservation_id: number): Promise<void>{
-    throw Error("Not implemented exception")
-}
-export async function claimReservationRequest(reservation_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+export async function cancelReservationRequest(id: number): Promise<void> {
+  const r = await fetch("/api/books/cancelReservation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+
+  if (!r.ok) {
+    if (r.status === 400) {
+      throw new TargetNotFoundError("Nie znaleziono rezerwacji");
+    }
+    throw new RequestError("Błąd anulowania rezerwacji");
+  }
 }
 
-export async function extendRentRequest(rent_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+export async function claimReservationRequest(id: number): Promise<void> {
+  const r = await fetch("/api/books/takeBook", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+
+  if (!r.ok) {
+    throw new RequestError("Błąd odbioru rezerwacji");
+  }
 }
 
-export async function returnBookRequest(rend_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+export async function extendRentRequest(id: number): Promise<void> {
+  const r = await fetch("/api/books/extendRent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+
+  if (!r.ok) {
+    throw new RequestError("Błąd przedłużania wypożyczenia");
+  }
 }
 
+export async function returnBookRequest(id: number): Promise<void> {
+  const r = await fetch("/api/books/returnBook", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+
+  if (!r.ok) {
+    throw new RequestError("Błąd zwrotu książki");
+  }
+}
 
 export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
     throw Error("Not implemented exception")
@@ -185,77 +232,230 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
 
 // Katalog - Ogólne
 
-export async function fetchAuthorsRequest(): Promise<string[]>{
-    await wait(randDelay());
-    return SAMPLE_AUTHORS;
+/**
+ * Pobiera listę autorów dostępnych w systemie.
+ *
+ * @returns {Promise<string[]>} Lista autorów
+ *
+ * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ */
+export async function fetchAuthorsRequest(): Promise<string[]> {
+  const r = await fetch("/api/dictionaries/authors");
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania autorów");
+  }
+
+  return await r.json();
 }
 
-export async function fetchTagsRequest(): Promise<string[]>{
-    await wait(randDelay());
-    return SAMPLE_TAGS;
+/**
+ * Pobiera listę tagów książek.
+ *
+ * @returns {Promise<string[]>} Lista tagów
+ *
+ * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ */
+export async function fetchTagsRequest(): Promise<string[]> {
+  const r = await fetch("/api/dictionaries/tags");
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania tagów");
+  }
+
+  return await r.json();
 }
 
-export async function fetchGenresRequest(): Promise<string[]>{
-    await wait(randDelay());
-    return SAMPLE_GENRES;
+/**
+ * Pobiera listę gatunków książek.
+ *
+ * @returns {Promise<string[]>} Lista gatunków
+ *
+ * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ */
+export async function fetchGenresRequest(): Promise<string[]> {
+  const r = await fetch("/api/dictionaries/genres");
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania gatunków");
+  }
+
+  return await r.json();
 }
 
-export async function  fetchPublishersRequest(): Promise<string[]>{
-    await wait(randDelay());
-    return SAMPLE_PUBLISHERS;
+/**
+ * Pobiera listę wydawców książek.
+ *
+ * @returns {Promise<string[]>} Lista wydawców
+ *
+ * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ */
+export async function fetchPublishersRequest(): Promise<string[]> {
+  const r = await fetch("/api/dictionaries/publishers");
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania wydawców");
+  }
+
+  return await r.json();
 }
 
-export async function fetchLanguagesRequest(): Promise<string[]>{
-    await wait(randDelay());
-    return SAMPLE_LANGUAGES;
+/**
+ * Pobiera listę języków dostępnych w katalogu.
+ *
+ * @returns {Promise<string[]>} Lista języków
+ *
+ * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ */
+export async function fetchLanguagesRequest(): Promise<string[]> {
+  const r = await fetch("/api/dictionaries/languages");
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania języków");
+  }
+
+  return await r.json();
 }
+
 // Katalog - User
 export async function fetchUserCatalogRequest(
-    search: string,
-    sort?: SearchSort,
-    filter?: BookSearchFilter,
-    page: number = 1
-): Promise<PagedResponse<BookUser>>{
-    await wait(randDelay());
+  search: string,
+  sort?: SearchSort,
+  filter?: BookSearchFilter,
+  page: number = 1
+): Promise<PagedResponse<BookUser>> {
 
-    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
-    results = applySort(results, sort);
+  if (page < 1) {
+    throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
+  }
 
-    const { items, totalPages } = paginate(results, page, 10);
-    const totalBooks = results.length;
-    const userBooks = (items as BookAdmin[]).map(toBookUser);
-    return { result: userBooks, totalPages, totalResults: totalBooks };
+  const body: any = {
+    page,
+    fragment_tytulu: search ?? ""
+  };
+
+  if (sort) {
+    body.sortowanie = {
+      po_czym_sortuje: sort.key,
+      rosnaco: sort.direction === "ASC"
+    };
+  }
+
+  if (filter) {
+    body.filtry = {
+      autor: filter.author,
+      gatunek: filter.genre,
+      wydawca: filter.publisher,
+      tagi: filter.tags,
+      jezyk: filter.language,
+      data_wydania: filter.release_date
+        ? {
+            od: filter.release_date.from.toISOString().slice(0, 10),
+            do: filter.release_date.to.toISOString().slice(0, 10)
+          }
+        : undefined
+    };
+  }
+
+  const r = await fetch("/api/books/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  if (!r.ok) {
+    if (r.status === 400) {
+      throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", true);
+    }
+    throw new RequestError("Błąd pobierania katalogu");
+  }
+
+  return await r.json();
 }
 
-export async function rentBookRequest(book_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+export async function rentBookRequest(book_id: number): Promise<void> {
+  const r = await fetch("/api/books/rentBook", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: book_id })
+  });
+
+  if (!r.ok) {
+    if (r.status === 400) {
+      throw new InvalidRequestDataError("Nie można wypożyczyć książki", true);
+    }
+    throw new RequestError("Błąd wypożyczania książki");
+  }
 }
-export async function reserveBookRequest(book_id: number): Promise<void>{
-    throw Error("Not implemented exception")
+
+export async function reserveBookRequest(book_id: number): Promise<void> {
+  const r = await fetch("/api/books/reserveBook", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: book_id })
+  });
+
+  if (!r.ok) {
+    if (r.status === 400) {
+      throw new InvalidRequestDataError("Nie można zarezerwować książki", true);
+    }
+    throw new RequestError("Błąd rezerwacji książki");
+  }
 }
-export const fetchUserBookRequest = async (book_id: number): Promise<BookUser> => {
-    return toBookUser(await fetchAdminBookRequest(book_id));
+
+export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
+  const r = await fetch(`/api/books/${book_id}`);
+
+  if (!r.ok) {
+    if (r.status === 400) {
+      throw new TargetNotFoundError("Nie znaleziono książki");
+    }
+    throw new RequestError("Błąd pobierania książki");
+  }
+
+  return await r.json();
 }
+
 // Katalog - Admin
-export const fetchAdminCatalogRequest = async (
-    search: string,
-    sort?: SearchSort,
-    filter?: BookSearchFilter,
-    page: number = 1
-): Promise<PagedResponse<BookAdmin>> => {
-    await wait(randDelay());
+export async function fetchAdminCatalogRequest(
+  search: string,
+  sort?: SearchSort,
+  filter?: BookSearchFilter,
+  page: number = 1
+): Promise<PagedResponse<BookAdmin>> {
 
-    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
-    results = applySort(results, sort);
+  const r = await fetch("/api/books/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      page,
+      fragment_tytulu: search,
+      sortowanie: sort && {
+        po_czym_sortuje: sort.key,
+        rosnaco: sort.direction === "ASC"
+      },
+      filtry: filter
+    })
+  });
 
-    const { items, totalPages } = paginate(results, page, 10);
-    const totalBooks = results.length;
-    return { result: items as BookAdmin[], totalPages, totalResults: totalBooks };
-};
-export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
-    const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
-    if (!bookAdmin) { throw `Nie znaleziono książki o book_id = ${book_id}` }
-    return bookAdmin;
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania katalogu administratora");
+  }
+
+  return await r.json();
+}
+
+export async function fetchAdminBookRequest(book_id: number): Promise<BookAdmin> {
+  const r = await fetch(`/api/books/${book_id}/admin`);
+
+  if (!r.ok) {
+    if (r.status === 400) {
+      throw new TargetNotFoundError("Nie znaleziono książki");
+    }
+    throw new RequestError("Błąd pobierania książki");
+  }
+
+  return await r.json();
 }
 
 /**
