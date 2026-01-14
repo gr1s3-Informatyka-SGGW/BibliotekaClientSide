@@ -3,7 +3,7 @@
  * @author Natalia Bardadyn, Olimpia Dejko
  * */
 
-import React, { Component, type FormEvent } from 'react';
+import React, {Component, type FormEvent} from 'react';
 import type { User } from '../../public/server_types.ts';
 import accountCircleIcon from '../assets/account_circle.svg';
 import Popup from "../../public/custom_components/Popup.tsx";
@@ -136,7 +136,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
     };
 
     /**
-     * Zmienia stan obiektu umożliwiając edycje lub jej zakończenie z edycją danych
+     * Zmienia stan obiektu, umożliwiając edycje lub jej zakończenie z edycją danych
      */
     changeGeneralInfo(): void {
         if (this.state.editMode) {
@@ -254,41 +254,20 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                         </div>
 
                         <div className="flex-column">
-                            <label>Nowe hasło:</label>
-                            {formErrors.password ? (
-                                <CustomTooltip title={formErrors.password}>
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder=""
-                                        value={passwordData.newPass}
-                                        style={{
-                                            padding: '8px',
-                                            borderRadius: '0.75em',
-                                            border: formErrors.password ? '1px solid #d32f2f' : '1px solid #ccc',
-                                            backgroundColor: formErrors.password ? '#fff8f8' : 'white',
-                                            outline: 'none'
-                                        }}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            const result = validators.password(val);
-                                            this.setState({
-                                                passwordData: { ...passwordData, newPass: val },
-                                                formErrors: {
-                                                    ...formErrors,
-                                                    password: result.ok ? undefined : (result.reason || 'Słabe hasło'),
-                                                    confirmPassword: val === passwordData.confirmPass ? undefined : 'Hasła nie są identyczne'
-                                                }
-                                            });
-                                        }}
-                                    />
-                                </CustomTooltip>
-                            ) : (
+                            <label htmlFor='password-new'>Nowe hasło:</label>
+                            <CustomTooltip title={formErrors.password}>
                                 <input
+                                    id='password-new'
                                     type="password"
                                     required
-                                    placeholder=""
                                     value={passwordData.newPass}
+                                    style={{
+                                        padding: '8px',
+                                        borderRadius: '0.75em',
+                                        border: formErrors.password ? '1px solid #d32f2f' : '1px solid #ccc',
+                                        backgroundColor: formErrors.password ? '#fff8f8' : 'white',
+                                        outline: 'none'
+                                    }}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         const result = validators.password(val);
@@ -302,12 +281,13 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                         });
                                     }}
                                 />
-                            )}
+                            </CustomTooltip>
                         </div>
 
                         <div className="flex-column">
-                            <label>Powtórz nowe hasło:</label>
+                            <label htmlFor='password-input'>Powtórz nowe hasło:</label>
                             <input
+                                id='password-input'
                                 type="password"
                                 required
                                 placeholder=""
@@ -379,32 +359,15 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                     <form onSubmit={this.handleCardSubmit} className="flex-column" style={{ gap: '1em' }}>
 
                         <div className="flex-column">
-                            <label>Numer karty:</label>
-                            {formErrors.cardNumber ? (
-                                <CustomTooltip title={formErrors.cardNumber}>
-                                    <input
-                                        name="cardNumber"
-                                        type="text"
-                                        placeholder="XXXX XXXX XXXX XXXX"
-                                        value={cardData.cardNumber}
-                                        style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            this.setState({
-                                                cardData: { ...cardData, cardNumber: val },
-                                                formErrors: { ...formErrors, cardNumber: this.validateCardField('cardNumber', val) || undefined }
-                                            });
-                                        }}
-                                        required
-                                    />
-                                </CustomTooltip>
-                            ) : (
+                            <label htmlFor='cardNumber'>Numer karty:</label>
+                            <CustomTooltip title={formErrors.cardNumber}>
                                 <input
+                                    id='cardNumber'
                                     name="cardNumber"
                                     type="text"
                                     placeholder="XXXX XXXX XXXX XXXX"
                                     value={cardData.cardNumber}
-                                    style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                    style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         this.setState({
@@ -414,37 +377,19 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                     }}
                                     required
                                 />
-                            )}
+                            </CustomTooltip>
                         </div>
 
                         <div className="flex-row" style={{ gap: '1em' }}>
                             <div className="flex-column" style={{ flex: 1 }}>
                                 <label>Data wygaśnięcia:</label>
-                                {formErrors.expiryDate ? (
-                                    <CustomTooltip title={formErrors.expiryDate}>
-                                        <input
-                                            name="expiryDate"
-                                            type="text"
-                                            placeholder="MM/YY"
-                                            value={cardData.expiryDate}
-                                            style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                this.setState({
-                                                    cardData: { ...cardData, expiryDate: val },
-                                                    formErrors: { ...formErrors, expiryDate: this.validateCardField('expiryDate', val) || undefined }
-                                                });
-                                            }}
-                                            required
-                                        />
-                                    </CustomTooltip>
-                                ) : (
+                                <CustomTooltip title={formErrors.expiryDate}>
                                     <input
                                         name="expiryDate"
                                         type="text"
                                         placeholder="MM/YY"
                                         value={cardData.expiryDate}
-                                        style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                        style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             this.setState({
@@ -454,36 +399,19 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                         }}
                                         required
                                     />
-                                )}
+                                </CustomTooltip>
                             </div>
 
                             <div className="flex-column" style={{ flex: 1 }}>
-                                <label>CVV:</label>
-                                {formErrors.cvv ? (
-                                    <CustomTooltip title={formErrors.cvv}>
-                                        <input
-                                            name="cvv"
-                                            type="text"
-                                            placeholder="CVV"
-                                            value={cardData.cvv}
-                                            style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                this.setState({
-                                                    cardData: { ...cardData, cvv: val },
-                                                    formErrors: { ...formErrors, cvv: this.validateCardField('cvv', val) || undefined }
-                                                });
-                                            }}
-                                            required
-                                        />
-                                    </CustomTooltip>
-                                ) : (
+                                <label htmlFor='cvv'>CVV:</label>
+                                <CustomTooltip title={formErrors.cvv}>
                                     <input
+                                        id='cvv'
                                         name="cvv"
                                         type="text"
                                         placeholder="CVV"
                                         value={cardData.cvv}
-                                        style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                        style={{ padding: '8px', width: '100%', borderRadius: '0.75em', border: '1px solid #d32f2f', backgroundColor: '#fff8f8' }}
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             this.setState({
@@ -493,7 +421,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                         }}
                                         required
                                     />
-                                )}
+                                </CustomTooltip>
                             </div>
                         </div>
 
@@ -538,7 +466,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                 exp_date: cardData.expiryDate
             });
 
-            // Sukces - aktualizacja widoku
+            // Sukces — aktualizacja widoku
             this.setState(prevState => ({
                 user: { ...prevState.user, credit_card_number: cleanCardNumber },
                 isCardOpen: false,
@@ -567,7 +495,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
         };
 
         const labelStyle: React.CSSProperties = { width: '130px', fontWeight: '600', color: mainColor, fontSize: '1em', flexShrink: 0 };
-        const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center' };
+        const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'stretch' };
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         return (
             <div className="profile-info-component panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: 'calc(100% - 20px)', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
@@ -586,25 +514,8 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                             </label>
 
                             {editMode ? (
-                                <div style={{ flex: '0 1 300px', width: '100%', maxWidth: '300px' }}>
-                                    {formErrors[field] ? (
-
-                                        <CustomTooltip title={formErrors[field] || ""}>
-                                            <input
-                                                name={field}
-                                                type={field === 'email' ? 'email' : 'text'}
-                                                value={formData[field]}
-                                                style={{ ...inputStyle, width: '100%' }}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    this.setState(p => ({
-                                                        formData: { ...p.formData, [field]: val },
-                                                        formErrors: { ...p.formErrors, [field]: this.validateField(field, val) || undefined }
-                                                    }));
-                                                }}
-                                            />
-                                        </CustomTooltip>
-                                    ) : (
+                                <div style={{ flex: '0 1 300px', width: '100%'}}>
+                                    <CustomTooltip title={formErrors[field] || ""}>
                                         <input
                                             name={field}
                                             type={field === 'email' ? 'email' : 'text'}
@@ -618,7 +529,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                                 }));
                                             }}
                                         />
-                                    )}
+                                    </CustomTooltip>
                                 </div>
                             ) : (
                                 <span className="profile-value" style={valueStyle}>{user[field]}</span>
@@ -657,10 +568,8 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                         </>
                     )}
                 </div>
-
                 {this.changePassword()}
                 {this.changeCardInfo()}
-
             </div>
         );
     }

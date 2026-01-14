@@ -9,12 +9,12 @@ import { createPortal } from 'react-dom';
 
 /**
  * Typ przyjmowany jako argument przez komponent
- * @property children -  Element potomny, na który najechanie wyzwala tooltip
- * @property title - Tekst wyświetlany wewnątrz dymka
+ * @property [children] -  Element potomny, na który najechanie wyzwala tooltip
+ * @property [title] - Tekst wyświetlany wewnątrz dymka
 * */
 interface CustomTooltipProps {
     children?: ReactNode;
-    title: string;
+    title?: string;
 }
 
 /**
@@ -22,7 +22,7 @@ interface CustomTooltipProps {
  * Oblicza koordynaty względem elementu aktywującego (trigger) i krawędzi ekranu.
  * @param {object} prop
  * @param {string} prop.title - Tekst wyświetlany w portalu
- * @param {RefObject<HTMLDivElement | null>} prop.triggerRef - Element do którego przypisany jest komunikat
+ * @param {RefObject<HTMLDivElement | null>} prop.triggerRef - Element, do którego przypisany jest komunikat
  *
  * @returns {ReactPortal}
  */
@@ -113,15 +113,15 @@ export default function CustomTooltip({ children, title }: CustomTooltipProps): 
     const triggerRef = useRef<HTMLDivElement>(null);
 
     return (
-        <div
+        <span
             ref={triggerRef}
             data-tooltip
-            style={{ display: 'inline-block' }}
+            className='custom-tooltip-container'
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             {children}
-            {isHovered && <TooltipPortal title={title} triggerRef={triggerRef} />}
-        </div>
+            {isHovered && title && <TooltipPortal title={title} triggerRef={triggerRef} />}
+        </span>
     );
 }

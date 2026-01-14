@@ -66,6 +66,9 @@
     min-width: max-content;
 
 }
+.profile-info-component .profile-row .custom-tooltip-container{
+    width: 100%;
+}
 .profile-info-component > .profile-row > div > div {
     width: 100%;
 }
