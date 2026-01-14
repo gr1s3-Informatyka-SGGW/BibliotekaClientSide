@@ -9,7 +9,7 @@ import accountCircleIcon from '../assets/account_circle.svg';
 import Popup from "../../public/custom_components/Popup.tsx";
 import { validators } from '../../public/validators.ts';
 import CustomTooltip from '../../public/custom_components/CustomTooltip.tsx';
-import {changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest} from "../../public/server_requests.ts";
+import { changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../../public/server_requests.ts";
 
 /**
  * Interfejs opisujący strukturę danych formularza edycji profilu.
@@ -136,9 +136,9 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
     };
 
     /**
-     * Zmianie san obiektu umożliwiając edycje lub jej zakończenie z edycją danych
+     * Zmienia stan obiektu umożliwiając edycje lub jej zakończenie z edycją danych
      */
-    changeGeneralInfo(): void{
+    changeGeneralInfo(): void {
         if (this.state.editMode) {
             this.setState({
                 editMode: false,
@@ -160,7 +160,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
       * i wyłącza tryb edycji w przypadku sukcesu.
       * @param {FormEvent} e - Zdarzenie przesłania formularza.
       */
-    handleGeneralSubmit = (e: FormEvent) => {
+    handleGeneralSubmit = async (e: FormEvent) => {
         e.preventDefault();
         const { formData } = this.state;
         const errors: { [key in keyof UserFormState]?: string } = {};
@@ -172,12 +172,20 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
         });
 
         if (isValid) {
-            this.setState(prevState => ({
-                user: { ...prevState.user, ...formData },
-                showGeneralError: false,
-                formErrors: {},
-                editMode: false
-            }));
+            try {
+                await changeClientDataRequest(formData.name, formData.surname);
+
+                this.setState(prevState => ({
+                    user: { ...prevState.user, ...formData },
+                    showGeneralError: false,
+                    formErrors: {},
+                    editMode: false
+                }));
+            } catch (err) {
+                console.error("Błąd zapisu danych:", err);
+                alert("Nie udało się zapisać zmian (Błąd serwera lub brak implementacji).");
+                this.setState({ showGeneralError: true });
+            }
         } else {
             this.setState({ formErrors: errors, showGeneralError: true });
         }
@@ -207,13 +215,28 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                 }}
             >
                 <div style={{ minWidth: '300px' }}>
-                    <form className="flex-column" style={{ gap: '1em' }} onSubmit={(e) => {
+                    <form className="flex-column" style={{ gap: '1em' }} onSubmit={async (e) => {
                         e.preventDefault();
                         if (isInvalid) {
                             return;
                         }
-                        //console.log("Zmiana hasła:", this.state.passwordData);
-                        this.setState({ isPasswordOpen: false });
+
+                        try {
+                            await changeClientPasswordRequest(
+                                passwordData.oldPass,
+                                passwordData.newPass
+                            );
+
+                            alert("Hasło zostało zmienione pomyślnie.");
+                            this.setState({
+                                isPasswordOpen: false,
+                                formErrors: {},
+                                passwordData: { oldPass: '', newPass: '', confirmPass: '' }
+                            });
+                        } catch (err) {
+                            console.error("Błąd zmiany hasła:", err);
+                            alert("Nie udało się zmienić hasła. Sprawdź poprawność starego hasła lub spróbuj później.");
+                        }
                     }}>
 
                         <div className="flex-column">
@@ -492,7 +515,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
      * @event handleCardSubmit Obsługuje wysyłkę formularza danych karty.
      * @param e Zdarzenie formularza.
      */
-    handleCardSubmit = (e: FormEvent) => {
+    handleCardSubmit = async (e: FormEvent) => {
         e.preventDefault();
         const { cardData } = this.state;
 
@@ -505,12 +528,27 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             return;
         }
 
-        this.setState(prevState => ({
-            user: { ...prevState.user, credit_card_number: prevState.cardData.cardNumber.replace(/\s/g, '') },
-            isCardOpen: false,
-            cardData: { cardNumber: '', expiryDate: '', cvv: '' },
-            formErrors: {}
-        }));
+        const cleanCardNumber = cardData.cardNumber.replace(/\s/g, '');
+
+        try {
+            // Wywołanie API
+            await changeClientCreditCardRequest({
+                number: cleanCardNumber,
+                cvv: cardData.cvv,
+                exp_date: cardData.expiryDate
+            });
+
+            // Sukces - aktualizacja widoku
+            this.setState(prevState => ({
+                user: { ...prevState.user, credit_card_number: cleanCardNumber },
+                isCardOpen: false,
+                cardData: { cardNumber: '', expiryDate: '', cvv: '' },
+                formErrors: {}
+            }));
+        } catch (err) {
+            console.error("Błąd zmiany karty:", err);
+            alert("Nie udało się zmienić danych karty.");
+        }
     };
 
     /**
@@ -533,6 +571,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         return (
             <div className="profile-info-component panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: 'calc(100% - 20px)', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
+
                 <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
                     <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
                     <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
