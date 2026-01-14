@@ -3,32 +3,30 @@
  * @author Dawid Filipek
  * */
 import './Collapsible.css'
-import {type ReactNode, useState} from "react";
+import React, {type ReactNode, useState} from "react";
 
-/**
- * @typedef {object} CollapsibleProps
- * @property {ReactNode} children - Zawartość, która ma być zwijana i rozwijana.
- * @property {string} header - Tekst nagłówka widoczny, gdy element jest zwinięty.
- */
 /**
  * Komponent Collapsible
  * * Chowa swoją zawartość, pozostawiając jedynie pasek z nagłówkiem. 
  * Zawartość jest ujawniana po kliknięciu nagłówka.
  * Obok nagłówka znajduje się strzałka, która zmienia się z '>' (zwinięty) na 'v' (rozwinięty).
  *
- * @param {CollapsibleProps} props - Właściwości komponentu.
+ * @param props - Właściwości komponentu.
+ * @param {ReactNode} props.children - Zawartość, która ma być zwijana i rozwijana.
+ * @param {string} props.header - Tekst nagłówka widoczny, gdy element jest zwinięty.
  * @returns {JSX.Element} - Zwraca renderowany komponent React.
+ *
  */
 
-function Collapsible({children, header}: {children:ReactNode, header: string}){
+function Collapsible({children, header}: {children:ReactNode, header: string}): React.JSX.Element{
     /**
      * Stan określający, czy sekcja jest zwinięta (true) czy rozwinięta (false).
      * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
      */
-    let [isCollapsed, setIsCollapsed] = useState(true)
+    let [isCollapsed, setIsCollapsed]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true)
 
     /**
-     * Funkcja przełączająca stan zwinięcia/rozwinięcia komponentu.
+     * @event toggleCollapse Funkcja przełączająca stan zwinięcia/rozwinięcia komponentu.
      * Wywoływana po kliknięciu nagłówka.
      */
     const toggleCollapse = () => {

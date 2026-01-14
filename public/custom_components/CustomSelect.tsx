@@ -1,15 +1,13 @@
 /**
- * @file CustomSelect.tsx
- * @description Implementacja niestandardowego komponentu wyboru (Select)
+ * @file Implementacja niestandardowego komponentu wyboru (Select)
  * @author Karol Dziuba
  */
 
 import React, { Component, createRef } from 'react';
 import { createPortal } from 'react-dom';
 import type IFormComponent from "./IFormComponent.tsx";
+import searchIcon from 'src/assets/search.svg'
 import './CustomSelect.css';
-import '../../src/input.css';
-import '../../src/style.css';
 
 /**
  * Komponent prezentacyjny wyświetlający ikonę wyszukiwania (lupę).
@@ -27,7 +25,7 @@ import '../../src/style.css';
 
 const SearchIcon = ({ className = "" }: { className?: string }) => (
     <img
-        src="src/assets/search.svg"
+        src={searchIcon}
         alt=""
         className={className}
         style={{ filter: 'invert(19%) sepia(43%) saturate(3686%) hue-rotate(314deg) brightness(91%) contrast(98%)' }}
@@ -80,7 +78,7 @@ const SelectContext = React.createContext<SelectContextType | undefined>(undefin
  * @property children - Wyświetlana etykieta lub element
  * @property className - Dodatkowa klasa CSS
  * @property index - Indeks elementu
- * @property onClick - opcjonalna funkcja wywołania po kliknięciu w opcje.
+ * @property onClick - opcjonalna funkcja wywołania po kliknięciu opcji.
  */
 
 export interface CustomOptionProps {
@@ -104,14 +102,15 @@ export interface CustomOptionProps {
 
 /**
  * Typ właściwości dla głównego komponentu Select
+ * @property [children] - Opcje do wyboru komponentu typu CustomOption
  * @property label - Etykieta przycisku otwierającego listę
- * @property allow_multiple - Czy pozwala na wybór wielu opcji (domyślnie false)
- * @property searchable - Czy lista ma pole wyszukiwania
- * @property onChange - Callback wywoływany przy zmianie wyboru
- * @property initialValues - Wartości początkowe
- * @property className - Dodatkowa klasa CSS
- * @property allowCustomRange - Czy wyświetlić panel zakresu dat zamiast listy opcji
- * @property menu_mode - Tryb, w którym nie pokazuje się wybrana opcja na dole przycisku.
+ * @property [allow_multiple] - Czy pozwala na wybór wielu opcji (domyślnie false)
+ * @property [searchable] - Czy lista ma pole wyszukiwania
+ * @property [onChange] - Callback wywoływany przy zmianie wyboru
+ * @property [initialValues] - Wartości początkowe
+ * @property [className] - Dodatkowa klasa CSS
+ * @property [allowCustomRange] - Czy wyświetlić panel zakresu dat zamiast listy opcji
+ * @property [menu_mode] - Tryb, w którym nie pokazuje się wybrana opcja na dole przycisku.
  * @property filterKey - Jak nazwać filtr w zapytaniu do serwera.
  */
 
@@ -278,8 +277,8 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
      * 3. **Pozycjonowanie i Focus:** Przelicza pozycję dropdownu oraz ustawia focus na polu wyszukiwania po otwarciu.
      * 4. **Czyszczenie:** Resetuje frazę wyszukiwania po zamknięciu listy.
      *
-     * @param prevProps - Właściwości komponentu przed aktualizacją.
-     * @param prevState - Stan komponentu przed aktualizacją.
+     * @param {CustomSelectProps} prevProps - Właściwości komponentu przed aktualizacją.
+     * @param {CustomSelectState} prevState - Stan komponentu przed aktualizacją.
      */
 
     componentDidUpdate(prevProps: CustomSelectProps, prevState: CustomSelectState) {
@@ -572,7 +571,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
      * @returns {React.ReactNode} Elementy JSX (input, lista opcji lub komunikaty) gotowe do wstawienia do portalu.
      */
 
-    private renderContent() {
+    private renderContent(): React.ReactNode {
         const { children, searchable, allowCustomRange } = this.props;
         const { searchQuery } = this.state;
 
