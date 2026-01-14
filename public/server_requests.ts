@@ -2,6 +2,10 @@
  * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
  * */
 
+import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "./fake_catalog_data.ts";
+import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data.ts";
+import { SAMPLE_USERS } from "./fake_users_data.ts";
+
 import type {
     Book,
     BookAdmin,
@@ -10,7 +14,9 @@ import type {
     BookUser,
     CreditCardInfo,
     Session,
-    User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo
+    User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
+    PagedResponse,
+    UsersListResponse,
 } from "./server_types.ts";
 
 /**
@@ -70,6 +76,7 @@ export class TargetNotFoundError extends RequestError{
     }
 
 }
+
 // Login page requests
 /**
  * Wysyła zapytanie w celu weryfikacji logowania użytkownika
@@ -112,7 +119,7 @@ export function loginRequest(email: string, password: string): Session{
 
 }
 
-export function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): void{
+export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
     const existingEmails = ["admin@test.com", "user@test.com"];
     if (existingEmails.includes(email)) {
         throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
@@ -126,90 +133,341 @@ export function registerRequest(name:string, surname:string, email:string, passw
         card_info
     });
 }
-export function resetPasswordRequest(email: string): void{
+export async function resetPasswordRequest(email: string): Promise<void>{
     throw Error("Not implemented exception")
 }
 
 // ProfileView
-export function fetchUserInfoRequest(): User{
+export async function fetchUserInfoRequest(): Promise<User>{
     throw Error("Not implemented exception")
 }
 
-export function changeClientDataRequest(name: string, surname: string): void{
+export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): void{
-    throw Error("Not implemented exception")
-}
-
-export function changeClientPasswordRequest(old_password: string, new_password: string): void{
+export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-export function cancelReservationRequest(reservation_id: number): void{
-    throw Error("Not implemented exception")
-}
-export function claimReservationRequest(reservation_id: number): void{
+export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-export function extendRentRequest(rent_id: number): void{
+export async function cancelReservationRequest(reservation_id: number): Promise<void>{
+    throw Error("Not implemented exception")
+}
+export async function claimReservationRequest(reservation_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-export function returnBookRequest(rend_id: number): void{
+export async function extendRentRequest(rent_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 
-
-export function fetchBorrowedBooksRequest(): Book[]{
+export async function returnBookRequest(rend_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 
 
+export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
+    throw Error("Not implemented exception")
+}
+export async function fetchReservedBooksRequest(): Promise<Book[]>{
+    throw Error("Not implemented exception")
+}
 
+// Katalog - Ogólne
+
+export async function fetchAuthorsRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_AUTHORS;
+}
+
+export async function fetchTagsRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_TAGS;
+}
+
+export async function fetchGenresRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_GENRES;
+}
+
+export async function  fetchPublishersRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_PUBLISHERS;
+}
+
+export async function fetchLanguagesRequest(): Promise<string[]>{
+    await wait(randDelay());
+    return SAMPLE_LANGUAGES;
+}
 // Katalog - User
-export function fetchUserCatalogRequest(search_bar: string ,sort?: SearchSort, filter?: BookSearchFilter): BookUser[]{
+export async function fetchUserCatalogRequest(
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
+): Promise<PagedResponse<BookUser>>{
+    await wait(randDelay());
+
+    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
+    results = applySort(results, sort);
+
+    const { items, totalPages } = paginate(results, page, 10);
+    const totalBooks = results.length;
+    const userBooks = (items as BookAdmin[]).map(toBookUser);
+    return { result: userBooks, totalPages, totalResults: totalBooks };
+}
+
+export async function rentBookRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function rentBookRequest(book_id: number): void{
+export async function reserveBookRequest(book_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function reserveBookRequest(book_id: number): void{
-    throw Error("Not implemented exception")
+export const fetchUserBookRequest = async (book_id: number): Promise<BookUser> => {
+    return toBookUser(await fetchAdminBookRequest(book_id));
 }
 // Katalog - Admin
-export function fetchAdminCatalogRequest(search_bar?:string, sort?: SearchSort, filter?: BookSearchFilter): BookAdmin[]{
-    throw Error("Not implemented exception")
+export const fetchAdminCatalogRequest = async (
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
+): Promise<PagedResponse<BookAdmin>> => {
+    await wait(randDelay());
+
+    let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
+    results = applySort(results, sort);
+
+    const { items, totalPages } = paginate(results, page, 10);
+    const totalBooks = results.length;
+    return { result: items as BookAdmin[], totalPages, totalResults: totalBooks };
+};
+export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
+    const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
+    if (!bookAdmin) { throw `Nie znaleziono książki o book_id = ${book_id}` }
+    return bookAdmin;
 }
 
-export function editBookRequest(data: Book): void{
+export async function editBookRequest(book:Book){
+    const r = await fetch("/api/book/update", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(book)
+    })
+    if (!r.ok) throw Error()
+}
+export async function removeBookRequest(book_id: number): Promise<void> {
+    const index = SAMPLE_BOOKS.findIndex(book => book.book_id === book_id);
+
+    if (index !== -1) {
+        SAMPLE_BOOKS.splice(index, 1);
+    }
+}
+export async function removeBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function removeBookRequest(book_id: number): void{
+export async function markDamagedBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function removeBookInstanceRequest(instance_id: number):void{
+export async function markMendedBookInstanceRequest(instance_id: number): Promise<void>{
     throw Error("Not implemented exception")
 }
-export function markDamegedBookInstanceRequest(instance_id: number): void{
-    throw Error("Not implemented exception")
-}
-export function markMendedBookInstanceRequest(instance_id: number): void{
-    throw Error("Not implemented exception")
-}
-export function addBookInstanceRequest(book_id: number): void{
-    throw Error("Not implemented exception")
+let mockInstanceCounter = 1;
+export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
+    if (USE_MOCK) {
+        const fakeId = mockInstanceCounter++;
+        console.log("MOCK addBookInstanceRequest:", book_id, "->", fakeId);
+
+        return {
+            instance_id: fakeId
+        };
+    }
+    const r = await fetch("/api/book-instance/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ book_id })
+    });
+
+    if (!r.ok) throw Error();
+    return await r.json();
 }
 // Users
-export function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): UserInfo[]{
-    throw Error("Not implemented exception")
+
+export async function fetchUserListRequest(
+    search_bar?: string,
+    sort?: SearchSort,
+    filter?: UserListSearchFilter,
+    page: number = 1
+): Promise<PagedResponse<UserInfo>> {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const PAGE_SIZE = 5;
+
+        // Pobieramy książki do mockowania danych
+        const generatedUsers: UserInfo[] = SAMPLE_USERS
+
+        // --- FILTROWANIE I SORTOWANIE ---
+        let filtered = [...generatedUsers];
+
+        if (filter?.status && filter.status.length > 0) {
+            filtered = filtered.filter(u => filter.status?.includes(u.status));
+        }
+
+        if (search_bar && search_bar !== "") {
+            const query = search_bar.toLocaleLowerCase();
+            filtered = filtered.filter(u =>
+                (u.name + " " + u.surname).toLocaleLowerCase().includes(query) ||
+                u.email.toLocaleLowerCase().includes(query)
+            );
+        }
+
+        if (sort) {
+            filtered.sort((a, b) => {
+                const dir = sort.direction === 'ASC' ? 1 : -1;
+                if (sort.key === 'surname') return a.surname.localeCompare(b.surname) * dir;
+                if (sort.key === 'name') return a.name.localeCompare(b.name) * dir;
+                return 0;
+            });
+        }
+
+        // --- LOGIKA PAGINACJI I ODPOWIEDZI ---
+        const totalUsers = filtered.length;
+        const totalPages = Math.ceil(totalUsers / PAGE_SIZE);
+
+        // Zabezpieczenie przed stroną poza zakresem
+        const safePage = Math.max(1, Math.min(page, totalPages || 1));
+        const startIndex = (safePage - 1) * PAGE_SIZE;
+        const paginatedUsers = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+
+        return {
+            result: paginatedUsers,
+            totalPages: totalPages,
+            totalResults: totalUsers
+        };
+    } else {
+        throw Error("Not implemented exception");
+    }
 }
+
+export async function removeUserRequest(user_id: number) {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się usunąć użytkownika.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
+}
+export async function blockUserRequest(user_id: number) {
+    if (USE_MOCK) {
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się zablokować użytkownika. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
+}
+export async function unblockUserRequest(user_id: number) {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się odblokować użytkownika. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
+}
+export async function addAdminRequest(admin_info: User): Promise<void> {
+    if (USE_MOCK) {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        if (Math.random() > 0.5) {
+            throw new Error("Nie udało się dodać nowego bibliotekarza. Błąd połączenia lub brak uprawnień.");
+        } else {
+            return;
+        }
+    } else {
+        throw Error("Not implemented exception");
+    }
+}
+
 // Add Book View
-export function addBookRequest(data: Book): void{
-    throw Error("Not implemented exception")
+const USE_MOCK = true;
+export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
+    if (USE_MOCK) {
+        return { book_id: Date.now() };
+    }
+    const r = await fetch("/api/book/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(book)
+    });
+
+    if (!r.ok) throw Error();
+
+    return await r.json();
 }
-// Rent log
-export function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): RentFullInfo{
-    throw Error("Not implemented exception")
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter, page: number = 1): Promise<PagedResponse<RentFullInfo>>{
+    if(!USE_MOCK)
+        throw Error("Not implemented exception");
+    const book:Book = {
+        title: "Ogniem i mieczem",
+        authors: ['Henryk Sienkiewicz', "Andrzej Duda"],
+        publish_year: 1985,
+        isbn_number: "978-83-7583-610-3",
+        length: 835,
+        language: "Polski",
+        publisher: "Nasza księgarnia",
+        keywords: ["Nudne", "Test", "Smoki"],
+        genre: ["Fantazy", "Sci-Fi"]
+    }
+    const RENTLOGS_PER_PAGE = 3
+    const book_list = [{
+        user: {name: 'Andrzej', surname: 'Kowalski', email: 'pływać@gmail.com'},
+        book: book,
+        borrow_date: new Date('12.20.2025'),
+        return_date: new Date('01.10.2026'),
+        return_to_date:  new Date('01.8.2026')
+    },
+        {
+            user: {name: 'Anna', surname: 'Grabowska', email: 'konno@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date('01.8.2026')
+        },
+        {
+            user: {name: 'Maja', surname: 'Poznańska', email: 'metrem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: new Date('01.08.2026'),
+            return_to_date: new Date(Date.now()+2*24*60*10000)
+        },
+        {
+            user: {name: 'Marian', surname: 'Gruziński', email: 'pojazdem@gmail.com'},
+            book: book,
+            borrow_date: new Date('12.20.2025'),
+            return_date: null,
+            return_to_date:  new Date(Date.now()+2*24*60*10000)
+        }
+    ]
+    let result = page == 1 ? [book_list[0], book_list[1], book_list[2]] : [book_list[3], book_list[4]]
+
+    return {
+        result: book_list, totalPages: 2, totalResults: 5
+
+    }
 }
+

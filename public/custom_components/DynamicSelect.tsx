@@ -1,48 +1,369 @@
-/*
-* plik w design: add_book.html
-* przykład w design: http://kocham-sggw.ct.ws/biblioteka/Employee/add_book.html Tagi to <DynamicSelectDisplay> a Wydawca to <DynamicSelect> (ma wyglądać jednak działać trochę inaczej)
-* funkcjonalność:
-*   komponent umożliwia wybrania z listy, opcji na górze znajduje się search bar, który w miarę możliwości podpowiada,
-*   jednak gdy nie ma już żadnych dostępnych opcji, dostarcza nową opcję "dodaj [spisany przez użytkownika tekst]" po jej dodaniu tag dodaje się
-*   do listy. Komponent może ograniczać, wybór do jednej wyboru lub umożliwić wybór wielu
-*
-*   komponent DynamicSelectDisplay to konkretnie wyszukiwarka dla tagów i gatunków, obsługuje dodawanie etykiet wybranych tagów.
-*
-*   Jako argumenty przyjmuje listę tekstów — dotychczasowych tagów czy innych oraz `name` - swoją nazwę
-* */
+/**
+ * Plik implementujący komponent będący alternatywną wersją html'owskiego <select> umożliwiający dynamiczne dodawanie nowych opcji i przeglądanie już istniejących
+ * @author Olimpia Dejko
+ * */
+import React, { Component, createRef } from "react";
+import type IFormComponent from "./IFormComponent";
+import './DynamicSelect.css';
 
-import {Component} from "react";
-import type IFormComponent from "./IFormComponent.tsx";
+interface ChipProps {
+    label: string;
+    onRemove: () => void;
+    isAddButton?: boolean;
+}
 
+/**
+ * Komponent reprezentujący pojedynczą wybraną etykietę (chip) lub przycisk akcji.
+ * @param {ChipProps} props - Właściwości komponentu.
+ * @param {string} props.label - Tekst wyświetlany na chipie.
+ * @param {Function} props.onRemove - Funkcja wywoływana przy usuwaniu lub kliknięciu przycisku.
+ * @param {boolean} [props.isAddButton] - Jeśli true, chip stylizowany jest jako przycisk "Dodaj".
+ */
+const Chip: React.FC<ChipProps> = ({ label, onRemove, isAddButton = false }: ChipProps) => {
+    const className = isAddButton ? "chip add" : "chip";
 
-export default class DynamicSelect extends Component implements IFormComponent<string[]|string>{
-    options: string[]
-    chosen: string[]|string
-    allow_multiple: boolean
+    return (
+        <div
+            className={className}
+            onClick={(e) => {
+                e.preventDefault(); // Kluczowe, by nie odświeżać strony u managera
+                onRemove();
+            }}
+            role="button" // Sugestia dla przeglądarki, że to element klikalny
+            style={{ cursor: 'pointer' }}
+        >
+            {label}
+            {!isAddButton && <span className="chip-close">x</span>}
+        </div>
+    );
+};
 
-    constructor({children, allow_multiple}: { children?: string[], allow_multiple?: boolean }) {
-        super({})
-        this.options = children != undefined ? children : []
-        this.allow_multiple = allow_multiple != undefined ? allow_multiple : true // default true
-        this.chosen = []
+/**
+ *Interfejs definiujący właściwości komponentu DynamicSelect.
+ * @interface DynamicSelectProps
+ * @property {string} label - Napis wyświetlany nad polem.
+ * @property {string} id - Identyfikator dla inputu i labela.
+ * @property {string[]} [children] - Tablica stringów stanowiąca listę opcji do wyboru.
+ * @property {boolean} [allow_multiple] - Jeśli true, można wybrać wiele tagów.
+ * @property {string} [placeholder] - Tekst wyświetlany, gdy pole jest puste.
+ * @property {string[] | string} [default_value] - Początkowo wybrane elementy.
+ */
+interface DynamicSelectProps {
+    label: string;
+    id: string;
+    children?: string[];
+    allow_multiple?: boolean;
+    placeholder?: string;
+    default_value?: string[] | string;
+}
+/**
+ * Interfejs definiujący stan wewnętrzny komponentu DynamicSelect.
+ * @interface DynamicSelectState
+ * @property {string} searchTerm - Aktualnie wpisana fraza w polu wyszukiwania.
+ * @property {boolean} isDropdownOpen - Czy lista z podpowiedziami jest widoczna.
+ * @property {string[]} selectedItems - Lista wybranych elementów (tylko dla allow_multiple=true).
+ * @property {string} selectedValue - Wybrana pojedyncza wartość (tylko dla allow_multiple=false).
+ */
+interface DynamicSelectState {
+    searchTerm: string;
+    isDropdownOpen: boolean;
+    selectedItems: string[];
+    selectedValue: string;
+}
+
+/**
+ * Dynamiczny komponent wyboru (select) obsługujący wyszukiwanie, 
+ * wybór wielokrotny oraz dodawanie nowych pozycji.
+ * Implementuje interfejs IFormComponent.
+ * @extends {Component<DynamicSelectProps, DynamicSelectState>}
+ * @implements {IFormComponent<string[] | string>}
+ */
+export default class DynamicSelect
+    extends Component<DynamicSelectProps, DynamicSelectState>
+    implements IFormComponent<string[] | string> {
+
+    /**
+ * Referencja do głównego kontenera komponentu.
+ * Wykorzystywana do wykrywania kliknięć poza komponentem
+ * w celu zamknięcia listy rozwijanej (dropdown).
+ */
+    private containerRef = createRef<HTMLDivElement>();
+    private inputRef = createRef<HTMLInputElement>();
+
+    /**
+ * Tworzy nową instancję komponentu DynamicSelect.
+ * Inicjalizuje stan na podstawie przekazanych propsów,
+ * w tym wartości domyślnych oraz trybu single/multi select.
+ * 
+ * @param {DynamicSelectProps} props - Właściwości przekazane do komponentu.
+ */
+    constructor(props: DynamicSelectProps) {
+        super(props);
+
+        const isMultiple = props.allow_multiple ?? true;
+        const defaultValue = props.default_value;
+
+        const initialItems = isMultiple
+            ? (Array.isArray(defaultValue) ? defaultValue : (props.children || []))
+            : (typeof defaultValue === "string" ? defaultValue : "");
+
+        this.state = {
+            searchTerm: "",
+            isDropdownOpen: false,
+            selectedItems: isMultiple && Array.isArray(initialItems) ? initialItems : [],
+            selectedValue: !isMultiple && typeof initialItems === "string" ? initialItems : ""
+        };
     }
 
+    /**
+     * Zwraca aktualnie wybrane wartości z komponentu.
+     * @returns {string[] | string} - Jeśli `allow_multiple` = true, zwraca tablicę wybranych elementów,
+     *                                 w przeciwnym wypadku pojedynczą wartość.
+     */
+    getValue(): string[] | string {
+        return this.props.allow_multiple
+            ? this.state.selectedItems
+            : this.state.selectedValue;
+    }
+
+    /**
+     * Rejestruje globalny nasłuch zdarzeń kliknięcia myszą,
+     * aby móc zamykać dropdown po kliknięciu poza komponentem.
+     */
+    componentDidMount() {
+        document.addEventListener("mousedown", this.handleClickOutside);
+    }
+
+    /**
+     * Synchronizuje lokalny stan komponentu z nowymi propsami.
+     * Reaguje na zmianę `default_value`, co pozwala na ustawienie wartości 
+     * domyślnej nawet po zamontowaniu komponentu.
+     * @param {DynamicSelectProps} prevProps - Poprzednie właściwości komponentu.
+     */
+    componentDidUpdate(prevProps: DynamicSelectProps) {
+        if (prevProps.default_value !== this.props.default_value) {
+            const isMultiple = this.props.allow_multiple ?? true;
+            const val = this.props.default_value;
+
+            if (isMultiple && Array.isArray(val)) {
+                this.setState({ selectedItems: val });
+            } else if (!isMultiple && typeof val === "string") {
+                this.setState({
+                    selectedValue: val,
+                    searchTerm: val
+                });
+            }
+        }
+    }
+
+    /**
+     * Usuwa globalny nasłuch zdarzeń kliknięcia myszą przy odmontowaniu komponentu.
+     */
+    componentWillUnmount() {
+        document.removeEventListener("mousedown", this.handleClickOutside);
+    }
+    /**
+     * Obsługuje kliknięcia poza komponentem, aby zamknąć listę rozwijaną.
+     * @param {MouseEvent} event - Obiekt zdarzenia myszy.
+     */
+    handleClickOutside = (event: MouseEvent) => {
+        if (
+            this.containerRef.current &&
+            !this.containerRef.current.contains(event.target as Node)
+        ) {
+            this.setState({
+                isDropdownOpen: false,
+                searchTerm: this.props.allow_multiple
+                    ? ""
+                    : this.state.selectedValue
+            });
+        }
+    };
+    /**
+     * Zwraca opcje pasujące do wpisanego terminu wyszukiwania.
+     * W przypadku wyboru wielokrotnego filtruje już wybrane elementy.
+     * @returns {string[]} - Lista pasujących opcji.
+     */
+    getFilteredOptions(): string[] {
+        const { children = [], allow_multiple } = this.props;
+        const { searchTerm, selectedValue } = this.state;
+        const normalized = searchTerm.toLowerCase().trim();
+        const isActuallySearching = !(!allow_multiple && searchTerm === selectedValue);
+
+        if (!isActuallySearching && !allow_multiple) {
+            return children;
+        }
+
+        return children.filter(opt =>
+            opt.toLowerCase().includes(normalized) &&
+            (allow_multiple ? !this.state.selectedItems.includes(opt) : true)
+        );
+    }
+    /**
+     * Dodaje wybraną opcję do zaznaczonych elementów.
+     * @param {string} item - Wybrana opcja.
+     */
+    handleSelect = (item: string) => {
+        if (this.props.allow_multiple) {
+            this.setState(prev => ({
+                selectedItems: [...prev.selectedItems, item],
+                searchTerm: "",
+                isDropdownOpen: false
+            }));
+        } else {
+            this.setState({
+                selectedValue: item,
+                searchTerm: item,
+                isDropdownOpen: false
+            });
+            if (this.inputRef.current) {
+                this.inputRef.current.blur();
+            }
+        }
+    };
+    /**
+ * Dodaje nową opcję wpisaną w polu wyszukiwania, jeśli nie jest pusta.
+ * @param {React.MouseEvent | React.KeyboardEvent} [e] - Opcjonalne zdarzenie wywołujące dodanie (np. kliknięcie lub Enter).
+ */
+    handleAddNew = (e?: React.MouseEvent | React.KeyboardEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        const term = this.state.searchTerm.trim();
+        if (!term) return;
+
+        if (this.props.allow_multiple) {
+            this.setState(prev => ({
+                selectedItems: [...prev.selectedItems, term],
+                searchTerm: "",
+                isDropdownOpen: false
+            }));
+        } else {
+            this.setState({
+                selectedValue: term,
+                searchTerm: term,
+                isDropdownOpen: false
+            });
+            if (this.inputRef.current) {
+                this.inputRef.current.blur();
+            }
+        }
+    };
+
+    /**
+     * Usuwa wybrany element z listy zaznaczonych elementów.
+     * @param {string} item - Element do usunięcia.
+     */
+    handleRemoveChip = (item: string) => {
+        this.setState(prev => ({
+            selectedItems: prev.selectedItems.filter(i => i !== item)
+        }));
+    };
+    /**
+     * Renderuje komponent DynamicSelect wraz z:
+     * - inputem wyszukiwania,
+     * - listą wybranych elementów (chips),
+     * - dropdownem z pasującymi opcjami i możliwością dodania nowej opcji.
+     * @returns {JSX.Element} - Renderowany element React.
+     */
     render() {
-        return <>
-            <select>
-                <option></option>
-            </select>
-        </>
+        const { label, id, allow_multiple = true, placeholder } = this.props;
+        const { searchTerm, isDropdownOpen, selectedItems, selectedValue } = this.state;
+
+        let finalPlaceholder = placeholder;
+        if (!finalPlaceholder) {
+            const labelLower = label.toLowerCase();
+            if (labelLower.includes('tag')) finalPlaceholder = "Wybierz lub wpisz nowy tag";
+            else if (labelLower.includes('autor')) finalPlaceholder = "Wybierz lub wpisz nowego autora";
+            else if (labelLower.includes('wydawca')) finalPlaceholder = "Wybierz lub wpisz nowego wydawcę";
+            else if (labelLower.includes('język')) finalPlaceholder = "Wybierz lub wpisz nowy język";
+            else if (labelLower.includes('gatunek')) finalPlaceholder = "Wybierz lub wpisz nowy gatunek";
+            else finalPlaceholder = allow_multiple ? "Wybierz opcje..." : "Wybierz...";
+        }
+
+        const filtered = this.getFilteredOptions();
+        const isNewOption =
+            searchTerm.trim() !== "" &&
+            !this.props.children?.map(c => c.toLowerCase()).includes(searchTerm.toLowerCase());
+
+        return (
+            <div className="ds-wrapper">
+                <div className="form-group" ref={this.containerRef}>
+                    <label htmlFor={id}>{label}:</label>
+
+                    <div className={allow_multiple ? "multi-select-container" : "single-select-container"}>
+                        {allow_multiple &&
+                            selectedItems.map(item => (
+                                <Chip
+                                    key={item}
+                                    label={item}
+                                    onRemove={() => this.handleRemoveChip(item)}
+                                />
+                            ))}
+
+                        <div className="input-wrapper" style={{ position: "relative", flex: 1 }}>
+                            <input
+                                type="text"
+                                id={id}
+                                ref={this.inputRef}
+                                autoComplete="off"
+                                className={allow_multiple ? "multi-input" : "single-input"}
+                                placeholder={finalPlaceholder}
+                                value={searchTerm}
+                                onClick={() => this.setState({ isDropdownOpen: true })}
+                                onChange={(e) =>
+                                    this.setState({
+                                        searchTerm: e.target.value,
+                                        isDropdownOpen: true
+                                    })
+                                }
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        if (isNewOption) this.handleAddNew(e);
+                                        else if (filtered.length > 0) this.handleSelect(filtered[0]);
+                                    }
+                                }}
+                            />
+
+                            {isDropdownOpen && (filtered.length > 0 || isNewOption) && (
+                                <div className="ds-dropdown-results">
+                                    {isNewOption && (
+                                        <div
+                                            className="ds-dropdown-item"
+                                            style={{ fontWeight: "bold" }}
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                this.handleAddNew(e);
+                                            }}
+                                        >
+                                            Dodaj: "{searchTerm}"
+                                        </div>
+                                    )}
+
+                                    {filtered.map(option => (
+                                        <div
+                                            key={option}
+                                            className={`ds-dropdown-item ${!allow_multiple && option === selectedValue ? 'selected' : ''}`}
+                                            onClick={() => this.handleSelect(option)}
+                                        >
+                                            {option}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {allow_multiple && (
+                            <Chip label="Dodaj" onRemove={this.handleAddNew} isAddButton />
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
     }
-    getValue():string[]|string{
-        return ''
-    }
+
 }
 
-export function DynamicSelectDisplay (){
-    return <div>
-        <DynamicSelect>
-
-        </DynamicSelect>
-    </div>
-}

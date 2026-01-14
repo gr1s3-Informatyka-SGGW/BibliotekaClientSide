@@ -1,0 +1,113 @@
+.qr-popup-content-wrapper.multi {
+    width: 600px; 
+    min-width: 600px;
+    padding: 0 10px;
+}
+
+.qr-popup-content-wrapper.single {
+    width: 400px;
+    text-align: center;
+}
+
+.qr-scroll-container {
+    max-height: 450px;
+    overflow-y: auto;
+    padding: 10px 20px;
+}
+
+.qr-instance-fieldset {
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    padding: 15px 30px;
+    display: block;
+}
+
+.qr-instance-legend {
+    color: #801d41;
+    font-weight: 700;
+    padding: 0 15px;
+    font-size: 20px;
+}
+
+.qr-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.qr-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-pill-bordowy {
+    background-color: #801d41;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 25px;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 120px;
+    transition: opacity 0.2s;
+}
+
+.btn-pill-outline {
+    background-color: white;
+    color: #801d41;
+    border: 1px solid #801d41;
+    border-radius: 20px;
+    padding: 10px 25px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.qr-popup-content-wrapper.single {
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+.single .qr-item-row {
+    justify-content: center; 
+    width: 100%;
+}
+
+.single .qr-code-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.qr-id-text {
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+}
+
+.qr-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.qr-popup-footer.centered {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    gap: 15px;              
+    padding: 20px;
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.qr-popup-footer.centered button {
+    min-width: 140px;
+}

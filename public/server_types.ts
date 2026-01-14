@@ -28,7 +28,7 @@ export interface Session{
  * @prop {string[]} genre
  * */
 export interface Book{
-    book_id?: string;
+    book_id?: number;
     title: string;
     authors: string[];
 
@@ -116,6 +116,15 @@ export interface CreditCardInfo{
     cvv: string
 }
 /**
+ * @type SearchSort
+ * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
+ * @prop {'DESC'|'ASC'} direction - czy sortowanie będzie się odbywać rosnąco (ASC) czy malejąco (DESC)
+ * */
+export interface SearchSort{
+    key: string
+    direction: 'DESC'|'ASC'
+}
+/**
  * @interface IFilter - jest implementowany przez wszystkie typy filtrowania aplikacji co ułatwia generalizacje filtrowania
  * */
 export interface IFilter{
@@ -161,13 +170,50 @@ export interface UserListSearchFilter extends IFilter{
     status?: ('user'|'admin'|'blocked')[]
 }
 /**
- * @type SearchSort
- * @prop {string} key - po którym atrybucie będzie dokonywane sortowanie
- * @prop {'DESC'|'ASC'} direction - czy sortowanie będzie się odbywać rosnąco (ASC) czy malejąco (DESC)
+ * @type PagedResponse - generyczny interfejs odpowiedzi serwera dla zapytań zwracających odpowiedź podzieloną na strony, aby uniknąć przesyłania niepotrzebnych danych
+ * @template T Typ stronicowanej treści
+ * @prop {T[]} result - lista obiektów książek zwrócona dla bieżącej strony
+ * @prop {number} totalPages - całkowita liczba stron dostępnych dla wybranych kryteriów wyszukiwania
+ * @prop {number} totalResults - łączna liczba wszystkich obiektów w bazie danych spełniających nałożone filtry
  * */
-export interface SearchSort{
-    key: string
-    direction: 'DESC'|'ASC'
+export interface PagedResponse<T > {
+    result: T[];
+    totalPages: number;
+    totalResults: number;
+}
+
+/**
+ * @interface UsersListResponse - Struktura odpowiedzi dla listy użytkowników
+ * @prop {UserInfo[]} users - Lista użytkowników dla bieżącej strony
+ * @prop {number} totalPages - Całkowita liczba stron wyników
+ * @prop {number} totalUsers - Łączna liczba użytkowników spełniających filtry
+ */
+export interface UsersListResponse {
+    users: UserInfo[];
+    totalPages: number;
+    totalUsers: number;
+}
+
+/**
+ * @interface UsersListResponse - Struktura odpowiedzi dla listy użytkowników
+ * @prop {UserInfo[]} users - Lista użytkowników dla bieżącej strony
+ * @prop {number} totalPages - Całkowita liczba stron wyników
+ * @prop {number} totalUsers - Łączna liczba użytkowników spełniających filtry
+ */
+export interface UsersListResponse {
+    users: UserInfo[];
+    totalPages: number;
+    totalUsers: number;
+}
+
+/**
+ * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
+ * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * */
+export interface RentLogSearchFilter extends IFilter{
+    states?: 'active'|'returned'|'un-payed'
+    isOverdue?: boolean
 }
 
 
@@ -181,6 +227,7 @@ export interface SearchSort{
  * @prop {Reservation[]} currently_reserved - lista historii rezerwacji użytkownika
  * */
 export interface UserInfo{
+    user_id?: number;
     name: string
     surname: string
     email: string
@@ -191,15 +238,17 @@ export interface UserInfo{
 
 
 /**
- * @type RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
+ * @interface RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
  * @param {User} user - użytkownik, który wypożyczył książkę
  * @param {Book} book - wypożyczona książka
  * @param {Date} borrow_date - data wypożyczenia
- * @param {Date} return_date - data zwrotu
+ * @param {Date|null} return_date - data w której użytkownik dokonał zwrotu. null, gdy jeszcze nie dokonano zwrotu.
+ * @param {Date} return_to_date - data, do której musi zostać dokonany zwrot, aby nie zostały naliczone opłaty
  * */
 export interface RentFullInfo{
     user:User
     book: Book
     borrow_date: Date
-    return_date: Date
+    return_date: Date| null
+    return_to_date: Date
 }

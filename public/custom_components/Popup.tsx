@@ -78,11 +78,9 @@ export default function Popup({ title, icon, children, isOpen,  setIsOpen, onClo
      * @returns void
      * */
     const handleEscape: React.KeyboardEventHandler<HTMLDivElement> = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        console.log(event);
         if (event.key === 'Escape'){
             setIsOpen(false)
-            if(onClose)
-                onClose();
+            if(onClose) onClose();
         }
     };
 

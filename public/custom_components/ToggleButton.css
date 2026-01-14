@@ -1,0 +1,43 @@
+.toggle-btn {
+    font-size: 90%;
+    display: inline-flex;
+    width: fit-content;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0.2em 1.0em;
+    min-height: 2.0em;
+    border-radius: 100em;
+    background-color: #ffe8ef;
+    color: #891e49;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: none;
+    user-select: none;
+    gap: 0;
+    box-shadow: none;
+    height: auto;
+}
+
+.toggle-btn:hover,
+.toggle-btn:focus {
+    background-color: #ebc3cf;
+    outline: none;
+    border-color: transparent;
+    color: #891e49;
+}
+
+.toggle-btn.active {
+    color: #ffe8ef;
+    background-color: #891e49;
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.toggle-btn.active:hover,
+.toggle-btn.active:focus {
+    background-color: #6b1737;
+    color: #ffe8ef;
+}

@@ -73,10 +73,23 @@
   color: #2e7d32;
 }
 
-.status-busy {
-  color: #c62828;
+.status-rented {
+  color: #cc441b;
 }
 
-.status-destroyed {
-  color: #c62828;
+.status-reserved {
+  color: #e08700;
+}
+
+.status-damaged {
+  color: #d11313;
+}
+
+.librarian-actions .custom-select-trigger {
+  background-color: #891e49;
+  color: white;
+}
+
+.librarian-actions .custom-select-trigger:hover {
+  background-color: #6b1737;
 }
