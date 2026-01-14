@@ -9,6 +9,7 @@ import accountCircleIcon from '../assets/account_circle.svg';
 import Popup from "../../public/custom_components/Popup.tsx";
 import { validators } from '../../public/validators.ts';
 import CustomTooltip from '../../public/custom_components/CustomTooltip.tsx';
+import {changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest} from "../../public/server_requests.ts";
 
 /**
  * Interfejs opisujący strukturę danych formularza edycji profilu.
@@ -135,11 +136,9 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
     };
 
     /**
-     * Renderuje sekcję formularza edycji danych ogólnych użytkownika
-     * lub widok podglądu, w zależności od trybu edycji (this.editMode).
-     * @returns {React.ReactNode} Elementy JSX sekcji danych ogólnych.
+     * Zmianie san obiektu umożliwiając edycje lub jej zakończenie z edycją danych
      */
-    changeGeneralInfo()/*: React.ReactNode*/ {
+    changeGeneralInfo(): void{
         if (this.state.editMode) {
             this.setState({
                 editMode: false,
@@ -343,7 +342,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
      */
     changeCardInfo(): React.ReactNode {
         const { cardData, formErrors } = this.state;
-        const mainColor = ProfileInfoPanel.mainColor;
 
         return (
             <Popup
@@ -534,90 +532,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
         const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center' };
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         return (
-            <div className="panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: 'calc(100% - 20px)', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
-                <style>{`  
-                input:not(:placeholder-shown):invalid { 
-                outline: 2px solid #d32f2f !important; 
-                border-color: transparent !important; 
-                background-color: #fff8f8;
-                } 
-                
-                input:placeholder-shown {
-                outline: none !important;
-                background-color: white !important;
-                border: 1px solid #ccc !important;
-                }
-
-                input:valid {
-                    outline: none !important;
-                }    
-                .profile-data-container {
-                    width: 100%;
-                    overflow-x: auto;
-                    overflow-y: hidden;
-                    margin-bottom: 1.5em;
-                    -webkit-overflow-scrolling: touch;
-                    display: flex;
-                    flex-direction: column;
-                    
-                }
-
-                .profile-row { 
-                    display: flex !important;
-                    flex-direction: row !important;
-                    align-items: center !important; 
-                    padding: 0.8em 0 !important;
-                    min-width: max-content; 
-                }
-
-                .profile-label { 
-                    width: 140px !important; 
-                    flex-shrink: 0 !important;
-                    margin-right: 1em;
-                }
-
-                .table-input {
-                    width: 300px !important;
-                    padding: 6px 8px !important;
-                    border: 1px solid #ccc !important;
-                    border-radius: 4px !important;
-                    font-size: 1em !important;
-                    margin: 0 !important;
-                }
-
-                form, .flex-row {
-                    box-shadow: none !important;
-                    border: none !important;
-                    
-                }
-                .profile-data-container {
-                    width: 100%;
-                    overflow-x: auto;
-                    overflow-y: hidden;
-                    margin-bottom: 1.5em;
-                    -webkit-overflow-scrolling: touch;
-                    display: flex;
-                    flex-direction: column;
-                    
-                }
-                .profile-data-container::-webkit-scrollbar { height: 4px; }
-                .profile-data-container::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
-                .profile-row { 
-                    display: flex !important;
-                    padding: 0.3em 0 !important;
-                    min-width: max-content;
-                        
-                }
-                @media (max-width: 480px) {
-                    .responsive-buttons { flex-direction: row !important;  }
-                    .full-width-mobile { width: 100% !important; margin-top: 0.5em !important; margin-right: 9.5em !important;}
-                }
-                .profile-row > div > div {
-                    width: 100%;
-                }   
-                `}</style>
-
-
+            <div className="profile-info-component panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: 'calc(100% - 20px)', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
                 <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
                     <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
                     <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
@@ -704,8 +619,8 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                     )}
                 </div>
 
-                {this.state.isPasswordOpen && this.changePassword()}
-                {this.state.isCardOpen && this.changeCardInfo()}
+                {this.changePassword()}
+                {this.changeCardInfo()}
 
             </div>
         );

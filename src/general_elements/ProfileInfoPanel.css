@@ -1,0 +1,81 @@
+.profile-info-component input:placeholder-shown {
+    outline: none !important;
+    background-color: white !important;
+    border: 1px solid #ccc !important;
+}
+
+.profile-info-component .profile-data-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-bottom: 1.5em;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.profile-info-component .profile-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 0.8em 0 !important;
+    min-width: max-content;
+}
+
+.profile-info-component .profile-label {
+    width: 140px !important;
+    flex-shrink: 0 !important;
+    margin-right: 1em;
+}
+
+.profile-info-component .table-input {
+    width: 300px !important;
+    padding: 6px 8px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    font-size: 1em !important;
+    margin: 0 !important;
+}
+
+.profile-info-component form, .flex-row {
+    box-shadow: none !important;
+    border: none !important;
+
+}
+.profile-info-component .profile-data-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-bottom: 1.5em;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+
+}
+.profile-info-component .profile-data-container::-webkit-scrollbar {
+    height: 4px;
+}
+.profile-info-component .profile-data-container::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 4px;
+}
+.profile-info-component .profile-row {
+    display: flex !important;
+    padding: 0.3em 0 !important;
+    min-width: max-content;
+
+}
+.profile-info-component > .profile-row > div > div {
+    width: 100%;
+}
+@media (max-width: 480px) {
+    .profile-info-component .responsive-buttons {
+        flex-direction: row !important;  }
+    .full-width-mobile {
+        width: 100% !important;
+        margin-top: 0.5em !important;
+        margin-right: 9.5em !important;
+    }
+}
+
