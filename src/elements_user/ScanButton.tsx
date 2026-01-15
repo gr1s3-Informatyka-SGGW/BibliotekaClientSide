@@ -1,6 +1,11 @@
+/**
+ * @file Implementacja komponentu ScanButton, odpowiadającego za obsługę skanowania kodów QR.
+ * @author Karol Jurewicz
+ * */
+
 import { useEffect, useRef, useState } from "react";
-import Popup from "../common/Popup";
-import CustomTooltip from "../common/CustomTooltip";
+import Popup from "../../public/custom_components/Popup.tsx";
+import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 
 declare function jsQR(
   data: Uint8ClampedArray,
@@ -105,7 +110,7 @@ const ScanButton = ({ onScan }: ScanButtonProps) => {
   return (
     <>
       <CustomTooltip
-        text={
+        title={
           isMobile
             ? "Skanuj kod QR"
             : "Skanowanie dostępne tylko na urządzeniach mobilnych"
