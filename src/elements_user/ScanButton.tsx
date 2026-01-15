@@ -1,78 +1,144 @@
-import { useEffect, useState } from "react";
-import Popup from "../../public/custom_components/Popup.tsx";
-import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import { useEffect, useRef, useState } from "react";
+import Popup from "../common/Popup";
+import CustomTooltip from "../common/CustomTooltip";
 
-declare global {
-    interface Window {
-        onQRScanned?: (value: string) => void;
-    }
-}
+declare function jsQR(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number
+): { data: string } | null;
 
 interface ScanButtonProps {
-    onScan?: (value: string) => void;
+  onScan?: (value: string) => void;
 }
 
+/**
+ * Komponent ScanButton
+ *
+ * Wyświetla przycisk skanowania kodu QR.
+ * - Na desktopie przycisk jest zablokowany
+ * - Na mobile otwiera Popup i uruchamia kamerę
+ * - Cała logika skanera jest w tym pliku
+ */
 const ScanButton = ({ onScan }: ScanButtonProps) => {
-    const [isMobile, setIsMobile] = useState(false);
-    const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [open, setOpen] = useState(false);
 
-    useEffect(() => {
-        const mobile =
-            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        setIsMobile(mobile);
-    }, []);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const scanAreaRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        window.onQRScanned = (value: string) => {
-            onScan?.(value);
-            setOpen(false);
-        };
+  const scanningRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
 
-        return () => {
-            window.onQRScanned = undefined;
-        };
-    }, [onScan]);
+  useEffect(() => {
+    setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  }, []);
 
-    const handleClick = () => {
-        if (!isMobile) return;
-        setOpen(true);
+  useEffect(() => {
+    if (!open) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const scanArea = scanAreaRef.current;
+    const ctx = canvas?.getContext("2d");
+
+    if (!video || !canvas || !scanArea || !ctx) return;
+
+    scanningRef.current = true;
+
+    const startCamera = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
+
+      streamRef.current = stream;
+      video.srcObject = stream;
+      await video.play();
+      requestAnimationFrame(tick);
     };
 
-    return (
-        <>
-            <CustomTooltip
-                text={
-                    isMobile
-                        ? "Skanuj kod QR"
-                        : "Skanowanie dostępne tylko na urządzeniach mobilnych"
-                }
-            >
-                <button
-                    type="button"
-                    onClick={handleClick}
-                    disabled={!isMobile}
-                    className="scan-button"
-                    style={{
-                        opacity: isMobile ? 1 : 0.5,
-                        cursor: isMobile ? "pointer" : "not-allowed",
-                    }}
-                >
-                    📷
-                </button>
-            </CustomTooltip>
+    const tick = () => {
+      if (!scanningRef.current) return;
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        requestAnimationFrame(tick);
+        return;
+      }
 
-            {open && (
-                <Popup title="Skanowanie kodu QR" onClose={() => setOpen(false)}>
-                    <video id="video" playsInline />
-                    <canvas id="canvas" style={{ display: "none" }} />
-                    <div id="scan-area" />
-                    <div id="result" />
-                    <button id="start" style={{ display: "none" }} />
-                    <button id="restart" style={{ display: "none" }} />
-                </Popup>
-            )}
-        </>
-    );
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const area = scanArea.getBoundingClientRect();
+      const videoRect = video.getBoundingClientRect();
+
+      const scaleX = canvas.width / videoRect.width;
+      const scaleY = canvas.height / videoRect.height;
+
+      const sx = Math.floor((area.left - videoRect.left) * scaleX);
+      const sy = Math.floor((area.top - videoRect.top) * scaleY);
+      const sw = Math.floor(area.width * scaleX);
+      const sh = Math.floor(area.height * scaleY);
+
+      const imageData = ctx.getImageData(sx, sy, sw, sh);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code) {
+        scanningRef.current = false;
+        onScan?.(code.data);
+        setOpen(false);
+        return;
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    startCamera();
+
+    return () => {
+      scanningRef.current = false;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, [open, onScan]);
+
+  return (
+    <>
+      <CustomTooltip
+        text={
+          isMobile
+            ? "Skanuj kod QR"
+            : "Skanowanie dostępne tylko na urządzeniach mobilnych"
+        }
+      >
+        <button
+          type="button"
+          disabled={!isMobile}
+          onClick={() => isMobile && setOpen(true)}
+          className="scan-button"
+        >
+          📷
+        </button>
+      </CustomTooltip>
+
+      {open && (
+        <Popup>
+          <div style={{ position: "relative" }}>
+            <video ref={videoRef} playsInline style={{ width: "100%" }} />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
+            <div
+              ref={scanAreaRef}
+              style={{
+                position: "absolute",
+                inset: "25%",
+                border: "2px solid red",
+              }}
+            />
+          </div>
+        </Popup>
+      )}
+    </>
+  );
 };
 
 export default ScanButton;
