@@ -1,8 +1,15 @@
+/**
+ * @file Plik obsługujący stronę /profile-user
+ * @author Natalia Bardadyn
+ * */
+
 import React, { useContext } from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
 import { AuthContext } from "../../public/UserAuth.tsx";
+
+import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../../public/server_requests.ts';
 import { type Rent, type Reservation } from '../../public/server_types.ts';
 
 import accountCircleIcon from '../assets/account_circle.svg';

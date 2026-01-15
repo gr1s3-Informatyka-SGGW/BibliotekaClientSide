@@ -1,11 +1,18 @@
+/**
+ * @file Plik obsługujący stronę /profile-admin
+ * @author Natalia Bardadyn
+ * */
+
 import React from 'react';
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import accountCircleIcon from '../assets/account_circle.svg';
+
+import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../../public/server_requests.ts';
 import type { User } from '../../public/server_types.ts';
 
 /**
  * Interfejs definiujący właściwości dla komponentu AdminProfileView.
- * * @interface AdminProfileProps
+ * @interface AdminProfileProps
  * @property {User} adminData - Obiekt zawierający dane administratora do wyświetlenia.
  */
 interface AdminProfileProps {
@@ -15,7 +22,7 @@ interface AdminProfileProps {
 /**
  * Komponent funkcyjny wyświetlający profil administratora.
  * Prezentuje nagłówek z ikoną oraz panel szczegółowych informacji o użytkowniku.
- * * @param {AdminProfileProps} props - Właściwości komponentu.
+ * @param {AdminProfileProps} props - Właściwości komponentu.
  * @returns {JSX.Element} Element JSX reprezentujący widok profilu.
  */
 export default function AdminProfileView({ adminData }: AdminProfileProps) {

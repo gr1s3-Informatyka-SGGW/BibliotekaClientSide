@@ -16,7 +16,7 @@ import type {
     Session,
     User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
     PagedResponse,
-    UsersListResponse,
+    UsersListResponse, Reservation, Rent,
 } from "./server_types.ts";
 
 /**
@@ -154,26 +154,144 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
 }
 
 export async function cancelReservationRequest(reservation_id: number): Promise<void>{
+    await wait(randDelay());
     throw Error("Not implemented exception")
 }
 export async function claimReservationRequest(reservation_id: number): Promise<void>{
+    await wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 export async function extendRentRequest(rent_id: number): Promise<void>{
+    await wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 export async function returnBookRequest(rend_id: number): Promise<void>{
+    await wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 
-export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
-    throw Error("Not implemented exception")
+export async function fetchBorrowedBooksRequest(): Promise<Rent[]>{
+    await wait(randDelay());
+    return [
+        {
+            book: {
+                book_id: 101,
+                title: "Władca Pierścieni: Drużyna Pierścienia",
+                authors: ["J.R.R. Tolkien"],
+                isbn_number: "978-83-7298-953-6",
+                publish_year: 1954,
+                publisher: "George Allen & Unwin",
+                genre: ["Fantasy", "Przygoda"],
+                language: "Polski",
+                length: 423,
+                keywords: ["Pierścień", "Hobbit"]
+            },
+            borrow_date: new Date("2025-01-01"),
+            return_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // teraz + dwa dni
+        },
+        {
+            book: {
+                book_id: 102,
+                title: "Harry Potter i Kamień Filozoficzny",
+                authors: ["J.K. Rowling"],
+                isbn_number: "978-83-7278-162-8",
+                publish_year: 1997,
+                publisher: "Media Rodzina",
+                genre: ["Fantasy"],
+                language: "Polski",
+                length: 320,
+                keywords: ["Magia", "Czarodziej"]
+            },
+            borrow_date: new Date("2025-01-10"),
+            return_date:  new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // teraz - dwa dni
+        },
+        {
+            book: {
+                book_id: 103,
+                title: "Wiedźmin: Ostatnie życzenie",
+                authors: ["Andrzej Sapkowski"],
+                isbn_number: "978-83-7578-845-5",
+                publish_year: 1993,
+                publisher: "superNOWA",
+                genre: ["Fantasy"],
+                language: "Polski",
+                length: 288,
+                keywords: ["Wiedźmin", "Potwory"]
+            },
+            borrow_date: new Date("2025-01-15"),
+            return_date: new Date("2025-02-15")
+        },
+        {
+            book: {
+                book_id: 104,
+                title: "1984",
+                authors: ["George Orwell"],
+                isbn_number: "978-83-7779-483-2",
+                publish_year: 1949,
+                publisher: "Muza",
+                genre: ["Dystopia", "Science Fiction"],
+                language: "Polski",
+                length: 328,
+                keywords: ["Totalitaryzm", "Kontrola"]
+            },
+            borrow_date: new Date("2025-01-20"),
+            return_date: new Date("2025-02-20")
+        }
+    ];
 }
-export async function fetchReservedBooksRequest(): Promise<Book[]>{
-    throw Error("Not implemented exception")
+
+export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
+    await wait(randDelay());
+    return [
+        {
+            book: {
+                book_id: 201,
+                title: "Hobbit, czyli tam i z powrotem",
+                authors: ["J.R.R. Tolkien"],
+                isbn_number: "978-83-244-0308-0",
+                publish_year: 1937,
+                publisher: "SuperNowa",
+                genre: ["Fantasy"],
+                language: "Polski",
+                length: 310,
+                keywords: ["Smok", "Bilbo"]
+            },
+            reserve_to: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+        },
+        {
+            book: {
+                book_id: 202,
+                title: "Solaris",
+                authors: ["Stanisław Lem"],
+                isbn_number: "978-83-08-04803-6",
+                publish_year: 1961,
+                publisher: "Wydawnictwo Literackie",
+                genre: ["Science Fiction"],
+                language: "Polski",
+                length: 204,
+                keywords: ["Kosmos", "Planeta"]
+            },
+            reserve_to: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+        },
+        {
+            book: {
+                book_id: 203,
+                title: "Zbrodnia i kara",
+                authors: ["Fiodor Dostojewski"],
+                isbn_number: "978-83-240-3297-8",
+                publish_year: 1866,
+                publisher: "Znak",
+                genre: ["Klasyka", "Thriller psychologiczny"],
+                language: "Polski",
+                length: 672,
+                keywords: ["Moralność", "Wina"]
+            },
+            reserve_to: new Date("2025-02-10")
+        }
+    ];
 }
 
 // Katalog - Ogólne
