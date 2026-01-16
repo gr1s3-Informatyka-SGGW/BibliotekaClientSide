@@ -175,26 +175,57 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
     throw Error("Not implemented exception")
 }
 
-export async function cancelReservationRequest(id: number): Promise<void> {
+/**
+ * Anuluje rezerwację książki.
+ *
+ * @param {number} reservation_id Id rezerwacji
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
+ */
+export async function cancelReservationRequest(
+  reservation_id: number
+): Promise<void> {
+  if (reservation_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
+  }
+
   const r = await fetch("/api/books/cancelReservation", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id })
+    headers: authHeaders(),
+    body: JSON.stringify({ reservation_id }),
   });
 
   if (!r.ok) {
-    if (r.status === 400) {
-      throw new TargetNotFoundError("Nie znaleziono rezerwacji");
-    }
     throw new RequestError("Błąd anulowania rezerwacji");
   }
 }
 
-export async function claimReservationRequest(id: number): Promise<void> {
-  const r = await fetch("/api/books/takeBook", {
+/**
+ * Odbiera zarezerwowaną książkę.
+ *
+ * @param {number} reservation_id Id rezerwacji
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
+ */
+export async function claimReservationRequest(
+  reservation_id: number
+): Promise<void> {
+  if (reservation_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
+  }
+
+  const r = await fetch("/api/books/claimReservation", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id })
+    headers: authHeaders(),
+    body: JSON.stringify({ reservation_id }),
   });
 
   if (!r.ok) {
@@ -202,11 +233,26 @@ export async function claimReservationRequest(id: number): Promise<void> {
   }
 }
 
-export async function extendRentRequest(id: number): Promise<void> {
+/**
+ * Przedłuża wypożyczenie książki.
+ *
+ * @param {number} rent_id Id wypożyczenia
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
+ */
+export async function extendRentRequest(rent_id: number): Promise<void> {
+  if (rent_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
+  }
+
   const r = await fetch("/api/books/extendRent", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id })
+    headers: authHeaders(),
+    body: JSON.stringify({ rent_id }),
   });
 
   if (!r.ok) {
@@ -214,11 +260,26 @@ export async function extendRentRequest(id: number): Promise<void> {
   }
 }
 
-export async function returnBookRequest(id: number): Promise<void> {
-  const r = await fetch("/api/books/returnBook", {
+/**
+ * Zwraca wypożyczoną książkę.
+ *
+ * @param {number} rent_id Id wypożyczenia
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
+ */
+export async function returnBookRequest(rent_id: number): Promise<void> {
+  if (rent_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
+  }
+
+  const r = await fetch("/api/books/return", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id })
+    headers: authHeaders(),
+    body: JSON.stringify({ rent_id }),
   });
 
   if (!r.ok) {
@@ -237,10 +298,12 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
  *
  * @returns {Promise<string[]>} Lista autorów
  *
- * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchAuthorsRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/authors");
+  const r = await fetch("/api/dictionaries/authors", {
+    headers: authHeaders(),
+  });
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania autorów");
@@ -254,10 +317,12 @@ export async function fetchAuthorsRequest(): Promise<string[]> {
  *
  * @returns {Promise<string[]>} Lista tagów
  *
- * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchTagsRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/tags");
+  const r = await fetch("/api/dictionaries/tags", {
+    headers: authHeaders(),
+  });
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania tagów");
@@ -271,10 +336,12 @@ export async function fetchTagsRequest(): Promise<string[]> {
  *
  * @returns {Promise<string[]>} Lista gatunków
  *
- * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchGenresRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/genres");
+  const r = await fetch("/api/dictionaries/genres", {
+    headers: authHeaders(),
+  });
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania gatunków");
@@ -284,14 +351,16 @@ export async function fetchGenresRequest(): Promise<string[]> {
 }
 
 /**
- * Pobiera listę wydawców książek.
+ * Pobiera listę wydawców.
  *
  * @returns {Promise<string[]>} Lista wydawców
  *
- * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchPublishersRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/publishers");
+  const r = await fetch("/api/dictionaries/publishers", {
+    headers: authHeaders(),
+  });
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania wydawców");
@@ -301,14 +370,16 @@ export async function fetchPublishersRequest(): Promise<string[]> {
 }
 
 /**
- * Pobiera listę języków dostępnych w katalogu.
+ * Pobiera listę języków.
  *
  * @returns {Promise<string[]>} Lista języków
  *
- * @throws {RequestError} Gdy wystąpi błąd po stronie serwera
+ * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchLanguagesRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/languages");
+  const r = await fetch("/api/dictionaries/languages", {
+    headers: authHeaders(),
+  });
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania języków");
@@ -318,6 +389,20 @@ export async function fetchLanguagesRequest(): Promise<string[]> {
 }
 
 // Katalog - User
+/**
+ * Pobiera katalog książek dla użytkownika.
+ *
+ * @param {string} search Fragment tytułu
+ * @param {SearchSort} [sort] Informacje o sortowaniu
+ * @param {BookSearchFilter} [filter] Filtry wyszukiwania
+ * @param {number} [page=1] Numer strony
+ *
+ * @returns {Promise<PagedResponse<BookUser>>} Stronicowany katalog książek
+ *
+ * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
+ * @throws {InvalidRequestDataError} Gdy numer strony jest niepoprawny
+ * @throws {RequestError} Gdy wystąpi błąd serwera
+ */
 export async function fetchUserCatalogRequest(
   search: string,
   sort?: SearchSort,
@@ -329,82 +414,88 @@ export async function fetchUserCatalogRequest(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-  const body: any = {
-    page,
-    fragment_tytulu: search ?? ""
-  };
-
-  if (sort) {
-    body.sortowanie = {
-      po_czym_sortuje: sort.key,
-      rosnaco: sort.direction === "ASC"
-    };
-  }
-
-  if (filter) {
-    body.filtry = {
-      autor: filter.author,
-      gatunek: filter.genre,
-      wydawca: filter.publisher,
-      tagi: filter.tags,
-      jezyk: filter.language,
-      data_wydania: filter.release_date
-        ? {
-            od: filter.release_date.from.toISOString().slice(0, 10),
-            do: filter.release_date.to.toISOString().slice(0, 10)
-          }
-        : undefined
-    };
-  }
-
   const r = await fetch("/api/books/search", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    headers: authHeaders(),
+    body: JSON.stringify({ search, sort, filter, page }),
   });
 
   if (!r.ok) {
-    if (r.status === 400) {
-      throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", true);
-    }
     throw new RequestError("Błąd pobierania katalogu");
   }
 
   return await r.json();
 }
 
+/**
+ * Wypożycza książkę.
+ *
+ * @param {number} book_id Id książki
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
+ * @throws {InvalidRequestDataError} Gdy id książki jest niepoprawne
+ * @throws {RequestError} Gdy wystąpi błąd serwera
+ */
 export async function rentBookRequest(book_id: number): Promise<void> {
-  const r = await fetch("/api/books/rentBook", {
+  if (book_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
+  }
+
+  const r = await fetch("/api/books/rent", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: book_id })
+    headers: authHeaders(),
+    body: JSON.stringify({ book_id }),
   });
 
   if (!r.ok) {
-    if (r.status === 400) {
-      throw new InvalidRequestDataError("Nie można wypożyczyć książki", true);
-    }
-    throw new RequestError("Błąd wypożyczania książki");
+    throw new RequestError("Błąd wypożyczenia książki");
   }
 }
 
+/**
+ * Rezerwuje książkę.
+ *
+ * @param {number} book_id Id książki
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
+ */
 export async function reserveBookRequest(book_id: number): Promise<void> {
-  const r = await fetch("/api/books/reserveBook", {
+  if (book_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
+  }
+
+  const r = await fetch("/api/books/reserve", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: book_id })
+    headers: authHeaders(),
+    body: JSON.stringify({ book_id }),
   });
 
   if (!r.ok) {
-    if (r.status === 400) {
-      throw new InvalidRequestDataError("Nie można zarezerwować książki", true);
-    }
     throw new RequestError("Błąd rezerwacji książki");
   }
 }
 
+/**
+ * Pobiera szczegóły książki dla użytkownika.
+ *
+ * @param {number} book_id Identyfikator książki
+ *
+ * @returns {Promise<BookUser>} Dane książki
+ *
+ * @throws {AccessDeniedError}
+ * @throws {TargetNotFoundError} Gdy książka nie istnieje
+ * @throws {RequestError}
+ */
 export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
-  const r = await fetch(`/api/books/${book_id}`);
+  const r = await fetch(`/api/books/${book_id}`, {
+    headers: authHeaders(),
+  });
 
   if (!r.ok) {
     if (r.status === 400) {
@@ -417,45 +508,84 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
 }
 
 // Katalog - Admin
+/**
+ * Pobiera katalog książek dla widoku administratora z paginacją i filtrami.
+ * 
+ * @param {number} page Numer strony
+ * @param {number} limit Liczba elementów na stronę
+ * @param {BookSearchFilter | undefined} filter Filtry wyszukiwania
+ * @param {SearchSort | undefined} sort Sortowanie wyników
+ * 
+ * @returns {Promise<PagedResponse<BookAdmin>>}
+ * 
+ * @throws {InvalidRequestDataError} Gdy podano niepoprawne dane zapytania
+ * @throws {AccessDeniedError} Gdy brak tokenu administratora
+ * @throws {RequestError} Gdy wystąpi błąd serwera
+ */
 export async function fetchAdminCatalogRequest(
-  search: string,
-  sort?: SearchSort,
+  page: number,
+  limit: number,
   filter?: BookSearchFilter,
-  page: number = 1
+  sort?: SearchSort
 ): Promise<PagedResponse<BookAdmin>> {
+  if (page <= 0 || limit <= 0) {
+    throw new InvalidRequestDataError(
+      "Niepoprawne dane paginacji",
+      false
+    );
+  }
 
-  const r = await fetch("/api/books/search", {
+  const r = await fetch("/api/admin/catalog", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders(),
     body: JSON.stringify({
       page,
-      fragment_tytulu: search,
-      sortowanie: sort && {
-        po_czym_sortuje: sort.key,
-        rosnaco: sort.direction === "ASC"
-      },
-      filtry: filter
-    })
+      limit,
+      filter,
+      sort,
+    }),
   });
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania katalogu administratora");
   }
 
-  return await r.json();
+  return (await r.json()) as PagedResponse<BookAdmin>;
 }
 
-export async function fetchAdminBookRequest(book_id: number): Promise<BookAdmin> {
-  const r = await fetch(`/api/books/${book_id}/admin`);
-
-  if (!r.ok) {
-    if (r.status === 400) {
-      throw new TargetNotFoundError("Nie znaleziono książki");
-    }
-    throw new RequestError("Błąd pobierania książki");
+/**
+ * Pobiera szczegółowe informacje o książce dla widoku administratora.
+ * 
+ * @param {number} book_id Identyfikator książki
+ * 
+ * @returns {Promise<BookAdmin>}
+ * 
+ * @throws {InvalidRequestDataError} Gdy nie podano id książki
+ * @throws {TargetNotFoundError} Gdy książka nie istnieje
+ * @throws {AccessDeniedError} Gdy brak tokenu administratora
+ * @throws {RequestError} Gdy wystąpi błąd serwera
+ */
+export async function fetchAdminBookRequest(
+  book_id: number
+): Promise<BookAdmin> {
+  if (!book_id) {
+    throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-  return await r.json();
+  const r = await fetch("/api/admin/book", {
+    method: "POST",
+    headers: adminHeaders(),
+    body: JSON.stringify({ book_id }),
+  });
+
+  if (r.status === 400) {
+    throw new TargetNotFoundError("Nie znaleziono książki");
+  }
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania danych książki");
+  }
+
+  return (await r.json()) as BookAdmin;
 }
 
 /**
@@ -521,11 +651,11 @@ export async function removeBookRequest(book_id: number): Promise<void> {
 
 /**
  * Usuwa egzemplarz książki z systemu.
- *
+ * 
  * @param {number} instance_id Identyfikator egzemplarza
- *
+ * 
  * @returns {Promise<void>}
- *
+ * 
  * @throws {InvalidRequestDataError} Gdy nie podano id egzemplarza
  * @throws {TargetNotFoundError} Gdy egzemplarz nie istnieje
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
@@ -552,12 +682,13 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
 
 /**
  * Oznacza egzemplarz książki jako zniszczony.
- *
+ * 
  * @param {number} instance_id Identyfikator egzemplarza
- *
+ * 
  * @returns {Promise<void>}
- *
- * @throws {InvalidRequestDataError} Gdy egzemplarz nie istnieje lub jest już oznaczony jako zniszczony
+ * 
+ * @throws {InvalidRequestDataError} Gdy nie podano id egzemplarza
+ * @throws {TargetNotFoundError} Gdy egzemplarz nie istnieje
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
@@ -573,25 +704,28 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
   });
 
   if (r.status === 400) {
-    throw new InvalidRequestDataError("Egzemplarz nie istnieje lub już zniszczony", true);
+    throw new TargetNotFoundError("Nie znaleziono egzemplarza");
   }
   if (!r.ok) {
-    throw new RequestError("Błąd oznaczania egzemplarza");
+    throw new RequestError("Błąd oznaczania egzemplarza jako zniszczony");
   }
 }
 
 /**
- * Przywraca egzemplarz książki jako niezniszczony.
- *
+ * Oznacza egzemplarz książki jako niezniszczony.
+ * 
  * @param {number} instance_id Identyfikator egzemplarza
- *
+ * 
  * @returns {Promise<void>}
- *
- * @throws {InvalidRequestDataError} Gdy egzemplarz nie był oznaczony jako zniszczony
+ * 
+ * @throws {InvalidRequestDataError} Gdy nie podano id egzemplarza
+ * @throws {TargetNotFoundError} Gdy egzemplarz nie istnieje
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
-export async function markMendedBookInstanceRequest(instance_id: number): Promise<void> {
+export async function markMendedBookInstanceRequest(
+  instance_id: number
+): Promise<void> {
   if (!instance_id) {
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
@@ -603,272 +737,237 @@ export async function markMendedBookInstanceRequest(instance_id: number): Promis
   });
 
   if (r.status === 400) {
-    throw new InvalidRequestDataError("Egzemplarz nie był zniszczony", true);
+    throw new TargetNotFoundError("Nie znaleziono egzemplarza");
   }
   if (!r.ok) {
-    throw new RequestError("Błąd przywracania egzemplarza");
+    throw new RequestError("Błąd oznaczania egzemplarza jako niezniszczony");
   }
 }
 
 /**
- * Dodaje nowy egzemplarz istniejącej książki.
+ * Dodaje nowy egzemplarz książki.
  *
- * @param {number} book_id Identyfikator książki
+ * @param {number} book_id Id książki
  *
- * @returns {Promise<{ instance_id: number }>} Id nowo utworzonego egzemplarza
+ * @returns {Promise<void>}
  *
- * @throws {InvalidRequestDataError} Gdy nie podano id książki
- * @throws {TargetNotFoundError} Gdy książka nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
-export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
-  if (!book_id) {
-    throw new InvalidRequestDataError("Brak id książki", false);
+export async function addBookInstanceRequest(book_id: number): Promise<void> {
+  if (book_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/users/books/addCopy", {
+  const r = await fetch("/api/admin/copies/add", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ id_ksiazki: book_id }),
+    body: JSON.stringify({ book_id }),
   });
 
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono książki");
-  }
   if (!r.ok) {
     throw new RequestError("Błąd dodawania egzemplarza");
+  }
+}
+
+// Users
+/**
+ * Pobiera listę użytkowników dla administratora.
+ *
+ * @param {UserListSearchFilter} [filter] Filtry wyszukiwania
+ * @param {number} [page=1] Numer strony
+ *
+ * @returns {Promise<PagedResponse<UserInfo>>}
+ *
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
+ */
+export async function fetchUserListRequest(
+  filter?: UserListSearchFilter,
+  page: number = 1
+): Promise<PagedResponse<UserInfo>> {
+
+  if (page < 1) {
+    throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
+  }
+
+  const r = await fetch("/api/admin/users/search", {
+    method: "POST",
+    headers: adminHeaders(),
+    body: JSON.stringify({ filter, page }),
+  });
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania użytkowników");
   }
 
   return await r.json();
 }
 
-// Users
-/**
- * Pobiera listę użytkowników z systemu (ADMIN).
- *
- * @param {string} [search_bar] Fragment tekstu do wyszukiwania użytkowników
- * @param {SearchSort} [sort] Opcje sortowania wyników
- * @param {UserListSearchFilter} [filter] Filtry listy użytkowników
- *
- * @returns {Promise<UserInfo[]>} Lista użytkowników spełniających kryteria
- *
- * @throws {InvalidRequestDataError} Gdy przekazane filtry lub sortowanie są niepoprawne
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchUserListRequest(
-  search_bar?: string,
-  sort?: SearchSort,
-  filter?: UserListSearchFilter
-): Promise<UserInfo[]> {
-  const r = await fetch("/api/users/listUsers", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({
-      fragment: search_bar,
-      sortuj_po: sort,
-      status: filter?.status,
-    }),
-  });
-
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", true);
-  }
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania listy użytkowników");
-  }
-
-  const data = await r.json();
-  return data.uzytkownicy;
-}
-
 /**
  * Usuwa użytkownika z systemu.
  *
- * @param {number} user_id Identyfikator użytkownika
+ * @param {string} email Email użytkownika
  *
  * @returns {Promise<void>}
  *
- * @throws {InvalidRequestDataError} Gdy nie podano id użytkownika
- * @throws {TargetNotFoundError} Gdy użytkownik nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
-export async function removeUserRequest(user_id: number): Promise<void> {
-  if (!user_id) {
-    throw new InvalidRequestDataError("Brak id użytkownika", false);
+export async function removeUserRequest(email: string): Promise<void> {
+  if (!email) {
+    throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-  const r = await fetch("/api/users/deleteUser", {
+  const r = await fetch("/api/admin/users/remove", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ id: user_id }),
+    body: JSON.stringify({ email }),
   });
 
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono użytkownika");
-  }
   if (!r.ok) {
     throw new RequestError("Błąd usuwania użytkownika");
   }
 }
 
 /**
- * Blokuje użytkownika w systemie.
+ * Blokuje użytkownika.
  *
- * @param {number} user_id Identyfikator użytkownika
+ * @param {string} email Email użytkownika
  *
  * @returns {Promise<void>}
  *
- * @throws {InvalidRequestDataError} Gdy nie podano id użytkownika
- * @throws {TargetNotFoundError} Gdy użytkownik nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
-export async function blockUserRequest(user_id: number): Promise<void> {
-  if (!user_id) {
-    throw new InvalidRequestDataError("Brak id użytkownika", false);
+export async function blockUserRequest(email: string): Promise<void> {
+  if (!email) {
+    throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-  const r = await fetch("/api/users/blockUser", {
+  const r = await fetch("/api/admin/users/block", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ id: user_id }),
+    body: JSON.stringify({ email }),
   });
 
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono użytkownika");
-  }
   if (!r.ok) {
     throw new RequestError("Błąd blokowania użytkownika");
   }
 }
 
 /**
- * Odblokowuje użytkownika w systemie.
+ * Odblokowuje użytkownika.
  *
- * @param {number} user_id Identyfikator użytkownika
+ * @param {string} email Email użytkownika
  *
  * @returns {Promise<void>}
  *
- * @throws {InvalidRequestDataError} Gdy nie podano id użytkownika
- * @throws {TargetNotFoundError} Gdy użytkownik nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
-export async function unblockUserRequest(user_id: number): Promise<void> {
-  if (!user_id) {
-    throw new InvalidRequestDataError("Brak id użytkownika", false);
+export async function unblockUserRequest(email: string): Promise<void> {
+  if (!email) {
+    throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-  const r = await fetch("/api/users/unblockUser", {
+  const r = await fetch("/api/admin/users/unblock", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ id: user_id }),
+    body: JSON.stringify({ email }),
   });
 
-  if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono użytkownika");
-  }
   if (!r.ok) {
     throw new RequestError("Błąd odblokowywania użytkownika");
   }
 }
 
 /**
- * Dodaje nowego administratora systemu.
+ * Nadaje użytkownikowi uprawnienia administratora.
  *
- * @param {User} admin_info Dane nowego administratora
+ * @param {string} email Email użytkownika
  *
  * @returns {Promise<void>}
  *
- * @throws {InvalidRequestDataError} Gdy dane administratora są niekompletne lub niepoprawne
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
-export async function addAdminRequest(admin_info: User): Promise<void> {
-  if (!admin_info?.email) {
-    throw new InvalidRequestDataError("Niepoprawne dane admina", false);
+export async function addAdminRequest(email: string): Promise<void> {
+  if (!email) {
+    throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-  const r = await fetch("/api/users/addAdmin", {
+  const r = await fetch("/api/admin/users/addAdmin", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify(admin_info),
+    body: JSON.stringify({ email }),
   });
 
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Niepoprawne dane", true);
-  }
   if (!r.ok) {
-    throw new RequestError("Błąd dodawania admina");
+    throw new RequestError("Błąd nadawania uprawnień administratora");
   }
 }
 
-
 // Add Book View
 /**
- * Dodaje nową książkę do systemu.
+ * Dodaje nową książkę.
  *
  * @param {Book} book Dane książki
  *
- * @returns {Promise<{ book_id: number }>} Id nowo dodanej książki
+ * @returns {Promise<void>}
  *
- * @throws {InvalidRequestDataError} Gdy dane książki są niekompletne lub niepoprawne
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
-export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
-  const r = await fetch("/api/books/addBook", {
+export async function addBookRequest(book: Book): Promise<void> {
+  const r = await fetch("/api/admin/books/add", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify(book),
   });
 
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Niepoprawne dane książki", true);
-  }
   if (!r.ok) {
     throw new RequestError("Błąd dodawania książki");
   }
-
-  return await r.json();
 }
 
 // Rent log
 /**
- * Pobiera log wypożyczeń książek.
+ * Pobiera log wypożyczeń.
  *
- * @param {string} [search_bar] Fragment tekstu do wyszukiwania
- * @param {SearchSort} [sort] Opcje sortowania
- * @param {RentLogSearchFilter} [filter] Filtry wypożyczeń
+ * @param {RentLogSearchFilter} [filter] Filtry logu
+ * @param {number} [page=1] Numer strony
  *
- * @returns {Promise<RentFullInfo>} Lista wypożyczeń wraz z metadanymi
+ * @returns {Promise<PagedResponse<RentFullInfo>>}
  *
- * @throws {InvalidRequestDataError} Gdy przekazane filtry są niepoprawne
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError}
+ * @throws {InvalidRequestDataError}
+ * @throws {RequestError}
  */
 export async function fetchRentLog(
-  search_bar?: string,
-  sort?: SearchSort,
-  filter?: RentLogSearchFilter
-): Promise<RentFullInfo> {
-  const r = await fetch("/api/books/listRentedBooks", {
+  filter?: RentLogSearchFilter,
+  page: number = 1
+): Promise<PagedResponse<RentFullInfo>> {
+
+  if (page < 1) {
+    throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
+  }
+
+  const r = await fetch("/api/admin/rent-log/search", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({
-      sortowanie: sort,
-      filtry: filter,
-    }),
+    body: JSON.stringify({ filter, page }),
   });
 
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Niepoprawne dane zapytania", true);
-  }
   if (!r.ok) {
-    throw new RequestError("Błąd pobierania logów wypożyczeń");
+    throw new RequestError("Błąd pobierania logu wypożyczeń");
   }
 
   return await r.json();
