@@ -3,13 +3,13 @@
  * @author Natalia Bardadyn
  * */
 
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
 import { AuthContext } from "../../public/UserAuth.tsx";
 
-import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../../public/server_requests.ts';
+import { fetchBorrowedBooksRequest, fetchReservedBooksRequest } from '../../public/server_requests.ts';
 import { type Rent, type Reservation } from '../../public/server_types.ts';
 
 import accountCircleIcon from '../assets/account_circle.svg';
@@ -18,15 +18,55 @@ import ribbonIcon from '../assets/book_ribbon.svg';
 
 /**
  * Komponent widoku profilu użytkownika.
- * Łączy nawigację boczną, panel informacji o użytkowniku oraz listy wypożyczeń i rezerwacji.
+ * Odpowiada za wyświetlanie paska nawigacyjnego, panelu informacji o użytkowniku oraz list aktualnych wypożyczeń i rezerwacji.
+ * Komponent pobiera dane z API przy montowaniu. W przypadku braku danych lub błędu serwera, ładowane są dane przykładowe.
  */
 export default function UserProfileView() {
     const session = useContext(AuthContext);
 
-    // Przykładowe dane z serwera
-    const userRents: Rent[] = [getRent()];
-    const userReservations: Reservation[] = [getRes()];
+    const [userRents, setUserRents] = useState<Rent[]>([]);
+    const [userReservations, setUserReservations] = useState<Reservation[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setIsLoading(true);
+                const fetchedRents = await fetchBorrowedBooksRequest();
+                const fetchedReservations = await fetchReservedBooksRequest();
+
+                if (fetchedRents && fetchedRents.length > 0) {
+                    const mappedRents: Rent[] = fetchedRents.map((book: any) => ({
+                        book: book,
+                        borrow_date: book.borrow_date ? new Date(book.borrow_date) : new Date(), // Użyj daty z API lub dzisiejszej
+                        return_date: book.return_date ? new Date(book.return_date) : new Date(new Date().setDate(new Date().getDate() + 30))
+                    }));
+                    setUserRents(mappedRents);
+                } else {
+                    console.log("Brak wypożyczeń na serwerze - ładowanie danych przykładowych.");
+                    setUserRents([getRent()]);
+                }
+
+                if (fetchedReservations && fetchedReservations.length > 0) {
+                    const mappedRes: Reservation[] = fetchedReservations.map((book: any) => ({
+                        book: book,
+                        reserve_to: book.reserve_to ? new Date(book.reserve_to) : new Date(new Date().setDate(new Date().getDate() + 7))
+                    }));
+                    setUserReservations(mappedRes);
+                } else {
+                    console.log("Brak rezerwacji na serwerze - ładowanie danych przykładowych.");
+                    setUserReservations([getRes()]);
+                }
+            } catch (error) {
+                console.error("Błąd ładowania z API:", error);
+                setUserRents([getRent()]);
+                setUserReservations([getRes()]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadData();
+    }, [session]);
     return (
         <div className="user-profile-layout" style={{ display: 'flex', width: '100%' }}>
             {/* Sidebar nawigacyjny */}
@@ -78,7 +118,7 @@ export default function UserProfileView() {
 
                     {/* LEWA KOLUMNA: Panel profilu */}
                     <div style={{ flex: '0 0 auto', width: '22em', marginTop: '0.5em' }}>
-                        <ProfileInfoPanel info={{
+                        <ProfileInfoPanel info={session?.session?.user || {
                             name: "Jan",
                             surname: "Kowalski",
                             email: "jan@example.com",
@@ -117,7 +157,9 @@ export default function UserProfileView() {
 }
 
 /**
- * Funkcja generująca przykładowe dane wypożyczenia.
+ * Generuje obiekt z przykładowymi danymi wypożyczenia (mock).
+ * Wykorzystywana jako fallback w przypadku braku połączenia z API lub pustej listy.
+ * @returns {Rent} Obiekt reprezentujący wypożyczenie książki.
  */
 function getRent(): Rent {
     return {
@@ -141,7 +183,9 @@ function getRent(): Rent {
 
 
 /**
- * Funkcja generująca przykładowe dane rezerwacji.
+ * Generuje obiekt z przykładowymi danymi rezerwacji (mock).
+ * Wykorzystywana jako fallback w przypadku braku połączenia z API lub pustej listy.
+ * @returns {Reservation} Obiekt reprezentujący rezerwację książki.
  */
 function getRes(): Reservation {
     return {
