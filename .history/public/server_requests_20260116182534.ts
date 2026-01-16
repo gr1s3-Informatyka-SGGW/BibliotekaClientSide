@@ -14,7 +14,7 @@ import type {
     CreditCardInfo,
     Session,
     User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
-    PagedResponse
+    CatalogResponse
 } from "./server_types.ts";
 
 /**
@@ -372,7 +372,7 @@ export async function fetchUserCatalogRequest(
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
-): Promise<PagedResponse<BookUser>>{
+): Promise<CatalogResponse<BookUser>>{
     await wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
@@ -381,7 +381,7 @@ export async function fetchUserCatalogRequest(
     const { items, totalPages } = paginate(results, page, 10);
     const totalBooks = results.length;
     const userBooks = (items as BookAdmin[]).map(toBookUser);
-    return { result: userBooks, totalPages, totalResults: totalBooks };
+    return { books: userBooks, totalPages, totalBooks };
 }
 
 export async function rentBookRequest(book_id: number): Promise<void>{
@@ -399,7 +399,7 @@ export const fetchAdminCatalogRequest = async (
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
-): Promise<PagedResponse<BookAdmin>> => {
+): Promise<CatalogResponse<BookAdmin>> => {
     await wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
@@ -407,7 +407,7 @@ export const fetchAdminCatalogRequest = async (
 
     const { items, totalPages } = paginate(results, page, 10);
     const totalBooks = results.length;
-    return { result: items as BookAdmin[], totalPages, totalResults: totalBooks };
+    return { books: items as BookAdmin[], totalPages, totalBooks };
 };
 export const fetchAdminBookRequest = async (book_id: number): Promise<BookAdmin> => {
     const bookAdmin = SAMPLE_BOOKS.find((b: BookAdmin) => b.book_id === book_id);
@@ -459,7 +459,7 @@ export async function addBookInstanceRequest(book_id: number): Promise<{ instanc
     return await r.json();
 }
 // Users
-export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter, page: number = 1): Promise<PagedResponse<UserInfo>>{
+export async function fetchUserListRequest(search_bar?: string, sort?: SearchSort, filter?: UserListSearchFilter): Promise<UserInfo[]>{
     throw Error("Not implemented exception")
 }
 export async function removeUserRequest(user_id: number): Promise<void>{
@@ -492,6 +492,6 @@ export async function addBookRequest(book: Book): Promise<{ book_id: number }> {
     return await r.json();
 }
 // Rent log
-export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter, page: number = 1): Promise<PagedResponse<RentFullInfo>>{
+export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filter?: RentLogSearchFilter): Promise<RentFullInfo[]>{
     throw Error("Not implemented exception")
 }
