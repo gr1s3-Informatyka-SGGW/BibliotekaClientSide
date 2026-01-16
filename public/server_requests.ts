@@ -96,39 +96,39 @@ export function loginRequest(email: string, password: string): Session{
         },
         body: JSON.stringify({email, password})
     })
-    .then(async (response) => {
-        const data = await response.json();
+        .then(async (response) => {
+            const data = await response.json();
 
-        if(!response.ok){
-            if(response.status === 400 || response.status === 401){
-                throw new InvalidRequestDataError(
-                    "Logowanie nieudane",
-                    false,
-                    response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+            if(!response.ok){
+                if(response.status === 400 || response.status === 401){
+                    throw new InvalidRequestDataError(
+                        "Logowanie nieudane",
+                        false,
+                        response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+                    );
+                }
+                if(response.status === 500){
+                    throw new InvalidRequestDataError(
+                        "Serwer odrzucił żądanie",
+                        true,
+                        data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
+                    )
+                }
+
+                throw new RequestError(
+                    "Nieoczekiwany błąd zapytania",
+                    data.message,
+                    response.status
                 );
             }
-            if(response.status === 500){
-                throw new InvalidRequestDataError(
-                    "Serwer odrzucił żądanie",
-                    true,
-                    data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
-                )
-            }
 
-            throw new RequestError(
-                "Nieoczekiwany błąd zapytania",
-                data.message,
-                response.status
-            );
-        }
-
-        const session : Session = {
-            token : data.token,
-            access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
-            user: data.user
-        };
-        return session;
-    }) as unknown as Session;
+            const session : Session = {
+                token : data.token,
+                access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
+                user: data.user
+            };
+            return session;
+        }) as unknown as Session;
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
