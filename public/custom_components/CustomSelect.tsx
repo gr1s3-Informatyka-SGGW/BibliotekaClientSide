@@ -6,7 +6,7 @@
 import React, { Component, createRef } from 'react';
 import { createPortal } from 'react-dom';
 import type IFormComponent from "./IFormComponent.tsx";
-import searchIcon from 'src/assets/search.svg'
+import searchIcon from '../../src/assets/search.svg';
 import './CustomSelect.css';
 
 /**
