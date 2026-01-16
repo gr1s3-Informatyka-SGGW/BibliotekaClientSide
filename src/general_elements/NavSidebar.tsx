@@ -1,6 +1,5 @@
 /**
- * @file NavSidebar.tsx
- * @description Komponent nawigacji bocznej (Sidebar). Obsługuje widok mobilny (zwijanie),
+ * @file  Komponent nawigacji bocznej (Sidebar). Obsługuje widok mobilny (zwijanie),
  * renderowanie linków na podstawie roli użytkownika (Admin/User) oraz wylogowywanie.
  * @author Aleksander Grzegrzułka
  */
@@ -20,6 +19,7 @@ import addBookIcon from "../assets/add_box.svg";
 import borrowIcon from "../assets/borrow.svg";
 import libraryIcon from "../assets/local_library.svg";
 import logoutIcon from "../assets/logout.svg";
+import {Alert} from "../../public/custom_components/Popup.tsx";
 
 /**
  * Interfejs opisujący pojedynczy element nawigacyjny w menu.
@@ -54,6 +54,9 @@ function NavSidebar(): JSX.Element {
 
     // Stan widoczności przycisku toggle (zależny od scrolla)
     const [showToggle, setShowToggle] = useState<boolean>(true);
+
+    // Widoczność popupu ostrzeżenia dla wylogowania
+    const [showAlert, setShowAlert] = useState<boolean>(false);
 
     // Pobranie danych sesji
     const user = auth?.session?.user;
@@ -134,7 +137,7 @@ function NavSidebar(): JSX.Element {
     const currentLinks = role === "admin" ? adminLinks : userLinks;
 
     /**
-     * Helper sprawdzający czy dany link jest aktywny.
+     * Helper sprawdzający, czy dany link jest aktywny.
      * @param {string} path - Ścieżka linku.
      * @returns {boolean}
      */
@@ -245,11 +248,12 @@ function NavSidebar(): JSX.Element {
 
                 <a
                     className="sidebar-elem"
-                    onClick={handleLogout}
+                    onClick={()=> setShowAlert(true)}
                 >
                     <img src={logoutIcon} className="invert" alt="" /> Wyloguj się
                 </a>
             </nav>
+            <Alert message={"Czy na pewno chcesz się wylogować?"} title={"Czy na pewno chcesz się wylogować?"} isOpen={showAlert} setIsOpen={setShowAlert} onAccept={handleLogout}/>
         </>
     );
 }
