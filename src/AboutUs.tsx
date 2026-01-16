@@ -1,5 +1,6 @@
 import aboutIcon from "./assets/local_library.svg"
-import type { JSX } from "react"
+import { type JSX } from "react"
+import NavSidebar from "./general_elements/NavSidebar";
 
 /**
  * Komponent funkcyjny renderujący stronę "O bibliotece".
@@ -10,6 +11,7 @@ import type { JSX } from "react"
  */
 function AboutUs(): JSX.Element {
     return <>
+        <NavSidebar></NavSidebar>
         <h1><img src={aboutIcon} alt="icon" /> O bibliotece</h1>
         <main className="login-panel" style={{ margin: "auto", width: "auto", textAlign: "justify" }}>
 
@@ -32,9 +34,6 @@ function AboutUs(): JSX.Element {
             </ul>
 
             <p>Dołącz do nas! Zarejestruj się w kilka minut i ciesz się nieograniczonym dostępem do świata literatury.</p>
-            <div style={{ textAlign: "center" }}>
-                <a href='/' >Wróć na stronę główną</a>
-            </div>
         </main>
     </>
 }
