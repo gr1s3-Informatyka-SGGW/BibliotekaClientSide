@@ -154,27 +154,27 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
 }
 
 export async function cancelReservationRequest(reservation_id: number): Promise<void>{
-    await wait(randDelay());
+    wait(randDelay());
     throw Error("Not implemented exception")
 }
 export async function claimReservationRequest(reservation_id: number): Promise<void>{
-    await wait(randDelay());
+    wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 export async function extendRentRequest(rent_id: number): Promise<void>{
-    await wait(randDelay());
+    wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 export async function returnBookRequest(rend_id: number): Promise<void>{
-    await wait(randDelay());
+    wait(randDelay());
     throw Error("Not implemented exception")
 }
 
 
 export async function fetchBorrowedBooksRequest(): Promise<Rent[]>{
-    await wait(randDelay());
+    wait(randDelay());
     return [
         {
             book: {
@@ -244,7 +244,7 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]>{
 }
 
 export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
-    await wait(randDelay());
+    wait(randDelay());
     return [
         {
             book: {
@@ -297,27 +297,27 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
 // Katalog - Ogólne
 
 export async function fetchAuthorsRequest(): Promise<string[]>{
-    await wait(randDelay());
+    wait(randDelay());
     return SAMPLE_AUTHORS;
 }
 
 export async function fetchTagsRequest(): Promise<string[]>{
-    await wait(randDelay());
+    wait(randDelay());
     return SAMPLE_TAGS;
 }
 
 export async function fetchGenresRequest(): Promise<string[]>{
-    await wait(randDelay());
+    wait(randDelay());
     return SAMPLE_GENRES;
 }
 
 export async function  fetchPublishersRequest(): Promise<string[]>{
-    await wait(randDelay());
+    wait(randDelay());
     return SAMPLE_PUBLISHERS;
 }
 
 export async function fetchLanguagesRequest(): Promise<string[]>{
-    await wait(randDelay());
+    wait(randDelay());
     return SAMPLE_LANGUAGES;
 }
 // Katalog - User
@@ -327,7 +327,7 @@ export async function fetchUserCatalogRequest(
     filter?: BookSearchFilter,
     page: number = 1
 ): Promise<PagedResponse<BookUser>>{
-    await wait(randDelay());
+    wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
     results = applySort(results, sort);
@@ -354,7 +354,7 @@ export const fetchAdminCatalogRequest = async (
     filter?: BookSearchFilter,
     page: number = 1
 ): Promise<PagedResponse<BookAdmin>> => {
-    await wait(randDelay());
+    wait(randDelay());
 
     let results = SAMPLE_BOOKS.filter(b => matchesFilter(b, search, filter));
     results = applySort(results, sort);
@@ -421,7 +421,7 @@ export async function fetchUserListRequest(
     page: number = 1
 ): Promise<PagedResponse<UserInfo>> {
     if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        new Promise(resolve => setTimeout(resolve, 500));
 
         const PAGE_SIZE = 5;
 
@@ -473,7 +473,7 @@ export async function fetchUserListRequest(
 
 export async function removeUserRequest(user_id: number) {
     if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        new Promise(resolve => setTimeout(resolve, 300));
         if (Math.random() > 0.5) {
             throw new Error("Nie udało się usunąć użytkownika.");
         } else {
@@ -486,7 +486,7 @@ export async function removeUserRequest(user_id: number) {
 export async function blockUserRequest(user_id: number) {
     if (USE_MOCK) {
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        new Promise(resolve => setTimeout(resolve, 300));
         if (Math.random() > 0.5) {
             throw new Error("Nie udało się zablokować użytkownika. Błąd połączenia lub brak uprawnień.");
         } else {
@@ -498,7 +498,7 @@ export async function blockUserRequest(user_id: number) {
 }
 export async function unblockUserRequest(user_id: number) {
     if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        new Promise(resolve => setTimeout(resolve, 300));
         if (Math.random() > 0.5) {
             throw new Error("Nie udało się odblokować użytkownika. Błąd połączenia lub brak uprawnień.");
         } else {
@@ -510,7 +510,7 @@ export async function unblockUserRequest(user_id: number) {
 }
 export async function addAdminRequest(admin_info: User): Promise<void> {
     if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 600));
+        new Promise(resolve => setTimeout(resolve, 600));
         if (Math.random() > 0.5) {
             throw new Error("Nie udało się dodać nowego bibliotekarza. Błąd połączenia lub brak uprawnień.");
         } else {
@@ -584,7 +584,7 @@ export async function fetchRentLog(search_bar?: string, sort?: SearchSort, filte
     let result = page == 1 ? [book_list[0], book_list[1], book_list[2]] : [book_list[3], book_list[4]]
 
     return {
-        result: book_list, totalPages: 2, totalResults: 5
+        result: result, totalPages: 2, totalResults: 5
 
     }
 }

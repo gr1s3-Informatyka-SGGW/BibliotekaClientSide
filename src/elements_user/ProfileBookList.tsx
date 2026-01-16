@@ -1,3 +1,14 @@
+/**
+ * @file Moduł zawierający komponenty do wyświetlania i zarządzania listami książek w profilu użytkownika.
+ * Eksportuje:
+ * - ProfileBookList - główny kontener z nagłówkiem i alertami
+ * - ReservationComponent - komponent pojedynczej rezerwacji z opcjami anulowania i odbioru
+ * - RentComponent - komponent pojedynczego wypożyczenia z opcjami przedłużenia i zwrotu
+ *
+ * Komponenty integrują się z systemem skanowania QR oraz obsługują asynchroniczne żądania do serwera.
+ * @author Natalia Bardadyn
+ */
+
 import React, { Component, type ReactNode, useState } from "react";
 import { type Rent, type Reservation } from "../../public/server_types.ts";
 import {
@@ -8,6 +19,7 @@ import {
 } from "../../public/server_requests.ts";
 import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
 import ScanButton from "./ScanButton.tsx";
+import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 
 
 /**
@@ -140,7 +152,7 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
      * @param {any} book - Obiekt danych książki do wyświetlenia.
      * @returns {JSX.Element}
      */
-    renderBookDetails(book: any){
+    renderBookDetails(book: any): React.JSX.Element{
         const labelStyle = { color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block' };
         const rowStyle = { marginBottom: '8px', display: 'flex' };
 
@@ -179,8 +191,9 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
                         „{book.title}” - {authors}
                     </div>
                     <div style={{ color: isReady ? '#666' : '#e00000', fontSize: '0.9em', fontStyle: 'italic', marginTop: '4px', fontWeight: isReady ? 'normal' : 'bold' }}>
-                        {isReady
-                            ? (diffDays === 0 ? "Ostatni dzień na odbiór!" : `Odbierz książkę w przeciągu ${diffDays} dni`)
+                        {isReady ?
+                            (diffDays === 0 ? "Ostatni dzień na odbiór!"
+                                : `Odbierz książkę w przeciągu ${diffDays} dni`)
                             : 'Termin odbioru minął'
                         }
                     </div>
@@ -293,7 +306,7 @@ export class RentComponent extends Component<{ info: Rent }> {
      * @param {any} book - Obiekt danych książki do wyświetlenia.
      * @returns {JSX.Element}
      */
-    renderBookDetails(book: any){
+    renderBookDetails(book: any): React.JSX.Element{
         const labelStyle = { color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block' };
         const rowStyle = { marginBottom: '8px', display: 'flex' };
 
@@ -347,9 +360,15 @@ export class RentComponent extends Component<{ info: Rent }> {
                             Przedłuż
                         </button>
                     )}
-                    <ScanButton pass_output={(val) => this.onScanReturn(val)}>
-                        Zwróć
-                    </ScanButton>
+                    {isOverdue ?
+                        <ScanButton pass_output={(val) => this.onScanReturn(val)}>
+                            Zwróć
+                        </ScanButton>
+                        :
+                        <CustomTooltip title='Aby oddać książkę udaj się do bibliotekarza, aby uregulować płatność'>
+                            <button disabled={true} className='boring'>Zwróć</button>
+                        </CustomTooltip>
+                    }
                 </div>
                 <Popup
                     title="Szczegóły książki"
