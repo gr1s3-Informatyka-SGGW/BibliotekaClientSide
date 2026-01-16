@@ -1,4 +1,4 @@
-# Biblioteka Online - Client Side
+# Biblioteka Online – Client Side
 
 Interaktywna aplikacja webowa do zarządzania biblioteką, umożliwiająca użytkownikom przeglądanie zasobów i wypożyczanie książek, a administratorom pełną kontrolę nad księgozbiorem.
 
@@ -46,10 +46,17 @@ Kompletny system obsługi użytkownika zawarty w folderze `src/login`:
 
 ## Jak uruchomić projekt?
 
+### Wymagania
+
+* **Node.js:** wersja 16.x lub wyższa
+* **npm:** wersja 8.x lub wyższa
+
+### Instalacja i uruchomienie
+
 1. Sklonuj repozytorium na swój dysk.
 2. Zainstaluj biblioteki: `npm install`
-3. Uruchom aplikację: `npm run dev`
-4. Adres lokalny: `http://localhost:5173`
+4. Wejść na stronę `http://localhost:[port podany przez vite]`
 
+Możliwe jest włączenie testów przygotowanych z użyciem biblioteki Vitest: `npm run test`.
 ## Licencja
 Projekt udostępniony na licencji MIT. Więcej informacji w pliku `LICENSE`.
