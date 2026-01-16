@@ -86,57 +86,57 @@ export class TargetNotFoundError extends RequestError{
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export function loginRequest(email: string, password: string): Session{
-    
+
     return fetch('api/users/login', {
         method: 'POST',
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({email, password})
     })
-    .then(async (response) => {
-        const data = await response.json();
+        .then(async (response) => {
+            const data = await response.json();
 
-        if(!response.ok){
-            if(response.status === 400 || response.status === 401){
-                throw new InvalidRequestDataError(
-                    "Logowanie nieudane",
-                    false,
-                    response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+            if(!response.ok){
+                if(response.status === 400 || response.status === 401){
+                    throw new InvalidRequestDataError(
+                        "Logowanie nieudane",
+                        false,
+                        response.status === 401 ? "Błędne poświadczenie" : "Brakujące pola"
+                    );
+                }
+                if(response.status === 500){
+                    throw new InvalidRequestDataError(
+                        "Serwer odrzucił żądanie",
+                        true,
+                        data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
+                    )
+                }
+
+                throw new RequestError(
+                    "Nieoczekiwany błąd zapytania",
+                    data.message,
+                    response.status
                 );
             }
-            if(response.status === 500){
-                throw new InvalidRequestDataError(
-                    "Serwer odrzucił żądanie",
-                    true,
-                    data.message || "Błąd wewnętrzny przy przetwarzaniu danych"
-                )
-            }
 
-            throw new RequestError(
-                "Nieoczekiwany błąd zapytania",
-                data.message,
-                response.status
-            );
-        }
-
-        const session : Session = {
-            token : data.token,
-            access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
-            user: data.user
-        };
-        return session;
-    }) as unknown as Session;
+            const session : Session = {
+                token : data.token,
+                access: data.user.role.toLowerCase() === 'worker' ? 'admin' : 'user',
+                user: data.user
+            };
+            return session;
+        }) as unknown as Session;
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
     const response = await fetch("api/users/register", {
         method: "POST",
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
-        }, 
+        },
         body: JSON.stringify({
             name: name,
             surname: surname,
@@ -156,7 +156,7 @@ export async function registerRequest(name:string, surname:string, email:string,
     }
 
     if(response.status === 409){
-        throw new InvalidRequestDataError("Błąd rejestracji", 
+        throw new InvalidRequestDataError("Błąd rejestracji",
             true
             ,"Użytkownik o tym mailu już istnieje");
     }
@@ -166,7 +166,7 @@ export async function registerRequest(name:string, surname:string, email:string,
 export async function resetPasswordRequest(email: string): Promise<void>{
     const response = await fetch("/api/users/newPassword", {
         method: "POST",
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
@@ -181,7 +181,7 @@ export async function resetPasswordRequest(email: string): Promise<void>{
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd resetowania", 
+            "Błąd resetowania",
             true,
             "Nie znaleziono użytkownika o podanym adresie email."
         );
@@ -234,7 +234,7 @@ export async function changeClientDataRequest(name: string, surname: string): Pr
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd edycji danych", 
+            "Błąd edycji danych",
             true,
             "Nie znaleziono użytkownika dla podanego tokenu lub brak danych do zmiany."
         );
@@ -252,7 +252,7 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
         body: JSON.stringify({
             number: number,
             cvv: cvv,
-            exp_date: exp_date 
+            exp_date: exp_date
         }),
     });
 
@@ -262,7 +262,7 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd karty płatniczej", 
+            "Błąd karty płatniczej",
             true,
             "Nie znaleziono użytkownika lub podano niepoprawne dane karty."
         );
@@ -290,7 +290,7 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
 
     if(response.status === 400){
         throw new InvalidRequestDataError(
-            "Błąd zmiany hasła", 
+            "Błąd zmiany hasła",
             true,
             "Stare hasło jest niepoprawne lub sesja wygasła."
         );
@@ -331,11 +331,11 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
 
     if (response.status === 400) {
         throw new InvalidRequestDataError(
-            "Błąd pobierania wypożyczeń", 
+            "Błąd pobierania wypożyczeń",
             true,
             "Nie znaleziono użytkownika dla podanego tokenu."
         );
-    } 
+    }
 
     throw new RequestError(response.status.toString());
 }
