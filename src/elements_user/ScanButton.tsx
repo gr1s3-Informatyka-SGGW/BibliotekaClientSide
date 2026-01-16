@@ -24,9 +24,12 @@ interface ScanButtonProps {
  * - Na desktopie przycisk jest zablokowany
  * - Na mobile otwiera Popup i uruchamia kamerę
  * - Cała logika skanera jest w tym pliku
+ * @prop props
+ * @prop {ScanButtonProps} props.onScan funkcja wywołana po pozdyskaniu informacji z kodu QR
+ * @returns JSX.Element
  */
 const ScanButton = ({ onScan }: ScanButtonProps) => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
   const [open, setOpen] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -36,9 +39,11 @@ const ScanButton = ({ onScan }: ScanButtonProps) => {
   const scanningRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
 
+/*
   useEffect(() => {
     setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
   }, []);
+*/
 
   useEffect(() => {
     if (!open) return;
@@ -126,22 +131,20 @@ const ScanButton = ({ onScan }: ScanButtonProps) => {
         </button>
       </CustomTooltip>
 
-      {open && (
-        <Popup>
-          <div style={{ position: "relative" }}>
-            <video ref={videoRef} playsInline style={{ width: "100%" }} />
-            <canvas ref={canvasRef} style={{ display: "none" }} />
-            <div
-              ref={scanAreaRef}
-              style={{
-                position: "absolute",
-                inset: "25%",
-                border: "2px solid red",
-              }}
-            />
-          </div>
-        </Popup>
-      )}
+      <Popup title="Skanowanie QR" isOpen={open} setIsOpen={setOpen}>
+        <div style={{ position: "relative" }}>
+          <video ref={videoRef} playsInline style={{ width: "100%" }} />
+          <canvas ref={canvasRef} style={{ display: "none" }} />
+          <div
+            ref={scanAreaRef}
+            style={{
+              position: "absolute",
+              inset: "25%",
+              border: "2px solid red",
+            }}
+          />
+        </div>
+      </Popup>
     </>
   );
 };
