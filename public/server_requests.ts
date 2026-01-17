@@ -222,7 +222,7 @@ export async function claimReservationRequest(
     throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
   }
 
-  const r = await fetch("/api/books/claimReservation", {
+  const r = await fetch("/api/books/takeBook", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ reservation_id }),
@@ -276,7 +276,7 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
   }
 
-  const r = await fetch("/api/books/return", {
+  const r = await fetch("/api/books/returnBook", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ rent_id }),
@@ -301,7 +301,7 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchAuthorsRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/authors", {
+  const r = await fetch("/api/books/authors", {
     headers: authHeaders(),
   });
 
@@ -320,7 +320,7 @@ export async function fetchAuthorsRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchTagsRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/tags", {
+  const r = await fetch("/api/books/tags", {
     headers: authHeaders(),
   });
 
@@ -339,7 +339,7 @@ export async function fetchTagsRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchGenresRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/genres", {
+  const r = await fetch("/api/books/genres", {
     headers: authHeaders(),
   });
 
@@ -358,7 +358,7 @@ export async function fetchGenresRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchPublishersRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/publishers", {
+  const r = await fetch("/api/books/publishers", {
     headers: authHeaders(),
   });
 
@@ -377,7 +377,7 @@ export async function fetchPublishersRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchLanguagesRequest(): Promise<string[]> {
-  const r = await fetch("/api/dictionaries/languages", {
+  const r = await fetch("/api/books/languages", {
     headers: authHeaders(),
   });
 
@@ -443,7 +443,7 @@ export async function rentBookRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/books/rent", {
+  const r = await fetch("/api/books/rentBook", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ book_id }),
@@ -470,7 +470,7 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/books/reserve", {
+  const r = await fetch("/api/books/reserveBook", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ book_id }),
@@ -535,7 +535,7 @@ export async function fetchAdminCatalogRequest(
     );
   }
 
-  const r = await fetch("/api/admin/catalog", {
+  const r = await fetch("/api/books/search", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({
@@ -572,7 +572,7 @@ export async function fetchAdminBookRequest(
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-  const r = await fetch("/api/admin/book", {
+  const r = await fetch(`/api/books/${book_id}`, {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ book_id }),
@@ -760,7 +760,7 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/admin/copies/add", {
+  const r = await fetch("/api/books/addCopy", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ book_id }),
@@ -793,7 +793,7 @@ export async function fetchUserListRequest(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-  const r = await fetch("/api/admin/users/search", {
+  const r = await fetch("/api/users/listUsers", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ filter, page }),
@@ -822,7 +822,7 @@ export async function removeUserRequest(email: string): Promise<void> {
     throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-  const r = await fetch("/api/admin/users/remove", {
+  const r = await fetch("/api/users/deleteUser", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ email }),
@@ -834,9 +834,10 @@ export async function removeUserRequest(email: string): Promise<void> {
 }
 
 /**
- * Blokuje użytkownika.
+ * Zmienia status blokady użytkownika.
  *
- * @param {string} email Email użytkownika
+ * @param {number} userId Id użytkownika
+ * @param {boolean} status true = zablokuj, false = odblokuj
  *
  * @returns {Promise<void>}
  *
@@ -844,70 +845,75 @@ export async function removeUserRequest(email: string): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
-export async function blockUserRequest(email: string): Promise<void> {
-  if (!email) {
-    throw new InvalidRequestDataError("Email jest wymagany", false);
+export async function toggleUserBlockRequest(
+  userId: number,
+  status: boolean
+): Promise<void> {
+  if (!userId || userId <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID użytkownika", false);
   }
 
-  const r = await fetch("/api/admin/users/block", {
+  const r = await fetch("/api/users/toggleBlock", {
     method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ email }),
+    headers: {
+      ...adminHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId,
+      status,
+    }),
   });
 
   if (!r.ok) {
-    throw new RequestError("Błąd blokowania użytkownika");
+    if (r.status === 400) {
+      throw new RequestError(
+        "Nie można zmienić statusu blokady użytkownika"
+      );
+    }
+
+    if (r.status === 403) {
+      throw new AccessDeniedError("Brak uprawnień WORKER");
+    }
+
+    throw new RequestError("Błąd serwera");
   }
 }
 
-/**
- * Odblokowuje użytkownika.
- *
- * @param {string} email Email użytkownika
- *
- * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
- */
-export async function unblockUserRequest(email: string): Promise<void> {
-  if (!email) {
-    throw new InvalidRequestDataError("Email jest wymagany", false);
-  }
+export async function blockUserRequest(userId: number): Promise<void> {
+  return toggleUserBlockRequest(userId, true);
+}
 
-  const r = await fetch("/api/admin/users/unblock", {
-    method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ email }),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd odblokowywania użytkownika");
-  }
+export async function unblockUserRequest(userId: number): Promise<void> {
+  return toggleUserBlockRequest(userId, false);
 }
 
 /**
  * Nadaje użytkownikowi uprawnienia administratora.
  *
- * @param {string} email Email użytkownika
- *
+ * @param {User} admin_info Dane użytkownika, któremu mają zostać nadane uprawnienia administratora
+ * 
  * @returns {Promise<void>}
- *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
+ * 
+ * @throws {InvalidRequestDataError} Gdy nie podano adresu email użytkownika
+ * @throws {TargetNotFoundError} Gdy użytkownik nie istnieje
+ * @throws {AccessDeniedError} Gdy brak tokenu administratora
+ * @throws {RequestError} Gdy wystąpi błąd serwera
  */
-export async function addAdminRequest(email: string): Promise<void> {
-  if (!email) {
-    throw new InvalidRequestDataError("Email jest wymagany", false);
+export async function addAdminRequest(admin_info: User): Promise<void> {
+  if (!admin_info || !admin_info.email) {
+    throw new InvalidRequestDataError("Brak adresu email użytkownika", false);
   }
 
-  const r = await fetch("/api/admin/users/addAdmin", {
+  const r = await fetch("/api/users/???", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email: admin_info.email }),
   });
+
+  if (r.status === 400) {
+    throw new TargetNotFoundError("Nie znaleziono użytkownika");
+  }
 
   if (!r.ok) {
     throw new RequestError("Błąd nadawania uprawnień administratora");
@@ -927,7 +933,7 @@ export async function addAdminRequest(email: string): Promise<void> {
  * @throws {RequestError}
  */
 export async function addBookRequest(book: Book): Promise<void> {
-  const r = await fetch("/api/admin/books/add", {
+  const r = await fetch("/api/books/addBook", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify(book),
@@ -960,7 +966,7 @@ export async function fetchRentLog(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-  const r = await fetch("/api/admin/rent-log/search", {
+  const r = await fetch("/api/books/listRentedBooks", {
     method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ filter, page }),
