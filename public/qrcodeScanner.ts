@@ -22,7 +22,7 @@ if (!video || !canvas || !resultDiv || !scanArea || !startBtn || !restartBtn) {
     throw new Error("QR Scanner: Missing required DOM elements");
 }
 
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
 if (!ctx) {
     throw new Error("QR Scanner: Cannot get canvas 2D context");
 }
@@ -39,10 +39,15 @@ async function startCamera(): Promise<void> {
 
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: {facingMode: "environment"},
+            video: { 
+                facingMode: "environment",
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
         });
 
         video.srcObject = stream;
+        video.setAttribute("playsinline", "true"); // Required for iOS Safari
         await video.play();
 
         streamActive = true;
@@ -66,32 +71,37 @@ function tick(): void {
     if (!video || !canvas || !ctx || !resultDiv || !scanArea) return;
 
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        // Use video's internal resolution for the canvas
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const area = scanArea.getBoundingClientRect();
         const videoRect = video.getBoundingClientRect();
+        const areaRect = scanArea.getBoundingClientRect();
 
-        const scaleX = canvas.width / videoRect.width;
-        const scaleY = canvas.height / videoRect.height;
+        // Calculate the scale between the displayed size and actual resolution
+        const scaleX = video.videoWidth / videoRect.width;
+        const scaleY = video.videoHeight / videoRect.height;
 
-        const sx = Math.floor((area.left - videoRect.left) * scaleX);
-        const sy = Math.floor((area.top - videoRect.top) * scaleY);
-        const sw = Math.floor(area.width * scaleX);
-        const sh = Math.floor(area.height * scaleY);
+        // Calculate capture area relative to the video resolution
+        const sx = Math.max(0, (areaRect.left - videoRect.left) * scaleX);
+        const sy = Math.max(0, (areaRect.top - videoRect.top) * scaleY);
+        const sw = Math.min(video.videoWidth - sx, areaRect.width * scaleX);
+        const sh = Math.min(video.videoHeight - sy, areaRect.height * scaleY);
 
-        const imageData = ctx.getImageData(sx, sy, sw, sh);
+        if (sw > 10 && sh > 10) {
+            const imageData = ctx.getImageData(sx, sy, sw, sh);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, );
 
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) {
+                scanning = false;
+                resultDiv.innerHTML = `Odczytano: <b>${code.data}</b>`;
+                scanArea.style.borderColor = "lime";
 
-        if (code) {
-            scanning = false;
-            resultDiv.innerHTML = `Odczytano: <b>${code.data}</b>`;
-            scanArea.style.borderColor = "lime";
-
-            window.onQRScanned?.(code.data);
+                window.onQRScanned?.(code.data);
+                return; // Stop the loop on success
+            }
         }
     }
 

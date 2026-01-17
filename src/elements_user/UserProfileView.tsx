@@ -129,7 +129,7 @@ export default function UserProfileView() {
                     </div>
                 </div>
             </div>
-            <Alert message={"Błąd API"} title={errorMessage} isOpen={isAPIError} setIsOpen={setIsAPIError}/>
+            <Alert message={errorMessage} title="Błąd API" isOpen={isAPIError} setIsOpen={setIsAPIError}/>
         </>
     );
 }

@@ -13,7 +13,7 @@ import { Pagination } from "../general_elements/Pagination.tsx";
 import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
 import ToggleButton from "../../public/custom_components/ToggleButton.tsx";
 import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
-import './RentedBookListView.css';
+import './RentedBooksListView.css';
 
 import bookIcon from '../../src/assets/book.svg';
 import userIcon from '../../src/assets/mail.svg';

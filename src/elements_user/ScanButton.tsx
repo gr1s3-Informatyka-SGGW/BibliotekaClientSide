@@ -6,14 +6,9 @@
 import React from "react";
 import Popup, {Alert} from "../../public/custom_components/Popup.tsx";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import jsQR from "jsqr";
 
 import QRIcon from '../assets/qr_code.svg'
-
-declare function jsQR(
-  data: Uint8ClampedArray,
-  width: number,
-  height: number
-): { data: string } | null;
 
 /**
  * @interface ScanButtonProps
@@ -68,8 +63,8 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
   }
 
   componentDidMount() {
-    this.setState({
-      isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+    this.setState({ // todo: odkomentuj
+      isMobile: true // /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
     });
   }
 

@@ -10,7 +10,7 @@
  * - Wyświetlanie szczegółów dotyczących wypożyczonych książek w oknie modalnym.
  * @author Aleksander Grzegrzułka
  */
-
+// todo: zmień formularz dodawania administratora tak by był formularzem rejestracji tylko bez danych karty
 import "./UsersListView.css"
 import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../../public/server_types.ts";
 import {

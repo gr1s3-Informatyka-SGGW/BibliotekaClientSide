@@ -361,11 +361,11 @@ export class RentComponent extends Component<{ info: Rent }> {
                         </button>
                     )}
                     {isOverdue ?
-                        <ScanButton onScan={(val:string) => this.onScanReturn(val)} text='Zwróć'/>
-                        :
                         <CustomTooltip title='Aby oddać książkę udaj się do bibliotekarza, aby uregulować płatność'>
                             <button disabled={true} className='boring'>Zwróć</button>
                         </CustomTooltip>
+                        :
+                        <ScanButton onScan={(val:string) => this.onScanReturn(val)} text='Zwróć'/>
                     }
                 </div>
                 <Popup
