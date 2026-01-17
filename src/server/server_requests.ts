@@ -889,34 +889,47 @@ export async function unblockUserRequest(userId: number): Promise<void> {
 }
 
 /**
- * Nadaje użytkownikowi uprawnienia administratora.
+ * Rejestruje nowego pracownika/admina.
  *
- * @param {User} admin_info Dane użytkownika, któremu mają zostać nadane uprawnienia administratora
+ * @param name Imię pracownika
+ * @param surname Nazwisko pracownika
+ * @param email Email pracownika
+ * @param password Hasło pracownika
+ * @param phone Numer telefonu pracownika
  * 
  * @returns {Promise<void>}
- * 
- * @throws {InvalidRequestDataError} Gdy nie podano adresu email użytkownika
- * @throws {TargetNotFoundError} Gdy użytkownik nie istnieje
+ *
+ * @throws {InvalidRequestDataError} Gdy brakuje wymaganych danych
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {RequestError} Gdy użytkownik już istnieje lub wystąpił błąd serwera
  */
-export async function addAdminRequest(admin_info: User): Promise<void> {
-  if (!admin_info || !admin_info.email) {
-    throw new InvalidRequestDataError("Brak adresu email użytkownika", false);
+export async function addAdminRequest(
+  name: string,
+  surname: string,
+  email: string,
+  password: string,
+  phone: string
+): Promise<void> {
+  if (!name || !surname || !email || !password || !phone) {
+    throw new InvalidRequestDataError("Brak wymaganych danych", false);
   }
 
-  const r = await fetch("/api/users/???", {
+  const r = await fetch("/api/users/registerWorker", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ email: admin_info.email }),
+    body: JSON.stringify({ name, surname, email, password, phone }),
   });
 
   if (r.status === 400) {
-    throw new TargetNotFoundError("Nie znaleziono użytkownika");
+    throw new InvalidRequestDataError("Nieprawidłowe dane rejestracji", false);
+  }
+
+  if (r.status === 409) {
+    throw new RequestError("Użytkownik o podanym adresie email już istnieje");
   }
 
   if (!r.ok) {
-    throw new RequestError("Błąd nadawania uprawnień administratora");
+    throw new RequestError("Błąd serwera podczas tworzenia użytkownika");
   }
 }
 
