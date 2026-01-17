@@ -6,17 +6,18 @@ import React, {type Dispatch, useEffect, useRef, useState} from "react";
 import QRCode from "qrcode";
 import Popup from "../../public/custom_components/Popup.tsx";
 import "./InstanceQR.css";
-
 /**
  * Właściwości komponentu InstanceQR.
- * * @interface InstanceQRProps
+ * @interface InstanceQRProps
  * @prop {number[] | number} instance_id - Pojedynczy identyfikator lub tablica ID egzemplarzy do wygenerowania kodów.
+ * @prop {number} book_id - id książki, do której należy egzemplarz/egzemplarze.
  * @prop isOpen - hook kontrolujący widoczność komponentu
  * @prop setIsOpen - setter dla isOpen
  * @prop {function} [onClose] - Opcjonalna funkcja wywoływana przy zamykaniu komponentu.
  */
 interface InstanceQRProps {
     instance_id: number[] | number;
+    book_id: number;
     isOpen: boolean
     setIsOpen: Dispatch<React.SetStateAction<boolean>>
     onClose?: () => void;
@@ -28,11 +29,11 @@ interface InstanceQRProps {
  * @component
  * @param {InstanceQRProps} props - Właściwości komponentu.
  */
-export default function InstanceQR({ instance_id, isOpen, setIsOpen, onClose }: InstanceQRProps) {
+export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, onClose }: InstanceQRProps) {
     const ids = Array.isArray(instance_id) ? instance_id : [instance_id];
     const isSingle = ids.length === 1;
 
-    /** Referencje do elementów canvas, na których rysowane są kody QR.
+    /** Referencje do elementów canvas na, których rysowane są kody QR.
      * @type {React.MutableRefObject<{[key: number]: HTMLCanvasElement | null}>}
      */
     const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
@@ -54,7 +55,7 @@ export default function InstanceQR({ instance_id, isOpen, setIsOpen, onClose }: 
         ids.forEach((id, index) => {
             const canvas = canvasRefs.current[index];
             if (canvas) {
-                QRCode.toCanvas(canvas, id.toString(), {
+                QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_id}), {
                     width: isSingle ? 280 : 160,
                     margin: 2
                 }).catch(err => console.error("Błąd generowania QR:", err));
@@ -115,7 +116,7 @@ export default function InstanceQR({ instance_id, isOpen, setIsOpen, onClose }: 
         <Popup
             title={isSingle ? "Kod egzemplarza" : "Kody egzemplarzy:"}
             isOpen={isOpen}
-            setIsOpen={(val) => {
+            setIsOpen={(val: boolean) => {
                 setIsOpen(val);
                 if (!val && onClose) onClose();
             }}

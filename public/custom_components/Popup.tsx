@@ -20,7 +20,7 @@ export interface PopupProps {
     icon?: string;
     children: ReactNode;
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
     onClose?: ()=> void
 }
 
@@ -45,7 +45,7 @@ export interface AlertProps{
     title: string;
     icon?: string;
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
 
     onCancel?: () => void;
     onAccept?: () => void;
@@ -101,6 +101,7 @@ export default function Popup({ title, icon, children, isOpen,  setIsOpen, onClo
  * @function Alert
  * @description Komponent okna dialogowego z predefiniowaną strukturą komunikatu
  * oraz przyciskami akcji. Obsługuje inteligentne dopasowanie tekstów przycisków.
+ * @param {AlertProps} props
  */
 export function Alert({ title, message, isOpen, setIsOpen, icon, onAccept, onCancel, acceptText, cancelText }: AlertProps){
 

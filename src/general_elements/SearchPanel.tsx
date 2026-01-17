@@ -9,6 +9,8 @@ import React, { Component } from 'react';
 import type { ReactNode} from 'react';
 import type IFormComponent from '../../public/custom_components/IFormComponent.tsx'
 import type { IFilter, SearchSort } from "../../public/server_types";
+import ScanButton from "../elements_user/ScanButton.tsx";
+import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 
 /**
  * Reprezentuje strukturę danych zwracaną przez komponent `SearchPanel`.
@@ -31,12 +33,14 @@ export interface SearchPanelReturn {
  *
  * @property [children] - Komponenty podrzędne (filtry), które muszą implementować interfejs IFormComponent.
  * @property {string} [placeholder] - Atrybut placeholder dla inputu wyszukiwania
+ * @property {(value: string) => void} [scanButtonFunction] - Funkcja wywołana przy naciśnięciu guzika skanowania, jeśli nie obecny guzik nie zostanie stworzony
  * @property [onSearch] - Funkcja zwrotna (callback) wywoływana po zatwierdzeniu wyszukiwania (Enter lub przycisk).
  * @property [defaultValue] - Wartość paska wyszukiwania przy załadowaniu strony
  */
 interface SearchPanelProps {
     children?: ReactNode;
     placeholder?: string;
+    scanButtonFunction?: (value: string) => void
     onSearch?: (data: SearchPanelReturn) => void;
     defaultValue?: string
 }
@@ -200,6 +204,10 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
                                 style={{ filter: 'brightness(0) invert(1)' }}
                             />
                         </button>
+                        {this.props.scanButtonFunction ?
+                                <ScanButton onScan={this.props.scanButtonFunction} enabledTooltipMessage="Wypożycz skanując kod QR"/>
+                         : <></>
+                        }
                     </div>
                 </div>
 

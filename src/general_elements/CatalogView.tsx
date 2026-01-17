@@ -46,7 +46,7 @@ import catalogIcon from "../assets/newsstand.svg"
 import { AuthContext } from "../../public/UserAuth";
 import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
 import { Pagination } from "./Pagination.tsx";
-import Popup from "../../public/custom_components/Popup.tsx";
+import Popup, {Alert} from "../../public/custom_components/Popup.tsx";
 import iconError from "../assets/error.svg"
 import { AddBookForm } from "../elements_admin/AddBookView.tsx";
 import { useSearchParams } from "react-router-dom";
@@ -163,12 +163,13 @@ function CatalogView(): JSX.Element {
         | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
         | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
         | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError"
-        | "instanceDisplayQRCode">(undefined);
+        | "instanceDisplayQRCode"| "ScanError">(undefined);
 
     interface PopupData {
         book?: Book,
         error?: string,
         instanceId?: number,
+        bookId?: number
     }
 
     const [popupData, setPopupData] = useState<PopupData>({});
@@ -329,6 +330,24 @@ function CatalogView(): JSX.Element {
 
         return "Katalog jest obecnie pusty.";
     })();
+    const onRentBookScanned = async (scanned_str: string) => {
+        let parsed_data: {instance: number, book: number};
+        let book_info: Book;
+        try{
+            parsed_data = JSON.parse(scanned_str);
+            book_info = await fetchBookRequest(false, parsed_data.book);
+        }
+        catch(e: any){
+            setShownPopup('ScanError')
+            setPopupData({error: e.message})
+            return;
+        }
+
+        setShownPopup("rentConfirm")
+        setPopupData({instanceId: parsed_data.instance, book: book_info});
+
+
+    }
 
     const onRentBookPressed = (book: BookUser) => {
         setShownPopup("rentConfirm");
@@ -464,6 +483,7 @@ function CatalogView(): JSX.Element {
     }
 
     const handleClosePopup = (prev: unknown) => {
+        setPopupData({})
         if (prev == false) {
             hidePopups();
         }
@@ -511,7 +531,10 @@ function CatalogView(): JSX.Element {
         }
 
         try {
-            await rentBookRequest(book.book_id);
+            if(data.instanceId)
+                await rentBookRequest(book.book_id, data.instanceId);
+            else
+                await rentBookRequest(book.book_id);
             await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("rentSuccess");
@@ -788,14 +811,15 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <InstanceQR isOpen={shownPopup === "instanceDisplayQRCode"} setIsOpen={handleClosePopup} instance_id={popupData.instanceId ?? 0}>
+        <InstanceQR isOpen={shownPopup === "instanceDisplayQRCode"} setIsOpen={handleClosePopup} instance_id={popupData.instanceId ?? 0} book_id={popupData.bookId ?? 0}/>
 
-        </InstanceQR>
+        <Alert message={"Błąd przy skanowaniu kodu"} title={popupData.error ?? "Błąd skanowania książki"} setIsOpen={handleClosePopup} isOpen={shownPopup === "ScanError"}/>
 
         <h1 className="mb-14"><img src={catalogIcon} alt="icon" /> Katalog</h1>
         <main>
             <NavSidebar></NavSidebar>
-            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }} defaultValue={search?.search ?? ""}>
+            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }} defaultValue={search?.search ?? ""}
+                scanButtonFunction={onRentBookScanned}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
                 <CustomSelect filterKey="" label="Sortuj" initialValues={(() => {
                     if (!sorting) return ["Tytuł (A-Z)"];

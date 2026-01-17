@@ -338,7 +338,7 @@ export async function fetchUserCatalogRequest(
     return { result: userBooks, totalPages, totalResults: totalBooks };
 }
 
-export async function rentBookRequest(book_id: number): Promise<void>{
+export async function rentBookRequest(book_id: number, instance_id?: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 export async function reserveBookRequest(book_id: number): Promise<void>{
