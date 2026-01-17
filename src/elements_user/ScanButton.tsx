@@ -22,6 +22,7 @@ declare function jsQR(
  * */
 interface ScanButtonProps {
   onScan?: (value: string) => void;
+  text?: string;
   enabledTooltipMessage?: string;
 }
 /**
@@ -67,7 +68,6 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
   }
 
   componentDidMount() {
-    console.log("a")
     this.setState({
       isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
     });
@@ -186,6 +186,7 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
                 className="scan-button"
             >
               <img src={QRIcon} alt={"Skanuj QR"}/>
+              {this.props.text ?? ''}
             </button>
           </CustomTooltip>
 

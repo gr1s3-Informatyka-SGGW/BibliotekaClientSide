@@ -58,7 +58,7 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
                 QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_id}), {
                     width: isSingle ? 280 : 160,
                     margin: 2
-                }).catch(err => console.error("Błąd generowania QR:", err));
+                })
             }
         });
     }, [ids, isSingle]);

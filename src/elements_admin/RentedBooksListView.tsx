@@ -465,9 +465,8 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 
             <Alert
                 isOpen={alertConfig.isOpen}
-                setIsOpen={(val) => {
-                    const newState = typeof val === 'function' ? val(alertConfig.isOpen) : val;
-                    setAlertConfig({ ...alertConfig, isOpen: newState });
+                setIsOpen={(val: boolean) => {
+                    setAlertConfig({ ...alertConfig, isOpen: val });
                 }}
                 title={alertConfig.title}
                 message={alertConfig.message}

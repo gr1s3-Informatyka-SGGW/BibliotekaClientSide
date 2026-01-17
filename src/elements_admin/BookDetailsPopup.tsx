@@ -20,13 +20,13 @@ import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
  * Interfejs definiujący właściwości komponentu BookDetailsPopup.
  * @interface BookDetailsPopupProps
  * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
- * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
+ * @property {React.Dispatch<React.SetStateAction<boolean>>| ((isOpen: boolean) => void)} setIsOpen - setter isOpen
  * @property {()=>void} [onClose] - event wywołany przy zamknięciu okna poprzez kliknięcie escape lub poza komponent
  * @property {Book} [book] - Obiekt zawierający dane książki do wyświetlenia w szczegółach.
  */
 export interface BookDetailsPopupProps {
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
   onClose?: () => void;
   book?: Book;
 }

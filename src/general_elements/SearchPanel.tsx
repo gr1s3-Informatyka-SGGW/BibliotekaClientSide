@@ -205,7 +205,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
                             />
                         </button>
                         {this.props.scanButtonFunction ?
-                                <ScanButton onScan={this.props.scanButtonFunction} enabledTooltipMessage="Wypożycz skanując kod QR"/>
+                            <ScanButton onScan={this.props.scanButtonFunction} enabledTooltipMessage="Wypożycz skanując kod QR"/>
                          : <></>
                         }
                     </div>

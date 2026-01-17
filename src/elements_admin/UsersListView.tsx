@@ -235,7 +235,7 @@ export default function UsersListView(): JSX.Element {
     return (
         <>
             {/* Block User Confirm */}
-            <Popup isOpen={shownPopup === "blockConfirm"} setIsOpen={(v) => !v && hidePopups()} title="Zablokuj użytkownika" onClose={hidePopups}>
+            <Popup isOpen={shownPopup === "blockConfirm"} setIsOpen={(v:boolean) => !v && hidePopups()} title="Zablokuj użytkownika" onClose={hidePopups}>
                 <p>Czy na pewno chcesz zablokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
                 <div className="flex flex-row *:flex-1 mt-6 gap-2">
                     <button onClick={hidePopups} className="boring">Anuluj</button>
@@ -244,7 +244,7 @@ export default function UsersListView(): JSX.Element {
             </Popup>
 
             {/* Unblock User Confirm */}
-            <Popup isOpen={shownPopup === "unblockConfirm"} setIsOpen={(v) => !v && hidePopups()} title="Odblokuj użytkownika" onClose={hidePopups}>
+            <Popup isOpen={shownPopup === "unblockConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Odblokuj użytkownika" onClose={hidePopups}>
                 <p>Czy na pewno chcesz odblokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
                 <div className="flex flex-row *:flex-1 mt-6 gap-2">
                     <button onClick={hidePopups} className="boring">Anuluj</button>
@@ -253,7 +253,7 @@ export default function UsersListView(): JSX.Element {
             </Popup>
 
             {/* Delete User Confirm */}
-            <Popup isOpen={shownPopup === "deleteConfirm"} setIsOpen={(v) => !v && hidePopups()} title="Usuń użytkownika" onClose={hidePopups}>
+            <Popup isOpen={shownPopup === "deleteConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Usuń użytkownika" onClose={hidePopups}>
                 <p>Czy na pewno chcesz trwale usunąć użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
                 <p><strong>Tej operacji nie można cofnąć.</strong></p>
                 <div className="flex flex-row *:flex-1 mt-6 gap-2">
@@ -263,7 +263,7 @@ export default function UsersListView(): JSX.Element {
             </Popup>
 
             {/* Generic Success */}
-            <Popup isOpen={shownPopup === "success"} setIsOpen={(v) => !v && hidePopups()} title={popupData.title || "Sukces"} onClose={hidePopups}>
+            <Popup isOpen={shownPopup === "success"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Sukces"} onClose={hidePopups}>
                 <p>{popupData.message}</p>
                 <div className="flex flex-row *:flex-1 mt-6">
                     <button onClick={hidePopups} className="boring">Zamknij</button>
@@ -271,7 +271,7 @@ export default function UsersListView(): JSX.Element {
             </Popup>
 
             {/* Generic Error - Dynamic Title/Content */}
-            <Popup isOpen={shownPopup === "error"} setIsOpen={(v) => !v && hidePopups()} title={popupData.title || "Błąd"} icon={iconError} onClose={hidePopups}>
+            <Popup isOpen={shownPopup === "error"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Błąd"} icon={iconError} onClose={hidePopups}>
                 <p className="text-justify italic"><strong>{popupData.message}</strong></p>
                 <div className="flex flex-row *:flex-1 mt-6">
                     <button onClick={hidePopups} className="boring">Zamknij</button>
@@ -279,10 +279,10 @@ export default function UsersListView(): JSX.Element {
             </Popup>
 
             {/* Add Librarian */}
-            <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v) => !v && hidePopups()} onClose={hidePopups}/>
+            <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups}/>
 
             {/* Book Details Popup */}
-            <BookDetailsPopup isOpen={shownPopup === "bookDetails"} setIsOpen={(v) => !v && hidePopups()} onClose={hidePopups} book={popupData.book} />
+            <BookDetailsPopup isOpen={shownPopup === "bookDetails"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups} book={popupData.book} />
 
 
             {/* === GŁÓWNY LAYOUT === */}
@@ -394,12 +394,12 @@ export default function UsersListView(): JSX.Element {
 /**
  * @interface AddAdminPopupProps
  * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
- * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
+ * @property {React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void)} setIsOpen - setter isOpen
  * @property {()=>void} [onClose] - event wywołany przy zamknięciu okna poprzez kliknięcie escape lub poza komponent
  */
 export interface AddAdminPopupProps {
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
     onClose?: () => void;
 }
 

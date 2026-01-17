@@ -38,11 +38,12 @@ export default function AddBookView(){
     const [success, setSuccess] = useState<string|null>(null)
     const [isQRopen, setIsQRopen] = useState(false);
     const [instanceIds, setInstanceIds] = useState<number[] | null>(null);
+    const [bookId, setBookId] = useState<number | null>(null);
     
 
 
     async function sendForm(book: Book, copies: number) {
-        console.log("Wysyłam:", book)
+
         setError(null);
         setSuccess(null);
 
@@ -57,6 +58,7 @@ export default function AddBookView(){
             }
 
             setInstanceIds(ids);
+            setBookId(createdBook.book_id)
             setIsQRopen(true);
         } catch (e) {
             setError("Wystąpił błąd przy dodawaniu książki.");
@@ -86,6 +88,7 @@ export default function AddBookView(){
         {success && <div className="success-box">{success}</div>}
         <InstanceQR
             instance_id={instanceIds ?? []}
+            book_id={bookId ?? 0}
             isOpen={isQRopen}
             setIsOpen={setIsQRopen}
             onClose={() => setInstanceIds(null)}
@@ -188,7 +191,6 @@ export class AddBookForm
         if (!validators.publisher(b.publisher).ok) return "Niepoprawny wydawca"
         return null
     }
-
     private submit = (e: FormEvent) => {
         e.preventDefault();
 
