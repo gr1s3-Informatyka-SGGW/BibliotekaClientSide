@@ -2,7 +2,7 @@
  * @file Plik obsługujący stronę /profile-user
  * @author Natalia Bardadyn
  * */
-
+// todo: poprawić widok mobilny
 import React, { useContext, useState, useEffect } from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
