@@ -7,6 +7,7 @@ import React from "react";
 import Popup, {Alert} from "../../public/custom_components/Popup.tsx";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
 import jsQR from "jsqr";
+import './ScanButton.css'
 
 import QRIcon from '../assets/qr_code.svg'
 
@@ -195,12 +196,32 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
               <canvas ref={this.canvasRef} style={{display: "none"}}/>
               <div
                   ref={this.scanAreaRef}
-                  style={{
-                    position: "absolute",
-                    inset: "25%",
-                    border: "2px solid red",
-                  }}
-              />
+                  className='scan-area'>
+                <div className='scan-area-indicator' style={{
+                  top: 0,
+                  left: 0,
+                  borderTop: '3px solid red',
+                  borderLeft: '3px solid red'
+                }}/>
+                <div className='scan-area-indicator'  style={{
+                  top: 0,
+                  right: 0,
+                  borderTop: '3px solid red',
+                  borderRight: '3px solid red'
+                }}/>
+                <div className='scan-area-indicator'  style={{
+                  bottom: 0,
+                  left: 0,
+                  borderBottom: '3px solid red',
+                  borderLeft: '3px solid red'
+                }}/>
+                <div className='scan-area-indicator'  style={{
+                  bottom: 0,
+                  right: 0,
+                  borderBottom: '3px solid red',
+                  borderRight: '3px solid red'
+                }}/>
+              </div>
             </div>
           </Popup>
           <Alert
