@@ -1,6 +1,6 @@
 /**
  * @file Implementacja komponentu ScanButton, odpowiadającego za obsługę skanowania kodów QR.
- * @author Karol Jurewicz
+ * @author Karol Dziuba i Karol Jurewicz
  * */
 
 import React from "react";
