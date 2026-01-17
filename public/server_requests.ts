@@ -494,6 +494,7 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
  */
 export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
   const r = await fetch(`/api/books/${book_id}`, {
+    method: "GET",
     headers: authHeaders(),
   });
 
@@ -554,16 +555,16 @@ export async function fetchAdminCatalogRequest(
 }
 
 /**
- * Pobiera szczegółowe informacje o książce dla widoku administratora.
- * 
+ * Pobiera szczegółowe informacje o książce dla pracownika.
+ *
  * @param {number} book_id Identyfikator książki
  * 
- * @returns {Promise<BookAdmin>}
- * 
+ * @returns {Promise<BookAdmin>} Dane książki wraz z egzemplarzami i rezerwacjami
+ *
  * @throws {InvalidRequestDataError} Gdy nie podano id książki
  * @throws {TargetNotFoundError} Gdy książka nie istnieje
- * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError} Gdy brak tokenu pracownika
+ * @throws {RequestError} Gdy wystąpił inny błąd serwera
  */
 export async function fetchAdminBookRequest(
   book_id: number
@@ -572,15 +573,19 @@ export async function fetchAdminBookRequest(
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-  const r = await fetch(`/api/books/${book_id}`, {
-    method: "POST",
+  const r = await fetch(`/api/books/worker/book/${book_id}`, {
+    method: "GET",
     headers: adminHeaders(),
-    body: JSON.stringify({ book_id }),
   });
 
-  if (r.status === 400) {
+  if (r.status === 403) {
+    throw new AccessDeniedError("Brak uprawnień do pobrania książki");
+  }
+
+  if (r.status === 404) {
     throw new TargetNotFoundError("Nie znaleziono książki");
   }
+
   if (!r.ok) {
     throw new RequestError("Błąd pobierania danych książki");
   }
