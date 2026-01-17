@@ -13,7 +13,7 @@ import { Pagination } from "../general_elements/Pagination.tsx";
 import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
 import ToggleButton from "../../public/custom_components/ToggleButton.tsx";
 import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
-import './RentedBookListView.css';
+import './RentedBooksListView.css';
 
 import bookIcon from '../../src/assets/book.svg';
 import userIcon from '../../src/assets/mail.svg';
@@ -465,9 +465,8 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 
             <Alert
                 isOpen={alertConfig.isOpen}
-                setIsOpen={(val) => {
-                    const newState = typeof val === 'function' ? val(alertConfig.isOpen) : val;
-                    setAlertConfig({ ...alertConfig, isOpen: newState });
+                setIsOpen={(val: boolean) => {
+                    setAlertConfig({ ...alertConfig, isOpen: val });
                 }}
                 title={alertConfig.title}
                 message={alertConfig.message}

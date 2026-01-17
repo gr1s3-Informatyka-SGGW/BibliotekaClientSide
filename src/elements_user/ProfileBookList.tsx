@@ -69,7 +69,7 @@ export default function ProfileBookList({ children, header, icon }: { children: 
             </div>
             <Alert
                 isOpen={alertConfig.isOpen}
-                setIsOpen={(val) => setAlertConfig(prev => ({ ...prev, isOpen: val as boolean }))}
+                setIsOpen={(val: boolean) => setAlertConfig(prev => ({ ...prev, isOpen: val as boolean }))}
                 title={alertConfig.title}
                 message={alertConfig.message}
                 onAccept={alertConfig.onAccept}
@@ -206,15 +206,15 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
                         Anuluj rezerwację
                     </button>
                     {isReady && (
-                        <ScanButton pass_output={(val) => this.onScanWithdraw(val)}>
-                            Odbierz
+                        <ScanButton onScan={(val: string) => this.onScanWithdraw(val)} >
+
                         </ScanButton>
                     )}
                 </div>
                 <Popup
                     title="Szczegóły książki"
                     isOpen={isDetailsOpen}
-                    setIsOpen={(val) => this.setState({ isDetailsOpen: val })}
+                    setIsOpen={(val: boolean) => this.setState({ isDetailsOpen: val })}
                 >
                     {this.renderBookDetails(book)}
                     <div style={{
@@ -361,19 +361,17 @@ export class RentComponent extends Component<{ info: Rent }> {
                         </button>
                     )}
                     {isOverdue ?
-                        <ScanButton pass_output={(val) => this.onScanReturn(val)}>
-                            Zwróć
-                        </ScanButton>
-                        :
                         <CustomTooltip title='Aby oddać książkę udaj się do bibliotekarza, aby uregulować płatność'>
                             <button disabled={true} className='boring'>Zwróć</button>
                         </CustomTooltip>
+                        :
+                        <ScanButton onScan={(val:string) => this.onScanReturn(val)} text='Zwróć'/>
                     }
                 </div>
                 <Popup
                     title="Szczegóły książki"
                     isOpen={isDetailsOpen}
-                    setIsOpen={(val) => this.setState({ isDetailsOpen: val })}
+                    setIsOpen={(val: boolean) => this.setState({ isDetailsOpen: val })}
                 >
                     {this.renderBookDetails(book)}
                     <div style={{

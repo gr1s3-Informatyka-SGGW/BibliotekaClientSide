@@ -205,10 +205,9 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             <Popup
                 title="Zmień hasło"
                 isOpen={this.state.isPasswordOpen}
-                setIsOpen={(val) => {
-                    const newValue = typeof val === 'function' ? val(this.state.isPasswordOpen) : val;
+                setIsOpen={(val: boolean) => {
                     this.setState({
-                        isPasswordOpen: newValue,
+                        isPasswordOpen: val,
                         formErrors: {},
                         passwordData: { oldPass: '', newPass: '', confirmPass: '' }
                     });
@@ -350,9 +349,8 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             <Popup
                 title="Zmień dane karty"
                 isOpen={this.state.isCardOpen}
-                setIsOpen={(val) => {
-                    const newValue = typeof val === 'function' ? val(this.state.isCardOpen) : val;
-                    this.setState({ isCardOpen: newValue, formErrors: {} });
+                setIsOpen={(val: boolean) => {
+                    this.setState({ isCardOpen: val, formErrors: {} });
                 }}
             >
                 <div style={{ minWidth: '300px' }}>

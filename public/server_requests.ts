@@ -124,14 +124,6 @@ export async function registerRequest(name:string, surname:string, email:string,
     if (existingEmails.includes(email)) {
         throw new InvalidRequestDataError("Podany adres email już istnieje w bazie danych", true);
     }
-
-    console.log("REGISTER USER:", {
-        name,
-        surname,
-        email,
-        password,
-        card_info
-    });
 }
 export async function resetPasswordRequest(email: string): Promise<void>{
     throw Error("Not implemented exception")
@@ -338,7 +330,7 @@ export async function fetchUserCatalogRequest(
     return { result: userBooks, totalPages, totalResults: totalBooks };
 }
 
-export async function rentBookRequest(book_id: number): Promise<void>{
+export async function rentBookRequest(book_id: number, instance_id?: number): Promise<void>{
     throw Error("Not implemented exception")
 }
 export async function reserveBookRequest(book_id: number): Promise<void>{
@@ -397,7 +389,6 @@ let mockInstanceCounter = 1;
 export async function addBookInstanceRequest(book_id: number): Promise<{ instance_id: number }> {
     if (USE_MOCK) {
         const fakeId = mockInstanceCounter++;
-        console.log("MOCK addBookInstanceRequest:", book_id, "->", fakeId);
 
         return {
             instance_id: fakeId

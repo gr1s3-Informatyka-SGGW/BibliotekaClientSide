@@ -12,7 +12,7 @@ import './Popup.css';
  * @property {string} [icon] - Opcjonalna ścieżka do pliku ikony (SVG/PNG).
  * @property {ReactNode} children - Zawartość renderowana wewnątrz okna.
  * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
- * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
+ * @property {React.Dispatch<React.SetStateAction<boolean>>| ((isOpen: boolean) => void)} setIsOpen - setter isOpen
  * @property {()=>void} [onClose] - event wywołany przy zamknięciu okna poprzez kliknięcie escape lub poza komponent
  */
 export interface PopupProps {
@@ -20,7 +20,7 @@ export interface PopupProps {
     icon?: string;
     children: ReactNode;
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
     onClose?: ()=> void
 }
 
@@ -30,7 +30,7 @@ export interface PopupProps {
  * @property {string} title - Tekst wyświetlany w nagłówku okna.
  * @property {string} [icon] - Opcjonalna ścieżka do pliku ikony (SVG/PNG).
  * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
- * @property {React.Dispatch<React.SetStateAction<boolean>>} setIsOpen - setter isOpen
+ * @property {React.Dispatch<React.SetStateAction<boolean>>| ((isOpen: boolean) => void)} setIsOpen - setter isOpen
  *
  * @property {() => void} [onCancel] - Callback wywoływany przy rezygnacji/zamknięciu okna.
  * @property {() => void} [onAccept] - KLUCZOWY PARAMETR: Przesłanie tej funkcji powoduje 
@@ -45,7 +45,7 @@ export interface AlertProps{
     title: string;
     icon?: string;
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
 
     onCancel?: () => void;
     onAccept?: () => void;
@@ -101,6 +101,7 @@ export default function Popup({ title, icon, children, isOpen,  setIsOpen, onClo
  * @function Alert
  * @description Komponent okna dialogowego z predefiniowaną strukturą komunikatu
  * oraz przyciskami akcji. Obsługuje inteligentne dopasowanie tekstów przycisków.
+ * @param {AlertProps} props
  */
 export function Alert({ title, message, isOpen, setIsOpen, icon, onAccept, onCancel, acceptText, cancelText }: AlertProps){
 
