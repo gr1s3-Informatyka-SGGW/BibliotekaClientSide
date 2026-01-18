@@ -2,11 +2,11 @@
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
  * */
-// todo: dodać filtrowanie itp poprzez metodę GET
 import type { Book, User, RentFullInfo } from "../../public/server_types.ts";
 import { extendRentRequest, fetchRentLog, returnBookRequest } from "../../public/server_requests.ts";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {useNavigate, useSearchParams} from "react-router-dom";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
 import { Pagination } from "../general_elements/Pagination.tsx";
@@ -78,12 +78,26 @@ interface RentedBooksListViewProps {
  */
 export default function RentedBooksListView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
 
-    const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [filters, setFilters] = useState<any>({});
+    const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
+    const isUpdatingUrlRef = useRef(false);
+
+    const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || "");
+    const [filters, setFilters] = useState<any>(() => {
+        const sort = searchParams.get('sort');
+        const status = searchParams.get('status');
+        const overdue = searchParams.get('overdue');
+        const initialFilters: any = {};
+        if (sort) initialFilters.sort = [sort];
+        if (status) initialFilters.status = status.split(',');
+        if (overdue) initialFilters.overdue = overdue.split(',');
+        return initialFilters;
+    });
+
+    const [currentPage, setCurrentPage] = useState(() => parseInt(searchParams.get('page') || '1', 10));
+    const [totalPages, setTotalPages] = useState(1);
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -100,7 +114,16 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
         type?: 'prolong' | 'return' | 'error';
     }>({ isOpen: false, title: "", message: "" });
 
-    const [activeFilters, setActiveFilters] = useState<{ [key: string]: string[] }>({});
+    const [activeFilters, setActiveFilters] = useState<{ [key: string]: string[] }>(() => {
+        const sort = searchParams.get('sort');
+        const status = searchParams.get('status');
+        const overdue = searchParams.get('overdue');
+        const initialActiveFilters: { [key: string]: string[] } = {};
+        if (sort) initialActiveFilters.sort = [sort];
+        if (status) initialActiveFilters.status = status.split(',');
+        if (overdue) initialActiveFilters.overdue = overdue.split(',');
+        return initialActiveFilters;
+    });
 
     /**
      * Przetwarza surowe dane z API na ujednolicony format `ExtendedRentInfo`.
@@ -178,7 +201,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                     });
                 }
 
-                if (filters.po_terminie && filters.po_terminie.includes('any')) {
+                if (filters.overdue && filters.overdue.includes('any')) {
                     const now = new Date();
                     processedData = processedData.filter(item => {
                         if (item.status === 'active') {
@@ -225,7 +248,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
 
 
                 let finalData = processedData;
-                if (filters.po_terminie && filters.po_terminie.includes('any')) {
+                if (filters.overdue && filters.overdue.includes('any')) {
                     const now = new Date();
                     finalData = finalData.filter(item => {
                         if (item.status === 'active') return now > item.return_date;
@@ -255,11 +278,50 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     }, [initialData, searchQuery, filters, currentPage]);
 
     useEffect(() => {
-        const loadData = async () => {
-            await refreshData();
-        };
-        void loadData();
-    }, [refreshData]);
+        if (isUpdatingUrlRef.current) {
+            isUpdatingUrlRef.current = false;
+            return;
+        }
+
+        const query = searchParams.get('search') || '';
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const sort = searchParams.get('sort');
+        const status = searchParams.get('status');
+        const overdue = searchParams.get('overdue');
+
+        const initialFilters: any = {};
+        const initialActiveFilters: { [key: string]: string[] } = {};
+
+        if (sort) {
+            initialFilters.sort = [sort];
+            initialActiveFilters.sort = [sort];
+        }
+        if (status) {
+            const statusArray = status.split(',');
+            initialFilters.status = statusArray;
+            initialActiveFilters.status = statusArray;
+        }
+        if (overdue) {
+            const poTerminieArray = overdue.split(',');
+            initialFilters.overdue = poTerminieArray;
+            initialActiveFilters.overdue = poTerminieArray;
+        }
+
+        setSearchQuery(query);
+        setFilters(initialFilters);
+        setActiveFilters(initialActiveFilters);
+        setCurrentPage(page);
+    }, [searchParams]);
+
+    const [lastRefreshParams, setLastRefreshParams] = useState<string>("");
+
+    useEffect(() => {
+        const currentParams = JSON.stringify({ searchQuery, filters, currentPage });
+        if (currentParams !== lastRefreshParams) {
+            setLastRefreshParams(currentParams);
+            void refreshData();
+        }
+    }, [refreshData, searchQuery, filters, currentPage, lastRefreshParams]);
 
 
     /**
@@ -270,6 +332,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
         setSearchQuery(data.search);
         setFilters(data.filter);
         setCurrentPage(1);
+        updateUrlParams(data.search, data.filter, 1);
     };
 
     /**
@@ -277,9 +340,12 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
      * @param key - Klucz filtra.
      */
     const handleFilterChange = (key: string) => (values: string[]) => {
-        setActiveFilters(prev => ({ ...prev, [key]: values }));
-        setFilters((prev: any) => ({ ...prev, [key]: values }));
+        const newActiveFilters = {...activeFilters, [key]: values};
+        const newFilters = {...filters, [key]: values};
+        setActiveFilters(newActiveFilters);
+        setFilters(newFilters);
         setCurrentPage(1);
+        updateUrlParams(searchQuery, newFilters, 1);
     };
 
     /**
@@ -290,6 +356,36 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
         setFilters({});
         setSearchQuery("");
         setCurrentPage(1);
+        updateUrlParams("", {}, 1);
+    };
+
+    /**
+     * Aktualizuje parametry URL na podstawie aktualnego stanu wyszukiwania, filtrów i strony.
+     */
+    const updateUrlParams = (search: string, currentFilters: any, page: number) => {
+        const params = new URLSearchParams();
+
+        if (search) {
+            params.set('search', search);
+        }
+        if (page > 1) {
+            params.set('page', page.toString());
+        }
+        if (currentFilters.sort && currentFilters.sort.length > 0) {
+            params.set('sort', currentFilters.sort[0]);
+        }
+        if (currentFilters.status && currentFilters.status.length > 0) {
+            params.set('status', currentFilters.status.join(','));
+        }
+        if (currentFilters.overdue && currentFilters.overdue.length > 0) {
+            params.set('overdue', currentFilters.overdue.join(','));
+        }
+
+        const paramsString = params.toString();
+        if (paramsString !== searchParams.toString()) {
+            isUpdatingUrlRef.current = true;
+            setSearchParams(params, { replace: true });
+        }
     };
 
 
@@ -376,10 +472,10 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                     </CustomSelect>
                     <ToggleButton
                         label="Po terminie"
-                        initialValue={activeFilters['po_terminie']?.includes('any') ?? false}
+                        initialValue={activeFilters['overdue']?.includes('any') ?? false}
                         onChange={(isActive) => {
                             const valueToSend = isActive ? ['any'] : [];
-                            handleFilterChange('po_terminie')(valueToSend);
+                            handleFilterChange('overdue')(valueToSend);
                         }}
                     />
                 </SearchPanel>
@@ -407,7 +503,10 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={setCurrentPage}
+                    onPageChange={(page) => {
+                        setCurrentPage(page);
+                        updateUrlParams(searchQuery, filters, page);
+                    }}
                 />
             </div>
 
