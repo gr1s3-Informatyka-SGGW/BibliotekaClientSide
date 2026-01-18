@@ -3,13 +3,13 @@
  * @author Natalia Bardadyn
  * */
 // todo: poprawić widok mobilny
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
 import { AuthContext } from "../../public/UserAuth.tsx";
 
-import {fetchBorrowedBooksRequest, fetchReservedBooksRequest, RequestError} from '../../public/server_requests.ts';
+import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../../public/server_requests.ts';
 import { type Rent, type Reservation } from '../../public/server_types.ts';
 
 import accountCircleIcon from '../assets/account_circle.svg';
@@ -44,91 +44,83 @@ export default function UserProfileView() {
 
     return (
         <>
-            <div className="user-profile-layout" onLoad={loadData} style={{ display: 'flex', width: '100%' }}>
-                {/* Sidebar nawigacyjny */}
-                <NavSidebar />
+            {/* Sidebar nawigacyjny */}
+            <NavSidebar />
 
-                <div className="user-profile-view" style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    padding: '2em',
+            <main className="user-profile-view" onLoad={loadData}>
+                {/* 1. Nagłówek: Ikona i Tytuł */}
+                <div style={{
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    color: '#631433',
+                    transition: 'color 0.3s',
+                    alignItems: 'center',
+                    gap: '0.5em'
                 }}>
-                    {/* 1. Nagłówek: Ikona i Tytuł */}
-                    <div style={{
-                        textAlign: 'center',
-                        textDecoration: 'none',
-                        color: '#631433',
-                        transition: 'color 0.3s',
+                    <h1 style={{
+                        fontSize: '2em',
+                        marginTop: '0',
+                        marginBottom: '0.5em',
+                        fontWeight: 'bold',
+                        display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '0.5em'
                     }}>
-                        <h1 style={{
-                            fontSize: '2em',
-                            marginTop: '0',
-                            marginBottom: '0.5em',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5em'
-                        }}>
-                            <img
-                                src={accountCircleIcon}
-                                alt="Profile"
-                            />
-                            Twój profil
-                        </h1>
+                        <img
+                            src={accountCircleIcon}
+                            alt="Profile"
+                        />
+                        Twój profil
+                    </h1>
+                </div>
+
+                {/* 2. Główny kontener dla układu Lewo-Prawo */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    width: '100%',
+                    gap: '1em',
+                    alignItems: 'flex-start'
+                }}>
+
+                    {/* LEWA KOLUMNA: Panel profilu */}
+                    <div style={{ width: '22em'}}>
+                        <ProfileInfoPanel info={session?.session?.user || {
+                            name: "Jan",
+                            surname: "Kowalski",
+                            email: "jan@example.com",
+                            credit_card_number: "1234567812345678"
+                        }} />
                     </div>
 
-                    {/* 2. Główny kontener dla układu Lewo-Prawo */}
+                    {/* PRAWA KOLUMNA: Listy książek */}
                     <div style={{
                         display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
-                        width: '100%',
-                        gap: '2em',
-                        alignItems: 'flex-start'
+                        flexDirection: 'column'
                     }}>
+                        <ProfileBookList
+                            header="Zarezerwowane książki"
+                            icon={ribbonIcon}
+                        >
+                            {userReservations.map(res => (
+                                <ReservationComponent key={res.book.book_id} info={res} />
+                            ))}
+                        </ProfileBookList>
 
-                        {/* LEWA KOLUMNA: Panel profilu */}
-                        <div style={{ flex: '0 0 auto', width: '22em', marginTop: '0.5em' }}>
-                            <ProfileInfoPanel info={session?.session?.user || {
-                                name: "Jan",
-                                surname: "Kowalski",
-                                email: "jan@example.com",
-                                credit_card_number: "1234567812345678"
-                            }} />
-                        </div>
-
-                        {/* PRAWA KOLUMNA: Listy książek */}
-                        <div style={{
-                            flex: '1',
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}>
-                            <ProfileBookList
-                                header="Zarezerwowane książki"
-                                icon={ribbonIcon}
-                            >
-                                {userReservations.map(res => (
-                                    <ReservationComponent key={res.book.book_id} info={res} />
-                                ))}
-                            </ProfileBookList>
-
-                            <ProfileBookList
-                                header="Wypożyczone książki"
-                                icon={bookIcon}
-                            >
-                                {userRents.map(rent => (
-                                    <RentComponent key={rent.book.book_id} info={rent} />
-                                ))}
-                            </ProfileBookList>
-                        </div>
+                        <ProfileBookList
+                            header="Wypożyczone książki"
+                            icon={bookIcon}
+                        >
+                            {userRents.map(rent => (
+                                <RentComponent key={rent.book.book_id} info={rent} />
+                            ))}
+                        </ProfileBookList>
                     </div>
                 </div>
-            </div>
+            </main>
             <Alert message={errorMessage} title="Błąd API" isOpen={isAPIError} setIsOpen={setIsAPIError}/>
         </>
     );

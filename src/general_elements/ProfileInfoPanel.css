@@ -16,17 +16,16 @@
 }
 
 .profile-info-component .profile-row {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    padding: 0.8em 0 !important;
     min-width: max-content;
 }
 
 .profile-info-component .profile-label {
-    width: 140px !important;
-    flex-shrink: 0 !important;
+    font-size: 100%;
+    width: 140px;
+    flex-shrink: 0;
     margin-right: 1em;
+
+    font-weight: 600;
 }
 
 .profile-info-component .table-input {
@@ -60,12 +59,7 @@
     background: #e0e0e0;
     border-radius: 4px;
 }
-.profile-info-component .profile-row {
-    display: flex !important;
-    padding: 0.3em 0 !important;
-    min-width: max-content;
 
-}
 .profile-info-component .profile-row .custom-tooltip-container{
     width: 100%;
 }

@@ -283,15 +283,16 @@ export default function UsersListView(): JSX.Element {
             {/* Book Details Popup */}
             <BookDetailsPopup isOpen={shownPopup === "bookDetails"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups} book={popupData.book} />
 
-
+            <NavSidebar />
             {/* === GŁÓWNY LAYOUT === */}
+            <main>
             <h1 style={{ textAlign: "center", marginBottom: "1em" }}>
                 <img src={iconGroup} alt="" style={{ verticalAlign: 'middle', marginRight: '0.5em' }} />
                 Lista użytkowników
             </h1>
 
-            <main>
-                <NavSidebar />
+
+            <div>
 
                 {/* Panel Wyszukiwania */}
                 <SearchPanel
@@ -386,6 +387,7 @@ export default function UsersListView(): JSX.Element {
                     />
                 )}
 
+            </div>
             </main>
         </>
     );

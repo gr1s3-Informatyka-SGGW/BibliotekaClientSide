@@ -13,7 +13,7 @@
  * - Automatyczne pobieranie dostępnych opcji filtrów z serwera przy inicjalizacji.
  * @author Aleksander Grzegrzułka
  */
-
+// todo: Gdy chcesz edytować książkę w mobilce to popup wychodzi poza ekran
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
 import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
@@ -810,10 +810,10 @@ function CatalogView(): JSX.Element {
         <InstanceQR isOpen={shownPopup === "instanceDisplayQRCode"} setIsOpen={handleClosePopup} instance_id={popupData.instanceId ?? 0} book_id={popupData.bookId ?? 0}/>
 
         <Alert message={"Błąd przy skanowaniu kodu"} title={popupData.error ?? "Błąd skanowania książki"} setIsOpen={handleClosePopup} isOpen={shownPopup === "ScanError"}/>
-
-        <h1 className="mb-14"><img src={catalogIcon} alt="icon" /> Katalog</h1>
+        <NavSidebar/>
         <main>
-            <NavSidebar></NavSidebar>
+        <h1><img src={catalogIcon} alt="" /> Katalog</h1>
+        <div>
             <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }} defaultValue={search?.search ?? ""}
                 scanButtonFunction={onRentBookScanned}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
@@ -946,6 +946,7 @@ function CatalogView(): JSX.Element {
                     onPageChange={(page: number) => { setCurrentPage(page); }}
                 />
             )}
+        </div>
         </main>
     </>
 }

@@ -136,7 +136,7 @@ export interface CustomSelectProps {
  * @property focusedIndex - Indeks aktualnie podświetlonego elementu (nawigacja klawiaturą)
  * @property position - Obliczona pozycja dropdowna względem przycisku aktywacji
  */
-
+// todo: potrafi wychodzić poza ekran
 interface CustomSelectState {
     isOpen: boolean;
     selectedValues: Set<string>;

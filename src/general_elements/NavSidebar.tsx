@@ -174,7 +174,7 @@ function NavSidebar(): JSX.Element {
             </button>
 
             {/* Główny kontener Sidebar */}
-            <nav className={`sidebar ${isOpen ? "open" : ""}`} id="sidebar">
+            <nav className={isOpen ? "open" : ""} id="sidebar" onBlur={()=>setIsOpen(false)}>
 
                 {/* Header: Logo */}
                 <div style={{ display: "flex", margin: "auto", alignItems: "center", gap: "0.5em", color: "#891E49", marginBottom: "0.75em" }}>

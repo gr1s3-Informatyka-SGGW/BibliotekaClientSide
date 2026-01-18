@@ -11,6 +11,9 @@ import { validators } from '../../public/validators.ts';
 import CustomTooltip from '../../public/custom_components/CustomTooltip.tsx';
 import { changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../../public/server_requests.ts";
 
+import './ProfileInfoPanel.css';
+
+// todo: prawidłowa obsługa błędu "Nie udało się wysłać zapytania"
 /**
  * Interfejs opisujący strukturę danych formularza edycji profilu.
  */
@@ -492,11 +495,9 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             minWidth: '180px'
         };
 
-        const labelStyle: React.CSSProperties = { width: '130px', fontWeight: '600', color: mainColor, fontSize: '1em', flexShrink: 0 };
-        const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'stretch' };
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         return (
-            <div className="profile-info-component panel flex-column" style={{ background: 'white', padding: '1em', borderRadius: '12px', width: 'calc(100% - 20px)', maxWidth: '425px', margin: '0 auto', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
+            <div className="profile-info-component panel" style={{ borderRadius: '12px', maxWidth: '20em', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
 
                 <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
                     <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
@@ -504,15 +505,17 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                 </div>
                 <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
 
-                <div className="profile-data-container">
+                <table className="profile-data-container">
                     {(['name', 'surname', 'email'] as const).map(field => (
-                        <div key={field} className="profile-row" style={rowStyle}>
-                            <label className="profile-label" style={labelStyle}>
-                                {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
-                            </label>
+                        <tr key={field} className="profile-row">
+                            <td>
+                                <label className="profile-label">
+                                    {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
+                                </label>
+                            </td>
 
                             {editMode ? (
-                                <div style={{ flex: '0 1 300px', width: '100%'}}>
+                                <td style={{ flex: '0 1 300px', width: '100%'}}>
                                     <CustomTooltip title={formErrors[field] || ""}>
                                         <input
                                             name={field}
@@ -528,22 +531,24 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                             }}
                                         />
                                     </CustomTooltip>
-                                </div>
+                                </td>
                             ) : (
-                                <span className="profile-value" style={valueStyle}>{user[field]}</span>
+                                <td className="profile-value" style={valueStyle}>{user[field]}</td>
                             )}
-                        </div>
+                        </tr>
                     ))}
 
                     {isClient && user.credit_card_number && (
-                        <div className="profile-row" style={rowStyle}>
-                            <label className="profile-label" style={labelStyle}>Numer karty:</label>
-                            <span className="profile-value" style={valueStyle}>
+                        <tr className="profile-row">
+                            <td>
+                                <label className="profile-label">Numer karty:</label>
+                            </td>
+                            <td className="profile-value" style={valueStyle}>
                                 **** **** **** {user.credit_card_number.slice(-4)}
-                            </span>
-                        </div>
+                            </td>
+                        </tr>
                     )}
-                </div>
+                </table>
 
                 <div className="flex-column" style={{ gap: '1em' }}>
                     {editMode ? (
