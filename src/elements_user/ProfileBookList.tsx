@@ -45,11 +45,9 @@ export default function ProfileBookList({ children, header, icon }: { children: 
     };
     return (
         <div className="panel" style={{
-            background: 'white',
             padding: '1.5em',
             borderRadius: '0.5em',
             boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-            textAlign: 'left'
         }}>
             <h3 className="header" style={{
                 display: 'flex',

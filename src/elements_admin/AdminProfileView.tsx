@@ -55,14 +55,9 @@ export default function AdminProfileView() {
     return (
         <>
         <NavSidebar/>
-        <div className="admin-profile-view" style={{
+        <main style={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '0px 2em',
-            width: '100%',
-            boxSizing: 'border-box',
-            paddingLeft: '10em'
+            flexDirection: 'column'
         }}>
             <div style={{
                 textAlign: 'center',
@@ -86,19 +81,8 @@ export default function AdminProfileView() {
                 </h1>
             </div>
 
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginTop: '0px'
-            }}>
-                <div style={{
-                    flex: '0 0 auto',
-                    width: '30em'
-                }}>
-                    <ProfileInfoPanel info={adminData} />
-                </div>
-            </div>
-        </div>
+            <ProfileInfoPanel info={adminData} />
+        </main>
         </>
     );
 }

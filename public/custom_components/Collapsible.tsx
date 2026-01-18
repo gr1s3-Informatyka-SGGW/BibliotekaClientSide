@@ -4,7 +4,7 @@
  * */
 import './Collapsible.css'
 import React, {type ReactNode, useState} from "react";
-
+// todo: można by naprawić problem z animacją zwijania dla admina w katalogu
 /**
  * Komponent Collapsible
  * * Chowa swoją zawartość, pozostawiając jedynie pasek z nagłówkiem. 

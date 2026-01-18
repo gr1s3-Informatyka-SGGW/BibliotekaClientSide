@@ -10,7 +10,7 @@ import type { ReactNode} from 'react';
 import type IFormComponent from '../../public/custom_components/IFormComponent.tsx'
 import type { IFilter, SearchSort } from "../../public/server_types";
 import ScanButton from "../elements_user/ScanButton.tsx";
-import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import './SearchPanel.css';
 
 /**
  * Reprezentuje strukturę danych zwracaną przez komponent `SearchPanel`.
@@ -186,7 +186,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
                 <div>
                     <h4 style={{ margin: 0, marginBottom: '0.4em' }}>Szukaj</h4>
 
-                    <div style={{ width: '100%', display: 'flex', gap: '0.25em', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', display: 'flex', gap: '0.25em'}}>
                         <input
                             type="text"
                             placeholder={this.props.placeholder ?? "Szukaj książki po tytule, autorze lub ISBN..."}

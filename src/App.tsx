@@ -14,7 +14,6 @@ import { Error404, AccessDeniedError } from "./Errors";
 
 // auth (not logged)
 const Login = lazy(() => import("./login/Login"));
-const PasswordReset = lazy(() => import("./login/PasswordReset"));
 const Register = lazy(() => import("./login/Register"));
 
 // shared (user + admin)
@@ -48,15 +47,6 @@ export default function App() {
               element={
                 <ProtectedRoute mode={null}>
                   <Login />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/password-reset"
-              element={
-                <ProtectedRoute mode={null}>
-                  <PasswordReset />
                 </ProtectedRoute>
               }
             />
