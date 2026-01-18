@@ -9,11 +9,12 @@ import accountCircleIcon from '../assets/account_circle.svg';
 
 import { fetchUserInfoRequest } from '../../public/server_requests.ts';
 import type { User } from '../../public/server_types.ts'
+import NavSidebar from "../general_elements/NavSidebar.tsx";
 
 /**
  * Komponent widoku profilu administratora.
  * Pobiera dane użytkownika z API przy montowaniu i wyświetla panel informacyjny.
- * W przypadku błędu lub braku danych z serwera, wyświetla dane przykladowe.
+ * W przypadku błędu lub braku danych z serwera wyświetla dane przykładowe.
  */
 export default function AdminProfileView() {
     const session = useContext(AuthContext);
@@ -52,6 +53,8 @@ export default function AdminProfileView() {
 
     if (!adminData) return <div>Ładowanie danych administratora...</div>;
     return (
+        <>
+        <NavSidebar/>
         <div className="admin-profile-view" style={{
             display: 'flex',
             flexDirection: 'column',
@@ -77,7 +80,7 @@ export default function AdminProfileView() {
                 }}>
                     <img
                         src={accountCircleIcon}
-                        alt="Profile"
+                        alt=""
                     />
                     Twój profil
                 </h1>
@@ -96,5 +99,6 @@ export default function AdminProfileView() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

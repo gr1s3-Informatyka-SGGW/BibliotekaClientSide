@@ -8,7 +8,7 @@ import { useContext, useEffect, useState, type JSX } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../public/UserAuth.tsx";
 
-import "./sidebar.css";
+import "./NavSidebar.css";
 
 import logoIcon from "../assets/logo.svg";
 import personIcon from "../assets/person.svg";

@@ -2,7 +2,7 @@
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
  * */
-
+// todo: dodać filtrowanie itp poprzez metodę GET
 import type { Book, User, RentFullInfo } from "../../public/server_types.ts";
 import { extendRentRequest, fetchRentLog, returnBookRequest } from "../../public/server_requests.ts";
 import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";

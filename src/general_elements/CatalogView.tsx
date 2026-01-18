@@ -17,9 +17,7 @@
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
 import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
-import "./catalog.css";
-import "../style.css";
-import '../input.css';
+import "./CatalogView.css";
 import NavSidebar from "./NavSidebar";
 import SearchPanel, { type SearchPanelReturn } from "./SearchPanel";
 import UserBookComponent from "../elements_user/UserBookComponent";

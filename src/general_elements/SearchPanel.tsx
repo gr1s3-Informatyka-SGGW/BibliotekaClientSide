@@ -37,6 +37,7 @@ export interface SearchPanelReturn {
  * @property [onSearch] - Funkcja zwrotna (callback) wywoływana po zatwierdzeniu wyszukiwania (Enter lub przycisk).
  * @property [defaultValue] - Wartość paska wyszukiwania przy załadowaniu strony
  */
+// todo: usuń ten pasek przewijania gdy nie potrzebny
 interface SearchPanelProps {
     children?: ReactNode;
     placeholder?: string;

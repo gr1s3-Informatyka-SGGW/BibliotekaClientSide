@@ -1,5 +1,5 @@
 import { Component, type JSX } from 'react';
-import "./errors.css"
+import "./Errors.css"
 import errorIcon from './assets/error.svg';
 
 /**
