@@ -1,6 +1,5 @@
 /**
- * Plik implementujący przycisk
- * Przycisk bez selecta. Obsługuje filtrowanie
+ * Plik implementujący przycisk dziedziczący IFormComponent.
  * @author Karol Dziuba
  */
 

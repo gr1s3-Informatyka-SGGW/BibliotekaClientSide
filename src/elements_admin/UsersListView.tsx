@@ -10,7 +10,6 @@
  * - Wyświetlanie szczegółów dotyczących wypożyczonych książek w oknie modalnym.
  * @author Aleksander Grzegrzułka
  */
-// todo: zmień formularz dodawania administratora tak by był formularzem rejestracji tylko bez danych karty
 import "./UsersListView.css"
 import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../../public/server_types.ts";
 import {
@@ -414,6 +413,8 @@ function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [repPassword, setRepPassword] = useState("");
 
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -433,11 +434,15 @@ function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
 
         setIsSubmitting(true);
         try {
+            if(password !== repPassword){
+                throw new Error("Hasła nie są takie same");
+            }
+
             await addAdminRequest({
                 name: firstName,
                 surname: lastName,
-                email: email
-            });
+                email: email,
+            }, password);
 
             setSuccessMsg("Bibliotekarz został pomyślnie dodany. Hasło zostało wysłane na e-mail.");
 
@@ -456,56 +461,70 @@ function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
     return (
         <Popup title="Dodaj bibliotekarza" isOpen={props.isOpen} setIsOpen={props.setIsOpen} onClose={props.onClose}>
             <form onSubmit={handleSubmit} className="add-admin-form" style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
-                <div className="row" style={{ display: 'flex', gap: '1em' }}>
-                    <div style={{ flex: 1 }}>
-                        <label htmlFor="adminName">Imię</label>
+                <div className="row">
+                    <div style={{flex: 1}}>
+                        <label htmlFor="firstName">Imię</label>
                         <input
-                            id="adminName"
+                            id="firstName"
                             type="text"
                             placeholder="Imię"
+                            autoComplete="given-name"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
-                            style={{ width: '100%', padding: '0.5em', boxSizing: 'border-box' }}
                         />
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <label htmlFor="adminSurname">Nazwisko</label>
+
+                    <div style={{flex: 1}}>
+                        <label htmlFor="lastName">Nazwisko</label>
                         <input
-                            id="adminSurname"
+                            id="lastName"
                             type="text"
                             placeholder="Nazwisko"
+                            autoComplete="family-name"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
-                            style={{ width: '100%', padding: '0.5em', boxSizing: 'border-box' }}
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label htmlFor="adminEmail" >E-mail</label>
+                    <label htmlFor="email">E-mail</label>
                     <input
-                        id="adminEmail"
+                        id="email"
                         type="email"
                         placeholder="adres@example.com"
+                        autoComplete="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        style={{ width: '100%', padding: '0.5em', boxSizing: 'border-box' }}
                     />
                 </div>
 
-                <p className="text-sm text-neutral-600 italic m-0">
-                    Hasło zostanie wygenerowane automatycznie i przesłane na podany adres e-mail.
-                </p>
-
-                {error && <p className="border text-red-950 border-red-400 bg-red-300 p-3 rounded-lg"> {error}</p>}
-                {successMsg && <p className="border text-[#891e49] border-[#b8557b88] bg-[#fee6f0] p-3 rounded-lg">{successMsg}</p>}
-
-                <div className="flex-row w-full">
-                    <button className="boring flex-1" onClick={() => { if (props.onClose) { props.onClose() } }}>Zamknij</button>
-                    <button className="flex-1" type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Dodawanie..." : "Dodaj bibliotekarza"}
-                    </button>
+                <div>
+                    <label htmlFor="password">Hasło</label>
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="Hasło"
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
                 </div>
+                <div>
+                    <label htmlFor="password_rep">Powtórz hasło</label>
+                    <input
+                        id="password_rep"
+                        type="password"
+                        placeholder="Powtórz hasło"
+                        autoComplete="new-password"
+                        value={repPassword}
+                        onChange={(e) => setRepPassword(e.target.value)}
+                    />
+                </div>
+
+                {error && <p style={{color: "red", marginTop: 10}}>{error}</p>}
+                {successMsg && <p style={{color: "green", marginTop: 10}}>{successMsg}</p>}
+                <button type="submit">Zarejestruj się</button>
             </form>
         </Popup>
     );

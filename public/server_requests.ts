@@ -499,7 +499,7 @@ export async function unblockUserRequest(user_id: number) {
         throw Error("Not implemented exception");
     }
 }
-export async function addAdminRequest(admin_info: User): Promise<void> {
+export async function addAdminRequest(admin_info: User, password: string): Promise<void> {
     if (USE_MOCK) {
         new Promise(resolve => setTimeout(resolve, 600));
         if (Math.random() > 0.5) {

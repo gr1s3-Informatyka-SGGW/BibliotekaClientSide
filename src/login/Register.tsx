@@ -6,7 +6,7 @@
 
 import React, {useState} from "react";
 import {useNavigate} from "react-router-dom";
-import "./register.css";
+import "./Register.css";
 import {validators} from "../../public/validators";
 import {registerRequest} from "../../public/server_requests";
 
