@@ -2,7 +2,6 @@
  * @file Plik obsługujący stronę /profile-user
  * @author Natalia Bardadyn
  * */
-// todo: poprawić widok mobilny
 import React, { useContext, useState } from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
@@ -12,9 +11,9 @@ import { AuthContext } from "../server/UserAuth.tsx";
 import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../server/server_requests.ts';
 import { type Rent, type Reservation } from '../server/server_types.ts';
 
-import accountCircleIcon from '../../public/assets/account_circle.svg';
-import bookIcon from '../../public/assets/book.svg';
-import ribbonIcon from '../../public/assets/book_ribbon.svg';
+import accountCircleIcon from '/assets/account_circle.svg';
+import bookIcon from '/assets/book.svg';
+import ribbonIcon from '/assets/book_ribbon.svg';
 import {Alert} from "../custom_components/Popup.tsx";
 
 /**

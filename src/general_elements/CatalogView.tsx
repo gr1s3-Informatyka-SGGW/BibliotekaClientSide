@@ -13,7 +13,6 @@
  * - Automatyczne pobieranie dostępnych opcji filtrów z serwera przy inicjalizacji.
  * @author Aleksander Grzegrzułka
  */
-// todo: Gdy chcesz edytować książkę w mobilce to popup wychodzi poza ekran
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
 import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../server/server_types.ts";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
@@ -696,8 +695,7 @@ function CatalogView(): JSX.Element {
         </Popup>
 
         <Popup isOpen={shownPopup === "editBook"} setIsOpen={handleClosePopup} title="Edytuj książkę" onClose={hidePopups}>
-            <AddBookForm info={popupData?.book} mode="edit" onSubmit={onEditBookFinished}>
-            </AddBookForm>
+            <AddBookForm info={popupData?.book} mode="edit" close={hidePopups} onSubmit={onEditBookFinished}/>
         </Popup>
 
         <Popup isOpen={shownPopup === "editBookError"} setIsOpen={handleClosePopup} title="Błąd przy edycji książki" onClose={hidePopups}>

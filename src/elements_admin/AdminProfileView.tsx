@@ -5,7 +5,7 @@
 
 import React, { useContext, useState, useEffect } from 'react'; import { AuthContext } from "../server/UserAuth.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
-import accountCircleIcon from '../../public/assets/account_circle.svg';
+import accountCircleIcon from '/assets/account_circle.svg';
 
 import { fetchUserInfoRequest } from '../server/server_requests.ts';
 import type { User } from '../server/server_types.ts'
@@ -57,7 +57,8 @@ export default function AdminProfileView() {
         <NavSidebar/>
         <main style={{
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            alignItems: 'center'
         }}>
             <div style={{
                 textAlign: 'center',

@@ -15,15 +15,15 @@ import ToggleButton from "../custom_components/ToggleButton.tsx";
 import Popup, { Alert } from "../custom_components/Popup.tsx";
 import './RentedBooksListView.css';
 
-import bookIcon from '../../public/assets/book.svg';
-import userIcon from '../../public/assets/mail.svg';
-import calendarIcon from '../../public/assets/calendar.svg';
-import errorIcon from '../../public/assets/error.svg';
-import checkIcon from '../../public/assets/check.svg';
-import scheduleIcon from '../../public/assets/schedule.svg';
-import refreshIcon from '../../public/assets/refresh.svg';
-import returnsIcon from '../../public/assets/returns.svg';
-import borrowIcon from '../../public/assets/borrow.svg';
+import bookIcon from '/assets/book.svg';
+import userIcon from '/assets/mail.svg';
+import calendarIcon from '/assets/calendar.svg';
+import errorIcon from '/assets/error.svg';
+import checkIcon from '/assets/check.svg';
+import scheduleIcon from '/assets/schedule.svg';
+import refreshIcon from '/assets/refresh.svg';
+import returnsIcon from '/assets/returns.svg';
+import borrowIcon from '/assets/borrow.svg';
 
 /**
  * Określa maksymalną liczbę wpisów wypożyczonych książek wyświetlanych na jednej stronie
@@ -35,24 +35,24 @@ import borrowIcon from '../../public/assets/borrow.svg';
 const ITEMS_PER_PAGE: number = 3;
 
 /**
- * Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
+ * @interface ExtendedRentInfo Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
  * Rozszerza standardowy model danych o pola obliczane po stronie klienta (status, kara).
  *
- * @interface ExtendedRentInfo
  * @extends {Omit<RentFullInfo, 'borrow_date' | 'return_date' | 'return_to_date'>}
+ *
+ * @prop {number} id - Unikalne ID wypożyczenia
+ * @prop {Date} borrow_date - Data wypożyczenia
+ * @prop {Date} return_date - Termin zwrotu (deadline)
+ * @prop {'active' | 'returned_pending'} status - Status logiczny: 'active' (wypożyczona) lub 'returned_pending' (oddana, czeka na akceptację/archiwum)
+ * @prop {number} fineAmount - Obliczona kwota kary finansowej
+ * @prop {Date} [actualReturnDate] - Data faktycznego zwrotu (jeśli nastąpił)
  */
 export interface ExtendedRentInfo extends Omit<RentFullInfo, 'borrow_date' | 'return_date' | 'return_to_date'> {
-    /** Unikalne ID wypożyczenia */
     id: number;
-    /** Data wypożyczenia */
     borrow_date: Date;
-    /** Termin zwrotu (deadline) */
     return_date: Date;
-    /** Status logiczny: 'active' (wypożyczona) lub 'returned_pending' (oddana, czeka na akceptację/archiwum) */
     status: 'active' | 'returned_pending';
-    /** Obliczona kwota kary finansowej */
     fineAmount: number;
-    /** Data faktycznego zwrotu (jeśli nastąpił) */
     actualReturnDate?: Date;
 }
 
@@ -77,8 +77,6 @@ interface RentedBooksListViewProps {
  * @returns {React.JSX.Element} Pełny widok strony zarządzania wypożyczeniami.
  */
 export default function RentedBooksListView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
-
-    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
@@ -450,7 +448,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
     return (
         <>
             <NavSidebar />
-            <div id="main-content">
+            <main id="main-content">
                 <h1><img src={borrowIcon} alt="" /> Wypożyczenia i zwroty</h1>
 
                 <SearchPanel onSearch={handleSearch}>
@@ -508,7 +506,7 @@ export default function RentedBooksListView({ initialData }: RentedBooksListView
                         updateUrlParams(searchQuery, filters, page);
                     }}
                 />
-            </div>
+            </main>
 
             <Popup
                 title="Szczegóły użytkownika"

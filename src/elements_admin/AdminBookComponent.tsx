@@ -5,8 +5,8 @@
 import React, { type JSX } from "react";
 import type { BookAdmin } from "../server/server_types.ts";
 import { CustomSelect, CustomOption } from "../custom_components/CustomSelect.tsx";
-import bookIcon from '../../public/assets/book.svg'
-import scannerIcon from '../../public/assets/qr_code_scanner.svg'
+import bookIcon from '/assets/book.svg'
+import scannerIcon from '/assets/qr_code_scanner.svg'
 import Collapsible from '../custom_components/Collapsible.tsx'
 
 /**

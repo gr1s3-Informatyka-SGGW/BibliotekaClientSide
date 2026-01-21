@@ -22,8 +22,8 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     z-index: 1001; 
     width: fit-content;
-    max-width: 95vw;
     min-width: 300px;
+    margin: auto;
 }
 
 .popup-header {

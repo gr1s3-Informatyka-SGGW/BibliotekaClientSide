@@ -9,7 +9,7 @@ import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 import jsQR from "jsqr";
 import './ScanButton.css'
 
-import QRIcon from '../../public/assets/qr_code.svg'
+import QRIcon from '/assets/qr_code.svg'
 
 /**
  * @interface ScanButtonProps

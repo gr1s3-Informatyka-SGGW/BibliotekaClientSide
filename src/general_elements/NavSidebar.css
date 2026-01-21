@@ -112,6 +112,8 @@
     background-color: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(0.3em);
     transition: opacity var(--transition-speed) ease-in-out;
+    top: 0;
+    left: 0;
   }
 
   #sidebar:not(.open) {

@@ -5,7 +5,7 @@
 
 import React, {Component, type FormEvent} from 'react';
 import type { User } from '../server/server_types.ts';
-import accountCircleIcon from '../../public/assets/account_circle.svg';
+import accountCircleIcon from '/assets/account_circle.svg';
 import Popup from "../custom_components/Popup.tsx";
 import { validators } from '../server/validators.ts';
 import CustomTooltip from '../custom_components/CustomTooltip.tsx';

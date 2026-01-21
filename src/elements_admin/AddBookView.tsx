@@ -67,33 +67,34 @@ export default function AddBookView(){
 
     return <>
         <NavSidebar/>
-        <h1>
-            <img src={AddBoxIcon} alt=''/>
-            Dodaj książkę
-        </h1>
+        <main>
+            <h1>
+                <img src={AddBoxIcon} alt=''/>
+                Dodaj książkę
+            </h1>
 
-        <div className="panel book-info">
-            <h3 className="header">
-                <img src={BookIcon} alt=''/>
-                Informacje o książce
-            </h3>
+            <div className="panel book-info">
+                <h3 className="header">
+                    <img src={BookIcon} alt=''/>
+                    Informacje o książce
+                </h3>
 
-            <AddBookForm
-                mode="create"
-                onSubmit={sendForm}
+                <AddBookForm
+                    mode="create"
+                    onSubmit={sendForm}
+                />
+            </div>
+
+            {error && <div className="error-box">{error}</div>}
+            {success && <div className="success-box">{success}</div>}
+            <InstanceQR
+                instance_id={instanceIds ?? []}
+                book_id={bookId ?? 0}
+                isOpen={isQRopen}
+                setIsOpen={setIsQRopen}
+                onClose={() => setInstanceIds(null)}
             />
-        </div>
-
-        {error && <div className="error-box">{error}</div>}
-        {success && <div className="success-box">{success}</div>}
-        <InstanceQR
-            instance_id={instanceIds ?? []}
-            book_id={bookId ?? 0}
-            isOpen={isQRopen}
-            setIsOpen={setIsQRopen}
-            onClose={() => setInstanceIds(null)}
-        />
-
+        </main>
     </>
 }
 
@@ -105,13 +106,15 @@ export default function AddBookView(){
  *
  * @property {Book} [props.info] - informacje o książce podane przy tworzeniu obiektu w trybie edycji. Komponent automatycznie wypełnia nimi formularz przy renderowaniu
  * @property {'edit'|'create'} props.mode - sygnalizuje czy formularz jest w trybie edycji, czy dodawania nowej książki
- * @property {(b:Book)=>void} props.onSubmit -
+ * @property {(b:Book)=>void} props.onSubmit - funkcja wywołana po zatwierdzeniu formularza, obsługuje zamknięcie komponentu, jeśli potrzebne
+ * @property {(b:Book)=>void} [props.close] - komponent używa jej, aby zamknąć się, bez zapisania zmian
  * */
 export class AddBookForm
     extends Component<{
         info?: Book
         mode: "create"|"edit"
-        onSubmit: (b: Book, copies: number) => void
+        onSubmit: (b: Book, copies: number) => void,
+        close?: () => void
     }>
 
     implements IFormComponent<Book>
@@ -134,7 +137,7 @@ export class AddBookForm
     publisherRef = React.createRef<DynamicSelect>();
     languageRef = React.createRef<DynamicSelect>();
 
-    constructor(props: {info?: Book, mode: "create"|"edit", onSubmit: (b:Book)=>void }) {
+    constructor(props: {info?: Book, mode: "create"|"edit", onSubmit: (b:Book)=>void, close?: () => void }) {
         super(props)
 
         // info i mode
@@ -347,10 +350,11 @@ export class AddBookForm
                         {this.formError}
                     </div>
                 )}
-                <div className="add-container">
+                <div className="add-container" style={{display: 'flex', flexWrap: 'nowrap', gap: '1em'}}>
                     <button type="submit">
-                        <img src={SaveIcon} alt=''/> Dodaj książkę
+                        <img src={SaveIcon} alt=''/> {this.mode === 'edit' ? 'Edytuj książkę' : 'Dodaj książkę'}
                     </button>
+                    { this.props.close && <button type="button" onClick={this.props.close}>Anuluj</button>}
                 </div>
 
             </form>
