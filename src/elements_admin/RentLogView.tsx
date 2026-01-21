@@ -1,5 +1,5 @@
 /**
- * @file Implementuje widok zarządzania użytkownikami dla administratora (RentLogView).
+ * @file Implementuje widok zarządzania użytkownikami dla administratora (UsersListView).
  * Komponent ten umożliwia przeglądanie, filtrowanie oraz modyfikację statusów użytkowników biblioteki.
  * * Funkcjonalności widoku:
  * - Wyświetlanie listy użytkowników z podziałem na role (użytkownik, bibliotekarz, zablokowany).
@@ -10,27 +10,27 @@
  * - Wyświetlanie szczegółów dotyczących wypożyczonych książek w oknie modalnym.
  * @author Aleksander Grzegrzułka
  */
-import "./RentLogView.css"
-import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../server/server_types.ts";
+import "./UsersListView.css"
+import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../../public/server_types.ts";
 import {
     removeUserRequest,
     blockUserRequest,
     unblockUserRequest,
     fetchUserListRequest,
     addAdminRequest
-} from '../server/server_requests.ts'
+} from '../../public/server_requests.ts'
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
-import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
-import Popup from "../custom_components/Popup.tsx";
+import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
+import Popup from "../../public/custom_components/Popup.tsx";
 import { Pagination } from '../general_elements/Pagination.tsx';
 import React, { useState, useEffect, type JSX } from "react";
 import UserComponent from './UserComponent.tsx';
 import { useSearchParams } from "react-router-dom";
-import iconGroup from "/assets/group.svg";
-import iconAdd from "/assets/add.svg";
-import iconError from "/assets/error.svg";
-import { validators, type ValidationResult } from "../server/validators.ts";
+import iconGroup from "../assets/group.svg";
+import iconAdd from "../assets/add.svg";
+import iconError from "../assets/error.svg";
+import { validators, type ValidationResult } from "../../public/validators.ts";
 import BookDetailsPopup from "./BookDetailsPopup.tsx";
 
 /**
@@ -40,7 +40,7 @@ import BookDetailsPopup from "./BookDetailsPopup.tsx";
  * @component
  * @returns {JSX.Element} Wyrenderowany widok z panelem bocznym, panelem wyszukiwania i listą użytkowników.
  */
-export default function RentLogView(): JSX.Element {
+export default function UsersListView(): JSX.Element {
     // URL Params
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -193,10 +193,10 @@ export default function RentLogView(): JSX.Element {
     };
 
     const executeRemoveUser = async () => {
-        if (!popupData.user?.user_id) return;
+        if (!popupData?.user) return;
         setShownPopup(undefined);
         try {
-            await removeUserRequest(popupData.user.user_id);
+            await removeUserRequest(popupData.user.email);
             setPopupData({ title: "Usunięto użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został usunięty.` });
             setShownPopup("success");
             setResetToken(prev => prev + 1);
@@ -420,6 +420,7 @@ function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
 
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -433,23 +434,25 @@ function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
             return;
         }
 
+        setIsSubmitting(true);
         try {
-            if(password === repPassword){
-                await addAdminRequest({
-                    name: firstName,
-                    surname: lastName,
-                    email: email,
-                }, password);
-
-                setSuccessMsg("Bibliotekarz został pomyślnie dodany. Hasło zostało wysłane na e-mail.");
-
-                setFirstName("");
-                setLastName("");
-                setEmail("");
+            if(password !== repPassword){
+                throw new Error("Hasła nie są takie same");
             }
+
+            await addAdminRequest(firstName, lastName, email, password);
+
+            setSuccessMsg("Bibliotekarz został pomyślnie dodany. Hasło zostało wysłane na e-mail.");
+
+            setFirstName("");
+            setLastName("");
+            setEmail("");
+
         } catch (er) {
             const err = er as Error;
             setError(err.message ?? "Wystąpił błąd podczas dodawania bibliotekarza.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
