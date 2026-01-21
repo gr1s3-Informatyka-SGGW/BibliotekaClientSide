@@ -25,7 +25,7 @@ function Register() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
@@ -73,7 +73,7 @@ function Register() {
 
         // ===== REQUEST =====
         try {
-            registerRequest(
+            await registerRequest(
                 firstName,
                 lastName,
                 email,
@@ -83,17 +83,22 @@ function Register() {
                     exp_date: exp,
                     cvv: cvv
                 });
+                
+                // Logika sukcesu musi być TUTAJ - po udanym zapytaniu
+                setSuccess("Konto zostało utworzone. Możesz się zalogować.");
+                setTimeout(() => navigate("/login"), 1500);
+            }
+            catch(er){
+                setError((er as Error).message ?? "Błąd rejestracji.");
+            }
         }
-        catch(er){
-            setError((er as Error).message ?? "Błąd rejestracji.");
-        }
-    }
 
-    setSuccess("Konto zostało utworzone. Możesz się zalogować.");
-    setTimeout(() => navigate("/login"), 1500);
+        // USUŃ TE LINIE Z TEGO MIEJSCA:
+        // setSuccess("Konto zostało utworzone. Możesz się zalogować.");
+        // setTimeout(() => navigate("/login"), 1500);
 
-    return (
-        <div className="center-screen">
+        return (
+            <div className="center-screen">
             <form
                 className="login-panel"
                 style={{width: "22em"}}
