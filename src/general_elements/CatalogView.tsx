@@ -516,7 +516,7 @@ function CatalogView(): JSX.Element {
         hidePopups();
         const book = data.book;
 
-        if (!book) {
+        if (!book || !data.instanceId) {
             return;
         }
 
@@ -527,10 +527,7 @@ function CatalogView(): JSX.Element {
         }
 
         try {
-            if(data.instanceId)
-                await rentBookRequest(book.book_id, data.instanceId);
-            else
-                await rentBookRequest(book.book_id);
+            await rentBookRequest(book.book_id, data.instanceId);
             await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("rentSuccess");
@@ -575,7 +572,7 @@ function CatalogView(): JSX.Element {
             <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?</p>
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Nie</button>
-                <button onClick={() => void handleBookRent(popupData)}>Tak, wypożycz</button>
+                <button onClick={() =>  handleBookRent(popupData)}>Tak, wypożycz</button>
             </div>
         </Popup>
 

@@ -1,10 +1,7 @@
 /**
  * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
+ * @author Szymon Doba i Dawid Filipek
  * */
-
-import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "./fake_catalog_data.ts";
-import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data.ts";
-import { SAMPLE_USERS } from "./fake_users_data.ts";
 
 import type {
     Book,
@@ -15,7 +12,7 @@ import type {
     CreditCardInfo,
     Session,
     User, UserInfo, RentLogSearchFilter, UserListSearchFilter, RentFullInfo,
-    PagedResponse
+    PagedResponse, Rent, Reservation
 } from "./server_types.ts";
 
 /**
@@ -175,12 +172,12 @@ export async function registerRequest(name:string, surname:string, email:string,
 
     const data = await response.json();
 
-    if(response.status === 201){
+    if (response.status === 201) {
         console.log("Rejestracja udana:", data.message);
         return;
     }
 
-    if(response.status === 409){
+    if (response.status === 409) {
         throw new InvalidRequestDataError("Błąd rejestracji",
             true
             ,"Użytkownik o tym mailu już istnieje");
@@ -412,7 +409,10 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
   }
 }
 
-export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
+/* todo: no jsdoc, zmieniłem sygnaturę, pisałem ci o zamianach w tej materii
+*   słowem potrzebuje by zwracał obiekt zawierający informacje o tym do kiedy książka jest wypożyczona co trzeba wyliczyć
+* */
+export async function fetchBorrowedBooksRequest(): Promise<Rent[]>{
     const response = await fetch("/api/users/borrowedBooks", {
         method: "GET",
         headers: {
@@ -435,6 +435,10 @@ export async function fetchBorrowedBooksRequest(): Promise<Book[]>{
     }
 
     throw new RequestError(response.status.toString());
+}
+// todo: brakuje mi tej funkcji, nazywa się jakoś inaczej?
+export async function fetchReservedBooksRequest(): Promise<Reservation[]>{
+    throw new RequestError("Funkcja fetchReservedBooksRequest nie jest zaimplementowana");
 }
 // Katalog - Ogólne
 
@@ -576,6 +580,7 @@ export async function fetchUserCatalogRequest(
  * Wypożycza książkę.
  *
  * @param {number} book_id Id książki
+ * @param {number} instance_id Id egzemplarza do wypożyczenia
  *
  * @returns {Promise<void>}
  *
@@ -583,7 +588,8 @@ export async function fetchUserCatalogRequest(
  * @throws {InvalidRequestDataError} Gdy id książki jest niepoprawne
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
-export async function rentBookRequest(book_id: number): Promise<void> {
+// todo: musi móc przyjmować dwa argumenty, na rzecz wypożyczenia książki poprzez zeskanowanie kodu
+export async function rentBookRequest(book_id: number, instance_id: number): Promise<void> {
   if (book_id <= 0) {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
@@ -657,10 +663,10 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
 /**
  * Pobiera katalog książek dla widoku administratora z paginacją i filtrami.
  *
- * @param {number} page Numer strony
- * @param {number} limit Liczba elementów na stronę
- * @param {BookSearchFilter | undefined} filter Filtry wyszukiwania
- * @param {SearchSort | undefined} sort Sortowanie wyników
+ * @param {string} [search_bar] fragment tytułu, wpisany w panel wyszukiwania
+ * @param {SearchSort} [sort] Sortowanie wyników
+ * @param {BookSearchFilter} [filter] Filtry wyszukiwania
+ * @param {number} [page = 1] Numer strony
  *
  * @returns {Promise<PagedResponse<BookAdmin>>}
  *
@@ -668,13 +674,14 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
+// todo: search panel nie był uwzględniony i kolejność w sygnaturze uległa zmianie
 export async function fetchAdminCatalogRequest(
-  page: number,
-  limit: number,
-  filter?: BookSearchFilter,
-  sort?: SearchSort
+    search_bar?: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
 ): Promise<PagedResponse<BookAdmin>> {
-  if (page <= 0 || limit <= 0) {
+  if (page <= 0) {
     throw new InvalidRequestDataError(
       "Niepoprawne dane paginacji",
       false
@@ -686,7 +693,6 @@ export async function fetchAdminCatalogRequest(
     headers: adminHeaders(),
     body: JSON.stringify({
       page,
-      limit,
       filter,
       sort,
     }),
@@ -925,6 +931,8 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
 /**
  * Pobiera listę użytkowników dla administratora.
  *
+ * @param {string} search_bar
+ * @param {SearchSort} [sort] Sortowanie
  * @param {UserListSearchFilter} [filter] Filtry wyszukiwania
  * @param {number} [page=1] Numer strony
  *
@@ -934,6 +942,7 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
+// todo: search_bar i sort is never used
 export async function fetchUserListRequest(
     search_bar?: string,
     sort?: SearchSort,
@@ -1047,7 +1056,6 @@ export async function unblockUserRequest(userId: number): Promise<void> {
  * @param surname Nazwisko pracownika
  * @param email Email pracownika
  * @param password Hasło pracownika
- * @param phone Numer telefonu pracownika
  *
  * @returns {Promise<void>}
  *
@@ -1059,17 +1067,16 @@ export async function addAdminRequest(
   name: string,
   surname: string,
   email: string,
-  password: string,
-  phone: string
+  password: string
 ): Promise<void> {
-  if (!name || !surname || !email || !password || !phone) {
+  if (!name || !surname || !email || !password) {
     throw new InvalidRequestDataError("Brak wymaganych danych", false);
   }
 
   const r = await fetch("/api/users/registerWorker", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify({ name, surname, email, password, phone }),
+    body: JSON.stringify({ name, surname, email, password }),
   });
 
   if (r.status === 400) {
@@ -1090,29 +1097,50 @@ export async function addAdminRequest(
  * Dodaje nową książkę.
  *
  * @param {Book} book Dane książki
+ * @param {number} instance_number ilość egzemplarzy tworzonych przy tej okazji
  *
- * @returns {Promise<void>}
+ * @returns {Promise<{ book_id: number, instance_ids: number[] }>} id książki i id egzemplarzy dodanych do bazy danych
  *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
+ * @throws {AccessDeniedError} Brak tokenu lub uprawnień
+ * @throws {InvalidRequestDataError} Niepoprawne dane wejściowe (400)
+ * @throws {RequestError} Błąd serwera (500), serwer odmówił odpowiedzi
  */
-export async function addBookRequest(book: Book): Promise<void> {
+// todo: zmieniłem sygnaturę i zawartość tej funkcji, upewnić się czym działa i uwzględnić w testach itp.
+export async function addBookRequest(
+  book: Book,
+  instance_number: number
+): Promise<{ book_id: number; instance_ids: number[] }> {
   const r = await fetch("/api/books/addBook", {
     method: "POST",
     headers: adminHeaders(),
-    body: JSON.stringify(book),
+    body: JSON.stringify({
+      ...book,
+      ilosc_egzemplarzy: instance_number,
+    }),
   });
 
-  if (!r.ok) {
-    throw new RequestError("Błąd dodawania książki");
+  if (r.status === 400) {
+    throw new InvalidRequestDataError("Niepoprawne dane wejściowe", true);
   }
+
+  if (!r.ok) {
+    throw new RequestError("Błąd serwera", "Serwer odmówił odpowiedzi", 500);
+  }
+
+  const data = await r.json();
+
+  return {
+    book_id: data.Bookid,
+    instance_ids: data.Copyids,
+  };
 }
 
 // Rent log
 /**
  * Pobiera log wypożyczeń.
  *
+ * @param {string} [search_bar] fragment nazwy użytkoni
+ * @param [sort]
  * @param {RentLogSearchFilter} [filter] Filtry logu
  * @param {number} [page=1] Numer strony
  *
@@ -1122,9 +1150,11 @@ export async function addBookRequest(book: Book): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
+// todo: z tą funkcją jest coś solidnie nie tak, nie ma takiego endpointa no i sygnatura jest zła ://
 export async function fetchRentLog(
-  filter?: RentLogSearchFilter,
-  page: number = 1
+    search_bar?: string,
+    filter?: RentLogSearchFilter,
+    page: number = 1
 ): Promise<PagedResponse<RentFullInfo>> {
 
   if (page < 1) {

@@ -193,10 +193,10 @@ export default function UsersListView(): JSX.Element {
     };
 
     const executeRemoveUser = async () => {
-        if (!popupData.user?.user_id) return;
+        if (!popupData?.user) return;
         setShownPopup(undefined);
         try {
-            await removeUserRequest(popupData.user.user_id);
+            await removeUserRequest(popupData.user.email);
             setPopupData({ title: "Usunięto użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został usunięty.` });
             setShownPopup("success");
             setResetToken(prev => prev + 1);
@@ -440,11 +440,7 @@ function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
                 throw new Error("Hasła nie są takie same");
             }
 
-            await addAdminRequest({
-                name: firstName,
-                surname: lastName,
-                email: email,
-            }, password);
+            await addAdminRequest(firstName, lastName, email, password);
 
             setSuccessMsg("Bibliotekarz został pomyślnie dodany. Hasło zostało wysłane na e-mail.");
 

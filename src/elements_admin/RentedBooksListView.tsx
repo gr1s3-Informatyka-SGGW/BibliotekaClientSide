@@ -77,8 +77,6 @@ interface RentedBooksListViewProps {
  * @returns {React.JSX.Element} Pełny widok strony zarządzania wypożyczeniami.
  */
 export default function RentedBooksListView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
-
-    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [rents, setRents] = useState<ExtendedRentInfo[]>([]);

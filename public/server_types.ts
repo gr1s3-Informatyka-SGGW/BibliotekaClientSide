@@ -183,30 +183,6 @@ export interface PagedResponse<T > {
 }
 
 /**
- * @interface UsersListResponse - Struktura odpowiedzi dla listy użytkowników
- * @prop {UserInfo[]} users - Lista użytkowników dla bieżącej strony
- * @prop {number} totalPages - Całkowita liczba stron wyników
- * @prop {number} totalUsers - Łączna liczba użytkowników spełniających filtry
- */
-export interface UsersListResponse {
-    users: UserInfo[];
-    totalPages: number;
-    totalUsers: number;
-}
-
-/**
- * @interface UsersListResponse - Struktura odpowiedzi dla listy użytkowników
- * @prop {UserInfo[]} users - Lista użytkowników dla bieżącej strony
- * @prop {number} totalPages - Całkowita liczba stron wyników
- * @prop {number} totalUsers - Łączna liczba użytkowników spełniających filtry
- */
-export interface UsersListResponse {
-    users: UserInfo[];
-    totalPages: number;
-    totalUsers: number;
-}
-
-/**
  * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
  * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
  * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
@@ -236,19 +212,18 @@ export interface UserInfo{
     currently_reserved: Reservation[]
 }
 
-
 /**
  * @interface RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
- * @param {User} user - użytkownik, który wypożyczył książkę
- * @param {Book} book - wypożyczona książka
- * @param {Date} borrow_date - data wypożyczenia
- * @param {Date|null} return_date - data w której użytkownik dokonał zwrotu. null, gdy jeszcze nie dokonano zwrotu.
- * @param {Date} return_to_date - data, do której musi zostać dokonany zwrot, aby nie zostały naliczone opłaty
+ * @prop {Book} book - wypożyczona książka
+ * @prop {User} user - użytkownik, który wypożyczył książkę
+ * @prop {Date} borrow_date - data wypożyczenia
+ * @prop {Date|null} return_date - data w której użytkownik dokonał zwrotu. null, gdy jeszcze nie dokonano zwrotu.
+ * @prop {Date} return_to_date - data, do której musi zostać dokonany zwrot, aby nie zostały naliczone opłaty
  * */
 export interface RentFullInfo{
-    user:User
     book: Book
+    user:User
     borrow_date: Date
-    return_date: Date| null
     return_to_date: Date
+    return_date: Date| null
 }
