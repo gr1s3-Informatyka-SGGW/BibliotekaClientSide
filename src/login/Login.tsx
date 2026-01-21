@@ -76,10 +76,6 @@ function Login() {
 
         {error && <p style={{ color: "red", marginTop: 10 }}>{error}</p>}
 
-        <a href="/password-reset" className="forgot-password">
-          Zapomniałem hasła
-        </a>
-
         <p className="muted">
           Nie masz konta? <a href="/register">Zarejestruj się</a>
         </p>
