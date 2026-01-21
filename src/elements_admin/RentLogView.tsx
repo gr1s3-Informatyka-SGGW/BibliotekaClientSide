@@ -11,18 +11,18 @@
  * @author Aleksander Grzegrzułka
  */
 import "./UsersListView.css"
-import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../../public/server_types.ts";
+import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../server/server_types.ts";
 import {
     removeUserRequest,
     blockUserRequest,
     unblockUserRequest,
     fetchUserListRequest,
     addAdminRequest
-} from '../../public/server_requests.ts'
+} from '../server/server_requests.ts'
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
-import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
-import Popup from "../../public/custom_components/Popup.tsx";
+import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
+import Popup from "../custom_components/Popup.tsx";
 import { Pagination } from '../general_elements/Pagination.tsx';
 import React, { useState, useEffect, type JSX } from "react";
 import UserComponent from './UserComponent.tsx';
@@ -30,7 +30,7 @@ import { useSearchParams } from "react-router-dom";
 import iconGroup from "../assets/group.svg";
 import iconAdd from "../assets/add.svg";
 import iconError from "../assets/error.svg";
-import { validators, type ValidationResult } from "../../public/validators.ts";
+import { validators, type ValidationResult } from "../server/validators.ts";
 import BookDetailsPopup from "./BookDetailsPopup.tsx";
 
 /**
