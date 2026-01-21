@@ -25,7 +25,7 @@ const UserProfileView = lazy(() => import("./elements_user/UserProfileView"));
 
 // admin only
 const AdminProfileView = lazy(() => import("./elements_admin/AdminProfileView"));
-const UsersListView = lazy(() => import("./elements_admin/UsersListView"));
+const RentLogView = lazy(() => import("./elements_admin/RentLogView"));
 const AddBookView = lazy(() => import("./elements_admin/AddBookView"));
 const RentedBooksListView = lazy(() => import("./elements_admin/RentedBooksListView"));
 
@@ -111,7 +111,7 @@ export default function App() {
               path="/users-view"
               element={
                 <ProtectedRoute mode="admin">
-                  <UsersListView />
+                  <RentLogView />
                 </ProtectedRoute>
               }
             />

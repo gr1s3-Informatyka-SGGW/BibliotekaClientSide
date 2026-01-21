@@ -1,5 +1,5 @@
 /**
- * @file Implementuje widok zarządzania użytkownikami dla administratora (UsersListView).
+ * @file Implementuje widok zarządzania użytkownikami dla administratora (RentLogView).
  * Komponent ten umożliwia przeglądanie, filtrowanie oraz modyfikację statusów użytkowników biblioteki.
  * * Funkcjonalności widoku:
  * - Wyświetlanie listy użytkowników z podziałem na role (użytkownik, bibliotekarz, zablokowany).
@@ -10,7 +10,7 @@
  * - Wyświetlanie szczegółów dotyczących wypożyczonych książek w oknie modalnym.
  * @author Aleksander Grzegrzułka
  */
-import "./UsersListView.css"
+import "./RentLogView.css"
 import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../server/server_types.ts";
 import {
     removeUserRequest,
@@ -40,7 +40,7 @@ import BookDetailsPopup from "./BookDetailsPopup.tsx";
  * @component
  * @returns {JSX.Element} Wyrenderowany widok z panelem bocznym, panelem wyszukiwania i listą użytkowników.
  */
-export default function UsersListView(): JSX.Element {
+export default function RentLogView(): JSX.Element {
     // URL Params
     const [searchParams, setSearchParams] = useSearchParams();
 
