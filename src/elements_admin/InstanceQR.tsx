@@ -55,10 +55,7 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
         ids.forEach((id, index) => {
             const canvas = canvasRefs.current[index];
             if (canvas) {
-                QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_id}), {
-                    width: isSingle ? 280 : 160,
-                    margin: 2
-                })
+                QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_id}), {})
             }
         });
     }, [ids, isSingle]);
@@ -131,7 +128,7 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
                             </legend>
                             <div className="qr-item-row">
                                 <div className="qr-code-box">
-                                    <canvas width='20vh' height='20vh' ref={(el) => { if (el) canvasRefs.current[index] = el; }} />
+                                    <canvas ref={(el) => { if (el) canvasRefs.current[index] = el; }} />
                                     {isSingle && <p className="qr-id-text">Egzemplarz nr: {id}</p>}
                                 </div>
                                 {!isSingle && (
