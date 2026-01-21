@@ -306,7 +306,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         if (this.state.isOpen && !prevState.isOpen) {
             this.calculatePosition();
             window.addEventListener('resize', this.calculatePosition);
-            window.addEventListener('scroll', this.handleScroll, { capture: true });
+            window.addEventListener('scroll', this.handleScroll, { capture: true, passive: true });
             document.addEventListener('mousedown', this.handleOutsideClick);
             document.addEventListener('touchstart', this.handleOutsideClick);
 
@@ -369,27 +369,35 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         if (!this.state.isOpen || !this.triggerRef.current) return;
 
         const rect = this.triggerRef.current.getBoundingClientRect();
+            const minWidth = CustomSelect.DROPDOWN_MIN_WIDTH;
+            const dropdownHeight = this.dropdownRef.current?.offsetHeight || 300; // Estimated height if not yet measured
+            const padding = 20;
 
-        const minWidth = CustomSelect.DROPDOWN_MIN_WIDTH;
+            let left = rect.left;
+            let top = rect.bottom + padding;
 
-        let left = rect.left;
+            // Horizontal collision detection
+            if (left + minWidth > window.innerWidth - padding) {
+                left = Math.max(padding, window.innerWidth - minWidth - padding);
+            } else if (left < padding) {
+                left = padding;
+            }
 
-        if (left + minWidth > window.innerWidth) {
-            left = Math.max(10, window.innerWidth - minWidth - 10);
-        } else if (left < 10) {
-            left = 10;
-        }
+            // Vertical collision detection (Flip to top if no space at bottom)
+            if (top + dropdownHeight > window.innerHeight - padding && rect.top > dropdownHeight + padding) {
+                top = rect.top - dropdownHeight - padding;
+            }
 
         this.setState({
             position: {
-                top: rect.bottom + 10,
+                top: top,
                 left: left,
                 arrowLeft: (rect.left + rect.width / 2) - left
             }
         });
     };
 
-    /**
+        /**
      * Obsługuje kliknięcia poza obszarem komponentu (mechanizm "Click Outside").
      *
      * Metoda sprawdza, czy element, w który kliknął użytkownik (`event.target`),
@@ -414,22 +422,22 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
     };
 
     /**
-     * Obsługuje globalne zdarzenie przewijania (`scroll`) przechwycone w fazie capture.
-     *
-     * Metoda ta pełni rolę filtra:
-     * Sprawdza, czy użytkownik aktualnie wchodzi w interakcję z wnętrzem listy (np. przewija opcje klawiaturą lub myszką),
-     * weryfikując, czy element posiadający focus (`document.activeElement`) znajduje się wewnątrz dropdownu.
-     *
-     * Jeśli tak, metoda przerywa działanie (`return`), aby zapobiec niepożądanemu zamknięciu listy,
-     * co pozwala użytkownikowi swobodnie przewijać długą listę wyników bez jej znikania.
+     * @event handleScroll
+     * Obsługuje globalne zdarzenie przewijania (`scroll`).
+     * Zamyka listę rozwijaną, jeśli użytkownik przewija stronę główną.
+     * Pozwala na przewijanie wewnątrz samej listy opcji.
      */
+    private handleScroll = (event: Event) => {
+        if (!this.state.isOpen) return;
 
-    private handleScroll = () => {
-        // Prevent closing if scrolling inside the dropdown
-        if (this.state.isOpen && this.dropdownRef.current) {
-            const activeEl = document.activeElement;
-            if (activeEl && this.dropdownRef.current.contains(activeEl)) return;
+        // Jeśli scroll zachodzi wewnątrz listy opcji, nie zamykamy jej
+        const target = event.target as HTMLElement;
+        if (this.dropdownRef.current && this.dropdownRef.current.contains(target)) {
+            return;
         }
+
+        // W przeciwnym razie zamykamy dropdown
+        this.setState({ isOpen: false });
     };
 
     /**

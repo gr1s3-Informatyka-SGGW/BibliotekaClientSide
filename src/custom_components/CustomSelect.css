@@ -72,15 +72,17 @@
 }
 
 .select-dropdown {
-    position: fixed;
-    z-index: 2001;
+    position: fixed; /* Ensures it ignores relative parents */
+    z-index: 1000;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: #891e49;
     color: #fff5f8;
-    border-radius: 0.5em;
-    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.3);
-    padding: 1.0em;
+    display: flex;
+    flex-direction: column;
+    max-width: min(90vw, calc(100vw - 20px - 10px));
+    outline: #891e49 solid 0.5em;
     min-width: 220px;
-    max-width: 90vw;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px) scale(0.98);
@@ -100,8 +102,27 @@
     margin-left: -8px;
     border-width: 8px;
     border-style: solid;
+    transform: translateY(-50%);
     border-color: transparent transparent #891E49 transparent;
 }
+/* Arrow when dropdown is BELOW the trigger */
+.select-dropdown:not(.flipped)::after {
+    bottom: 100%;
+    border-bottom: 8px solid #891E49; /* Matches dropdown background */
+    filter: drop-shadow(0 -1px 0 #F1D0DA); /* Matches border color */
+}
+/* Arrow when dropdown is ABOVE the trigger (flipped) */
+.select-dropdown.flipped::after {
+    top: 100%;
+    border-top: 8px solid white;
+    filter: drop-shadow(0 1px 0 #F1D0DA);
+}
+
+/* Ensure the portal doesn't get cut off by overflow hidden parents */
+#active-dropdown {
+    pointer-events: auto;
+}
+/* If you need to handle the arrow flipping when top position changes: */
 
 @keyframes slideDownFade {
     from {
