@@ -7,15 +7,15 @@ import React, { useContext, useState } from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
-import { AuthContext } from "../../public/UserAuth.tsx";
+import { AuthContext } from "../server/UserAuth.tsx";
 
-import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../../public/server_requests.ts';
-import { type Rent, type Reservation } from '../../public/server_types.ts';
+import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../server/server_requests.ts';
+import { type Rent, type Reservation } from '../server/server_types.ts';
 
-import accountCircleIcon from '../assets/account_circle.svg';
-import bookIcon from '../assets/book.svg';
-import ribbonIcon from '../assets/book_ribbon.svg';
-import {Alert} from "../../public/custom_components/Popup.tsx";
+import accountCircleIcon from '../../public/assets/account_circle.svg';
+import bookIcon from '../../public/assets/book.svg';
+import ribbonIcon from '../../public/assets/book_ribbon.svg';
+import {Alert} from "../custom_components/Popup.tsx";
 
 /**
  * Komponent widoku profilu użytkownika.

@@ -1,4 +1,4 @@
-import type { BookAdmin, BookSearchFilter, BookUser, SearchSort } from "./server_types";
+import type { BookAdmin, BookSearchFilter, BookUser, SearchSort } from "../src/server/server_types.ts";
 
 export const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 export const randDelay = () => 100 + Math.floor(Math.random() * 401); // 100-500 ms

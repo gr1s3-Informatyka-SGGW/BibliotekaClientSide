@@ -10,16 +10,16 @@
  */
 
 import React, { Component, type ReactNode, useState } from "react";
-import { type Rent, type Reservation } from "../../public/server_types.ts";
+import { type Rent, type Reservation } from "../server/server_types.ts";
 import {
     cancelReservationRequest,
     claimReservationRequest,
     extendRentRequest,
     returnBookRequest
-} from "../../public/server_requests.ts";
-import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
+} from "../server/server_requests.ts";
+import Popup, { Alert } from "../custom_components/Popup.tsx";
 import ScanButton from "./ScanButton.tsx";
-import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 
 
 /**

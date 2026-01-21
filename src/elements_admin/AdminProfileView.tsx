@@ -3,12 +3,12 @@
  * @author Natalia Bardadyn
  * */
 
-import React, { useContext, useState, useEffect } from 'react'; import { AuthContext } from "../../public/UserAuth.tsx";
+import React, { useContext, useState, useEffect } from 'react'; import { AuthContext } from "../server/UserAuth.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
-import accountCircleIcon from '../assets/account_circle.svg';
+import accountCircleIcon from '../../public/assets/account_circle.svg';
 
-import { fetchUserInfoRequest } from '../../public/server_requests.ts';
-import type { User } from '../../public/server_types.ts'
+import { fetchUserInfoRequest } from '../server/server_requests.ts';
+import type { User } from '../server/server_types.ts'
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 
 /**

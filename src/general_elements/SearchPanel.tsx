@@ -7,10 +7,12 @@
 
 import React, { Component } from 'react';
 import type { ReactNode} from 'react';
-import type IFormComponent from '../../public/custom_components/IFormComponent.tsx'
-import type { IFilter, SearchSort } from "../../public/server_types";
+import type IFormComponent from '../custom_components/IFormComponent.tsx'
+import type { IFilter, SearchSort } from "../server/server_types.ts";
 import ScanButton from "../elements_user/ScanButton.tsx";
 import './SearchPanel.css';
+
+import searchIcon from '/assets/search.svg'
 
 /**
  * Reprezentuje strukturę danych zwracaną przez komponent `SearchPanel`.
@@ -200,7 +202,7 @@ export default class SearchPanel extends Component<SearchPanelProps, SearchPanel
                             aria-label="Szukaj"
                         >
                             <img
-                                src="src/assets/search.svg"
+                                src={searchIcon}
                                 alt=""
                                 style={{ filter: 'brightness(0) invert(1)' }}
                             />

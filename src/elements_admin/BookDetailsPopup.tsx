@@ -12,9 +12,9 @@
  */
 
 import React, { type JSX } from "react";
-import type { Book } from "../../public/server_types.ts";
-import Popup from "../../public/custom_components/Popup.tsx";
-import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import type { Book } from "../server/server_types.ts";
+import Popup from "../custom_components/Popup.tsx";
+import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 
 /**
  * Interfejs definiujący właściwości komponentu BookDetailsPopup.

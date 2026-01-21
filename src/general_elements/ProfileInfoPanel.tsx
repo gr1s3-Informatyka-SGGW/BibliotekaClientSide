@@ -4,12 +4,12 @@
  * */
 
 import React, {Component, type FormEvent} from 'react';
-import type { User } from '../../public/server_types.ts';
-import accountCircleIcon from '../assets/account_circle.svg';
-import Popup from "../../public/custom_components/Popup.tsx";
-import { validators } from '../../public/validators.ts';
-import CustomTooltip from '../../public/custom_components/CustomTooltip.tsx';
-import { changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../../public/server_requests.ts";
+import type { User } from '../server/server_types.ts';
+import accountCircleIcon from '../../public/assets/account_circle.svg';
+import Popup from "../custom_components/Popup.tsx";
+import { validators } from '../server/validators.ts';
+import CustomTooltip from '../custom_components/CustomTooltip.tsx';
+import { changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../server/server_requests.ts";
 
 import './ProfileInfoPanel.css';
 

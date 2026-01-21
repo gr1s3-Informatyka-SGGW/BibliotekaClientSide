@@ -4,7 +4,7 @@
  */
 
 import React, { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
-import type IFormComponent from './IFormComponent';
+import type IFormComponent from './IFormComponent.tsx';
 import './ToggleButton.css';
 
 

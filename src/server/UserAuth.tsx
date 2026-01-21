@@ -6,8 +6,8 @@
 
 import React, { type ReactNode, createContext, useContext, useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { type Session, type User } from "./server_types";
-import { loginRequest } from "./server_requests";
+import { type Session, type User } from "./server_types.ts";
+import { loginRequest } from "./server_requests.ts";
 
 
 /**

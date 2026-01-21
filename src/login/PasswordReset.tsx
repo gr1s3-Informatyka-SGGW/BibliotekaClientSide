@@ -5,8 +5,8 @@
  */
 
 import React, { useState } from "react";
-import { validators } from "../../public/validators";
-import { resetPasswordRequest } from "../../public/server_requests";
+import { validators } from "../server/validators.ts";
+import { resetPasswordRequest } from "../server/server_requests.ts";
 
 
 function PasswordReset() {

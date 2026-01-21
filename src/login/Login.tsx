@@ -5,10 +5,10 @@
 
 import React, { useContext, useState } from "react";
 import { useNavigate} from "react-router-dom";
-import { validators } from "../../public/validators";
-import { AuthContext } from "../../public/UserAuth";
-import {type Session} from '../../public/server_types'
-import { RequestError, loginRequest } from "../../public/server_requests";
+import { validators } from "../server/validators.ts";
+import { AuthContext } from "../server/UserAuth.tsx";
+import {type Session} from '../server/server_types.ts'
+import { RequestError, loginRequest } from "../server/server_requests.ts";
 
 function Login() {
   const auth = useContext(AuthContext);

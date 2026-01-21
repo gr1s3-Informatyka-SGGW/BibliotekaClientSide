@@ -11,19 +11,19 @@ import {
     fetchTagsRequest,
     fetchPublishersRequest,
     fetchLanguagesRequest
-} from "../../public/server_requests.ts";
+} from "../server/server_requests.ts";
 
-import DynamicSelect from "../../public/custom_components/DynamicSelect.tsx";
-import {validators} from "../../public/validators.ts";
-import {addBookRequest, editBookRequest, addBookInstanceRequest} from "../../public/server_requests.ts";
-import {type Book} from "../../public/server_types.ts";
-import type IFormComponent from "../../public/custom_components/IFormComponent.tsx";
-import { Alert } from "../../public/custom_components/Popup.tsx";
+import DynamicSelect from "../custom_components/DynamicSelect.tsx";
+import {validators} from "../server/validators.ts";
+import {addBookRequest, editBookRequest, addBookInstanceRequest} from "../server/server_requests.ts";
+import {type Book} from "../server/server_types.ts";
+import type IFormComponent from "../custom_components/IFormComponent.tsx";
+import { Alert } from "../custom_components/Popup.tsx";
 import InstanceQR from "./InstanceQR.tsx";
-import Popup from "../../public/custom_components/Popup.tsx";
-import AddBoxIcon from "../assets/add_box.svg";
-import BookIcon from "../assets/book.svg";
-import SaveIcon from "../assets/save.svg";
+import Popup from "../custom_components/Popup.tsx";
+import AddBoxIcon from "/assets/add_box.svg";
+import BookIcon from "/assets/book.svg";
+import SaveIcon from "/assets/save.svg";
 import "./AddBookView.css";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 

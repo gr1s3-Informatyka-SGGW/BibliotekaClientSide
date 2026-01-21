@@ -4,12 +4,12 @@
  * */
 
 import React from "react";
-import Popup, {Alert} from "../../public/custom_components/Popup.tsx";
-import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import Popup, {Alert} from "../custom_components/Popup.tsx";
+import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 import jsQR from "jsqr";
 import './ScanButton.css'
 
-import QRIcon from '../assets/qr_code.svg'
+import QRIcon from '../../public/assets/qr_code.svg'
 
 /**
  * @interface ScanButtonProps

@@ -4,7 +4,7 @@
  * */
 import React, {type Dispatch, useEffect, useRef, useState} from "react";
 import QRCode from "qrcode";
-import Popup from "../../public/custom_components/Popup.tsx";
+import Popup from "../custom_components/Popup.tsx";
 import "./InstanceQR.css";
 /**
  * Właściwości komponentu InstanceQR.

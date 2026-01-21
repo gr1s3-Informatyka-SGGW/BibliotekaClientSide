@@ -1,5 +1,5 @@
 import { SAMPLE_BOOKS } from "./fake_catalog_data";
-import type { UserInfo } from "./server_types";
+import type { UserInfo } from "../src/server/server_types.ts";
 
 // Helper to keep dates consistent based on an offset from "now"
 const daysFromNow = (days: number): Date => {

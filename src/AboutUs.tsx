@@ -1,4 +1,4 @@
-import aboutIcon from "./assets/local_library.svg"
+import aboutIcon from "/assets/local_library.svg"
 import { type JSX } from "react"
 import NavSidebar from "./general_elements/NavSidebar";
 

@@ -8,8 +8,8 @@
  */
 
 import { type JSX } from 'react';
-import iconNext from "../../src/assets/arrow_forward.svg"
-import iconPrev from "../../src/assets/arrow_back.svg"
+import iconNext from "/assets/arrow_forward.svg"
+import iconPrev from "/assets/arrow_back.svg"
 
 /**
  * @type PaginationProps - właściwości komponentu paginacji

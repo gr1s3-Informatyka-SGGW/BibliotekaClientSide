@@ -2,9 +2,9 @@
  * @file Plik zawierający funkcje obsługujące komunikację z bazą danych
  * */
 
-import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "./fake_catalog_data.ts";
-import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "./fake_catalog_data.ts";
-import { SAMPLE_USERS } from "./fake_users_data.ts";
+import { SAMPLE_AUTHORS, SAMPLE_TAGS, SAMPLE_GENRES, SAMPLE_PUBLISHERS, SAMPLE_LANGUAGES, SAMPLE_BOOKS } from "../../public/fake_catalog_data.ts";
+import { wait, randDelay, matchesFilter, applySort, toBookUser, paginate } from "../../public/fake_catalog_data.ts";
+import { SAMPLE_USERS } from "../../public/fake_users_data.ts";
 
 import type {
     Book,

@@ -3,11 +3,11 @@
  * @author Aleksander Grzegrzułka
  * */
 import React, { type JSX } from "react";
-import type { BookAdmin } from "../../public/server_types.ts";
-import { CustomSelect, CustomOption } from "../../public/custom_components/CustomSelect.tsx";
-import bookIcon from '../assets/book.svg'
-import scannerIcon from '../assets/qr_code_scanner.svg'
-import Collapsible from '../../public/custom_components/Collapsible.tsx'
+import type { BookAdmin } from "../server/server_types.ts";
+import { CustomSelect, CustomOption } from "../custom_components/CustomSelect.tsx";
+import bookIcon from '../../public/assets/book.svg'
+import scannerIcon from '../../public/assets/qr_code_scanner.svg'
+import Collapsible from '../custom_components/Collapsible.tsx'
 
 /**
  * Właściwości (props) dla komponentu AdminBookComponent.
@@ -17,7 +17,7 @@ import Collapsible from '../../public/custom_components/Collapsible.tsx'
  * @property {function} [onRemoveBookPressed] - Opcjonalna funkcja wywoływana w celu usunięcia książki z systemu.
  * @property {function} [onInstanceMarkDamagedPressed] - Opcjonalna funkcja wywoływana przy oznaczaniu egzemplarza jako zniszczony.
  * @property {function} [onInstanceMarkMendedPressed] - Opcjonalna funkcja wywoływana przy anulowaniu zniszczenia egzemplarza.
- * @property {function} [onInstanceRemove] - Opcjonalna funkcja wywoływana przy usuwaniu egzemplarza.
+ * @property {function} [onInstanceRemovePressed] - Opcjonalna funkcja wywoływana przy usuwaniu egzemplarza.
  * @property {function} [onInstanceDisplayQRCodePressed] - Opcjonalna funkcja wywoływana przy próbie pokazania kodu QR egzemplarza.
  */
 type Props = {
@@ -157,7 +157,7 @@ function InstanceComponent(props: InstanceComponentProps) {
         <div className="copy">
             <span><b>Egzemplarz #{props.index + 1}</b> - <span className={statusClass}>{statusText}</span></span>
             <div className="actions">
-                <button onClick={() => { displayQRCode(props.id) }}><img src={scannerIcon} /></button>
+                <button onClick={() => { displayQRCode(props.id) }}><img src={scannerIcon} alt=''/></button>
                 <button onClick={() => { remove(props.id) }} className="borrow button" >Usuń</button>
                 {buttonMarkDamagedVisible && <button onClick={() => { markDamaged(props.id) }} className="reserve button w-46" >Ozn. jako zniszczony</button>}
                 {buttonMarkMendedVisible && <button onClick={() => { markMended(props.id) }} className="reserve button w-46" >Anuluj zniszczenie</button>}

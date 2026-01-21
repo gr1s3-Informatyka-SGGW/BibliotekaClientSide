@@ -6,20 +6,20 @@
 
 import { useContext, useEffect, useState, type JSX } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../public/UserAuth.tsx";
+import { AuthContext } from "../server/UserAuth.tsx";
 
 import "./NavSidebar.css";
 
-import logoIcon from "../assets/logo.svg";
-import personIcon from "../assets/person.svg";
-import newsstandIcon from "../assets/newsstand.svg";
-import accountCircleIcon from "../assets/account_circle.svg";
-import groupIcon from "../assets/group.svg";
-import addBookIcon from "../assets/add_box.svg";
-import borrowIcon from "../assets/borrow.svg";
-import libraryIcon from "../assets/local_library.svg";
-import logoutIcon from "../assets/logout.svg";
-import {Alert} from "../../public/custom_components/Popup.tsx";
+import logoIcon from "/assets/logo.svg";
+import personIcon from "/assets/person.svg";
+import newsstandIcon from "/assets/newsstand.svg";
+import accountCircleIcon from "/assets/account_circle.svg";
+import groupIcon from "/assets/group.svg";
+import addBookIcon from "/assets/add_box.svg";
+import borrowIcon from "/assets/borrow.svg";
+import libraryIcon from "/assets/local_library.svg";
+import logoutIcon from "/assets/logout.svg";
+import {Alert} from "../custom_components/Popup.tsx";
 
 /**
  * Interfejs opisujący pojedynczy element nawigacyjny w menu.

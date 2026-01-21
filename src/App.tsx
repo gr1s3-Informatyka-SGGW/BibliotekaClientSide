@@ -6,7 +6,7 @@
 
 import { lazy, Suspense, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, ProtectedRoute, AuthContext  } from "../public/UserAuth";
+import { AuthProvider, ProtectedRoute, AuthContext  } from "./server/UserAuth.tsx";
 
 // general (public)
 const AboutUs = lazy(() => import("./AboutUs"));

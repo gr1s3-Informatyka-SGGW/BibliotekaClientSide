@@ -1,7 +1,7 @@
 // noinspection SpellCheckingInspection
 
 import { describe, test, expect } from 'vitest';
-import { validators, luhnCheck, isCardExpiryValid, isbnValidate, passwordMeetsPolicy } from '../public/validators.ts';
+import { validators, luhnCheck, isCardExpiryValid, isbnValidate, passwordMeetsPolicy } from '../src/server/validators.ts';
 
 const sqliPayloads = [
   "' OR '1'='1' --",

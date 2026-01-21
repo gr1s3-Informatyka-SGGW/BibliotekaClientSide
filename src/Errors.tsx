@@ -1,6 +1,6 @@
 import { Component, type JSX } from 'react';
+import errorIcon from '/assets/error.svg';
 import "./Errors.css"
-import errorIcon from './assets/error.svg';
 
 /**
  * Bazowy komponent do wyświetlania stron błędów.

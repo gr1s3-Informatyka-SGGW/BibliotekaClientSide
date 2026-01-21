@@ -7,8 +7,8 @@
 import React, {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import "./Register.css";
-import {validators} from "../../public/validators";
-import {registerRequest} from "../../public/server_requests";
+import {validators} from "../server/validators.ts";
+import {registerRequest} from "../server/server_requests.ts";
 
 function Register() {
     const navigate = useNavigate();

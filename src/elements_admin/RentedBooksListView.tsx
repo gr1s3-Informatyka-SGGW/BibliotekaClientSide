@@ -2,28 +2,28 @@
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
  * */
-import type { Book, User, RentFullInfo } from "../../public/server_types.ts";
-import { extendRentRequest, fetchRentLog, returnBookRequest } from "../../public/server_requests.ts";
-import CustomTooltip from "../../public/custom_components/CustomTooltip.tsx";
+import type { Book, User, RentFullInfo } from "../server/server_types.ts";
+import { extendRentRequest, fetchRentLog, returnBookRequest } from "../server/server_requests.ts";
+import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {useNavigate, useSearchParams} from "react-router-dom";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
 import { Pagination } from "../general_elements/Pagination.tsx";
-import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
-import ToggleButton from "../../public/custom_components/ToggleButton.tsx";
-import Popup, { Alert } from "../../public/custom_components/Popup.tsx";
+import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
+import ToggleButton from "../custom_components/ToggleButton.tsx";
+import Popup, { Alert } from "../custom_components/Popup.tsx";
 import './RentedBooksListView.css';
 
-import bookIcon from '../../src/assets/book.svg';
-import userIcon from '../../src/assets/mail.svg';
-import calendarIcon from '../../src/assets/calendar.svg';
-import errorIcon from '../../src/assets/error.svg';
-import checkIcon from '../../src/assets/check.svg';
-import scheduleIcon from '../../src/assets/schedule.svg';
-import refreshIcon from '../../src/assets/refresh.svg';
-import returnsIcon from '../../src/assets/returns.svg';
-import borrowIcon from '../../src/assets/borrow.svg';
+import bookIcon from '../../public/assets/book.svg';
+import userIcon from '../../public/assets/mail.svg';
+import calendarIcon from '../../public/assets/calendar.svg';
+import errorIcon from '../../public/assets/error.svg';
+import checkIcon from '../../public/assets/check.svg';
+import scheduleIcon from '../../public/assets/schedule.svg';
+import refreshIcon from '../../public/assets/refresh.svg';
+import returnsIcon from '../../public/assets/returns.svg';
+import borrowIcon from '../../public/assets/borrow.svg';
 
 /**
  * Określa maksymalną liczbę wpisów wypożyczonych książek wyświetlanych na jednej stronie

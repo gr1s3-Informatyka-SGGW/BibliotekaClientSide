@@ -3,7 +3,7 @@
  * @author Olimpia Dejko
  * */
 import React, { Component, createRef } from "react";
-import type IFormComponent from "./IFormComponent";
+import type IFormComponent from "./IFormComponent.tsx";
 import './DynamicSelect.css';
 
 interface ChipProps {

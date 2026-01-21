@@ -15,7 +15,7 @@
  */
 // todo: Gdy chcesz edytować książkę w mobilce to popup wychodzi poza ekran
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
-import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../../public/server_types";
+import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../server/server_types.ts";
 import AdminBookComponent from "../elements_admin/AdminBookComponent";
 import "./CatalogView.css";
 import NavSidebar from "./NavSidebar";
@@ -39,13 +39,13 @@ import {
     markMendedBookInstanceRequest,
     fetchAdminBookRequest,
     fetchUserBookRequest
-} from "../../public/server_requests.ts";
-import catalogIcon from "../assets/newsstand.svg"
-import { AuthContext } from "../../public/UserAuth";
-import { CustomSelect, CustomOption, FilterResetButton } from "../../public/custom_components/CustomSelect.tsx";
+} from "../server/server_requests.ts";
+import catalogIcon from "/assets/newsstand.svg"
+import { AuthContext } from "../server/UserAuth.tsx";
+import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
 import { Pagination } from "./Pagination.tsx";
-import Popup, {Alert} from "../../public/custom_components/Popup.tsx";
-import iconError from "../assets/error.svg"
+import Popup, {Alert} from "../custom_components/Popup.tsx";
+import iconError from "/assets/error.svg"
 import { AddBookForm } from "../elements_admin/AddBookView.tsx";
 import { useSearchParams } from "react-router-dom";
 import InstanceQR from "../elements_admin/InstanceQR.tsx";

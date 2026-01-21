@@ -3,10 +3,10 @@
  * @author Aleksander Grzegrzułka
  * */
 import { Component, type JSX } from "react";
-import Collapsible from '../../public/custom_components/Collapsible.tsx'
-import bookIcon from '../assets/book.svg'
-import { type BookUser } from "../../public/server_types.ts"
-import { rentBookRequest, reserveBookRequest } from "../../public/server_requests.ts";
+import Collapsible from '../custom_components/Collapsible.tsx'
+import bookIcon from '../../public/assets/book.svg'
+import { type BookUser } from "../server/server_types.ts"
+import { rentBookRequest, reserveBookRequest } from "../server/server_requests.ts";
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.
