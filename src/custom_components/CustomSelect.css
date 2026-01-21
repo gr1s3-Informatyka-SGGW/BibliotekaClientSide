@@ -98,6 +98,8 @@
     content: '';
     position: absolute;
     bottom: 100%;
+    /* --arrow-left is declared in tsx file*/
+    /*noinspection CssUnresolvedCustomProperty*/
     left: clamp(12px, var(--arrow-left, 50%), calc(100% - 12px));
     margin-left: -8px;
     border-width: 8px;
