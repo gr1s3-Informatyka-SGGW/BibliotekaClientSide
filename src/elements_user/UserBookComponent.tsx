@@ -57,7 +57,7 @@ class UserBookComponent extends Component<Props, State> {
         return <div className="book">
             <div className="header-actions">
                 <h3 className="header">
-                    <img src={bookIcon} alt="icon" /> „{b.title}” — {authors}
+                    <img src={bookIcon} alt=""/> „{b.title}” — {authors}
                 </h3>
                 <div className="flex-row reader-actions">
                     <button onClick={() => {rent && rent(b)}} disabled={disableRentButton}>Wypożycz</button>

@@ -48,20 +48,15 @@ export default function AddBookView(){
         setSuccess(null);
 
         try {
-            const createdBook = await addBookRequest(book);
+            const response = await addBookRequest(book, copies);
 
-            const ids: number[] = [];
-
-            for (let i = 0; i < copies; i++) {
-                const instance = await addBookInstanceRequest(createdBook.book_id);
-                ids.push(instance.instance_id);
-            }
+            const ids: number[] = response.instance_ids;
 
             setInstanceIds(ids);
-            setBookId(createdBook.book_id)
+            setBookId(response.book_id)
             setIsQRopen(true);
-        } catch (e) {
-            setError("Wystąpił błąd przy dodawaniu książki.");
+        } catch (e: any) {
+            setError(e.message);
         }
     }
 
