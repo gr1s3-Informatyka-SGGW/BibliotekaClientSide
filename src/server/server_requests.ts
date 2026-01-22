@@ -857,45 +857,74 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
 
 // Katalog - Admin
 /**
- * Pobiera katalog książek dla widoku administratora z paginacją i filtrami.
+ * Pobiera katalog książek z paginacją, filtrowaniem i sortowaniem dla widoku administratora.
  *
- * @param {string} [search_bar] fragment tytułu, wpisany w panel wyszukiwania
- * @param {SearchSort} [sort] Sortowanie wyników
- * @param {BookSearchFilter} [filter] Filtry wyszukiwania
- * @param {number} [page = 1] Numer strony
+ * @param {number} [page=1] Numer strony (paginacja, domyślnie 1)
+ * @param {string} [search_bar] Fragment tytułu do wyszukania w panelu wyszukiwania
+ * @param {SearchSort} [sort] Obiekt określający sortowanie wyników
+ * @param {BookSearchFilter} [filter] Obiekt zawierający filtry wyszukiwania
  *
- * @returns {Promise<PagedResponse<BookAdmin>>}
+ * @returns {Promise<PagedResponse<BookAdmin>>} Obiekt stronicowany z listą książek i metadanymi
  *
- * @throws {InvalidRequestDataError} Gdy podano niepoprawne dane zapytania
+ * @throws {InvalidRequestDataError} Gdy podano niepoprawny numer strony lub błędne dane filtrów
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania katalogu
  */
-// todo: search panel nie był uwzględniony i kolejność w sygnaturze uległa zmianie
+
+// todo: search panel nie był uwzględniony i kolejność w sygnaturze uległa zmianie check
 export async function fetchAdminCatalogRequest(
-    search_bar?: string,
-    sort?: SearchSort,
-    filter?: BookSearchFilter,
-    page: number = 1
+  page: number = 1,
+  search_bar?: string,
+  sort?: SearchSort,
+  filter?: BookSearchFilter
 ): Promise<PagedResponse<BookAdmin>> {
   if (page <= 0) {
-    throw new InvalidRequestDataError(
-      "Niepoprawne dane paginacji",
-      false
-    );
+    throw new InvalidRequestDataError("Niepoprawne dane paginacji", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/search`, {
-        method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({
-      page,
-      filter,
-      sort,
-    }),
+  const body: any = { page };
+
+  if (search_bar && search_bar.trim().length > 0) {
+    body.fragment_tytulu = search_bar;
+  }
+
+  if (sort) {
+    body.sortowanie = {
+      po_czym_sortuje: sort.key,
+      rosnaco: sort.direction === 'ASC',
+    };
+  }
+
+  if (filter) {
+    const filtry: any = {};
+
+    if (filter.author) filtry.autor = filter.author;
+    if (filter.genre) filtry.gatunek = filter.genre;
+    if (filter.publisher) filtry.wydawca = filter.publisher;
+    if (filter.tags) filtry.tagi = filter.tags;
+    if (filter.language) filtry.jezyk = filter.language;
+    if (filter.release_date) {
+      filtry.data_wydania = {
+        od: filter.release_date.from.toISOString().split('T')[0],
+        do: filter.release_date.to.toISOString().split('T')[0],
+      };
+    }
+
+    body.filtry = filtry;
+  }
+
+  const r = await fetch(`${API_URL}/api/books/search`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(body),
   });
 
+  if (r.status === 400) {
+    throw new InvalidRequestDataError("Nieprawidłowe dane wyszukiwania", false);
+  }
+
   if (!r.ok) {
-    throw new RequestError("Błąd pobierania katalogu administratora");
+    throw new RequestError("Błąd pobierania katalogu książek");
   }
 
   return (await r.json()) as PagedResponse<BookAdmin>;
@@ -1125,42 +1154,92 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
 
 // Users
 /**
- * Pobiera listę użytkowników dla administratora.
+ * Pobiera listę użytkowników dla panelu administratora z możliwością filtrowania i sortowania.
  *
- * @param {string} search_bar
- * @param {SearchSort} [sort] Sortowanie
- * @param {UserListSearchFilter} [filter] Filtry wyszukiwania
+ * @param {string} [search_bar] Fragment imienia lub nazwiska do wyszukania
+ * @param {SearchSort} [sort] Obiekt określający sortowanie wyników
+ * @param {UserListSearchFilter} [filter] Obiekt filtrów wyszukiwania
  * @param {number} [page=1] Numer strony
  *
- * @returns {Promise<PagedResponse<UserInfo>>}
+ * @returns {Promise<PagedResponse<UserInfo>>} Obiekt stronicowany z listą użytkowników i metadanymi
  *
- * @throws {AccessDeniedError}
- * @throws {InvalidRequestDataError}
- * @throws {RequestError}
+ * @throws {AccessDeniedError} Gdy brak tokenu pracownika (WORKER)
+ * @throws {InvalidRequestDataError} Gdy podano niepoprawny numer strony lub błędne dane wyszukiwania
+ * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania użytkowników
  */
-// todo: search_bar i sort is never used
+// todo: search_bar i sort is never used check
 export async function fetchUserListRequest(
-    search_bar?: string,
-    sort?: SearchSort,
-    filter?: UserListSearchFilter,
-    page: number = 1
+  search_bar?: string,
+  sort?: SearchSort,
+  filter?: UserListSearchFilter,
+  page: number = 1
 ): Promise<PagedResponse<UserInfo>> {
 
   if (page < 1) {
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-    const r = await fetch(`${API_URL}/api/users/listUsers`, {
-        method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ filter, page }),
+  const body: any = { page };
+
+  if (search_bar && search_bar.trim().length > 0) {
+    body.fragment = search_bar;
+  }
+
+  if (sort) {
+    body.sortuj_po = {
+      czym: sort.key,
+      rosnaco: sort.direction === 'ASC',
+    };
+  }
+
+  if (filter?.status && filter.status.length > 0) {
+    // tylko pierwszy element, bo backend oczekuje stringa
+    body.status = filter.status[0];
+  }
+
+  const r = await fetch(`${API_URL}/api/users/listUsers`, {
+    method: "POST",
+    headers: authHeaders(), // token WORKER
+    body: JSON.stringify(body),
   });
+
+  if (r.status === 400) {
+    throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", false);
+  }
 
   if (!r.ok) {
     throw new RequestError("Błąd pobierania użytkowników");
   }
 
-  return await r.json();
+  const json = await r.json();
+
+  return {
+    result: (json.uzytkownicy ?? []).map((u: any): UserInfo => ({
+      user_id: u.user_id,
+      name: u.imie,
+      surname: u.nazwisko,
+      email: u.email,
+      status: u.status ?? 'user',
+      currently_rented: (u.wypozyczenia ?? []).map((w: any): Rent => ({
+        book: {
+          title: w.nazwa,
+          authors: w.autor,
+          publish_year: 0,
+          isbn_number: "",
+          length: 0,
+          language: "",
+          publisher: "",
+          keywords: [],
+          genre: [],
+        },
+        borrow_date: new Date(w.data_wypozyczenia),
+        return_date: new Date(w.termin_zwrotu),
+      })),
+      currently_reserved: [], // backend nie zwraca rezerwacji
+    })),
+    totalPages: 1,
+    totalResults: json.uzytkownicy?.length ?? 0,
+  };
 }
 
 /**
