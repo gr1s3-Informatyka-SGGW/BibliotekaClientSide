@@ -687,23 +687,58 @@ export async function fetchUserCatalogRequest(
   filter?: BookSearchFilter,
   page: number = 1
 ): Promise<PagedResponse<BookUser>> {
-
   if (page < 1) {
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/search`, {
-        method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ search, sort, filter, page }),
+  const body: any = {
+    page,
+    fragment_tytulu: search || undefined,
+    sortowanie: sort
+      ? {
+          po_czym_sortuje: sort.key,
+          rosnaco: sort.direction === 'ASC',
+        }
+      : undefined,
+    filtry: filter
+      ? {
+          autor: filter.author,
+          gatunek: filter.genre,
+          wydawca: filter.publisher,
+          tagi: filter.tags,
+          jezyk: filter.language,
+          data_wydania: filter.release_date
+            ? {
+                od: filter.release_date.from.toISOString().split("T")[0],
+                do: filter.release_date.to.toISOString().split("T")[0],
+              }
+            : undefined,
+        }
+      : undefined,
+  };
+
+  const r = await fetch(`${API_URL}/api/books/search`, {
+    method: "POST",
+    headers: {
+      ...authHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
 
   if (!r.ok) {
-    throw new RequestError("Błąd pobierania katalogu");
+    throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
   }
 
-  return await r.json();
+  const json = await r.json();
+
+  return {
+    result: json.ksiazki,
+    totalPages: json.totalPages ?? 0,
+    totalResults: json.totalResults ?? json.ksiazki.length,
+  };
 }
+
 
 /**
  * Wypożycza książkę.
