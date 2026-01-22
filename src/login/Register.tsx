@@ -47,7 +47,7 @@ function Register() {
         }
 
         if (!validators.password(password).ok) {
-            setError("Hasło nie spełnia wymagań bezpieczeństwa.");
+            setError("Hasło nie spełnia wymagań bezpieczeństwa (min. 12 znaków, duża/mała litera, cyfra, znak specjalny).");
             return;
         }
 
@@ -88,14 +88,11 @@ function Register() {
                 setSuccess("Konto zostało utworzone. Możesz się zalogować.");
                 setTimeout(() => navigate("/login"), 1500);
             }
-            catch(er){
+            catch(er: any){
                 setError((er as Error).message ?? "Błąd rejestracji.");
             }
         }
 
-        // USUŃ TE LINIE Z TEGO MIEJSCA:
-        // setSuccess("Konto zostało utworzone. Możesz się zalogować.");
-        // setTimeout(() => navigate("/login"), 1500);
 
         return (
             <div className="center-screen">
