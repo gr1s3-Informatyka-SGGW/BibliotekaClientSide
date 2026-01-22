@@ -89,10 +89,6 @@ export class TargetNotFoundError extends RequestError{
  * @throws {AccessDeniedError} Gdy token administratora nie został znaleziony w localStorage
  */
 function adminHeaders() : { "Content-Type": string, Authorization: string }{
-    return {
-        "Content-Type": "application/json",
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6IlVTRVIiLCJlbWFpbCI6InN6eW1vbi5jcmVkb0BnbWFpbC5jb20iLCJpYXQiOjE3NjkwNTA1MTgsImV4cCI6MTc2OTEzNjkxOH0.Nsyz_eFrVSs1y_NBsNLfYBafPvtyCzED3TYHajceRbc)}`,
-    }
     const session_str = localStorage.getItem("session");
     if(session_str == null){
         throw new AccessDeniedError("Brak tokenu administratora");
@@ -117,10 +113,6 @@ function adminHeaders() : { "Content-Type": string, Authorization: string }{
  * @throws {AccessDeniedError} Gdy token użytkownika nie został znaleziony w localStorage
  */
 function authHeaders(): { "Content-Type": string, Authorization: string } {
-    return {
-        "Content-Type": "application/json",
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6IlVTRVIiLCJlbWFpbCI6InN6eW1vbi5jcmVkb0BnbWFpbC5jb20iLCJpYXQiOjE3NjkwNTA1MTgsImV4cCI6MTc2OTEzNjkxOH0.Nsyz_eFrVSs1y_NBsNLfYBafPvtyCzED3TYHajceRbc)}`,
-    }
     const session_str = localStorage.getItem("session");
     if(session_str == null){
         throw new AccessDeniedError("Brak tokenu użytkownika");
