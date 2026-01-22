@@ -27,9 +27,9 @@ import { Pagination } from '../general_elements/Pagination.tsx';
 import React, { useState, useEffect, type JSX } from "react";
 import UserComponent from './UserComponent.tsx';
 import { useSearchParams } from "react-router-dom";
-import iconGroup from "../assets/group.svg";
-import iconAdd from "../assets/add.svg";
-import iconError from "../assets/error.svg";
+import iconGroup from "../../public/assets/group.svg";
+import iconAdd from "../../public/assets/add.svg";
+import iconError from "../../public/assets/error.svg";
 import { validators, type ValidationResult } from "../server/validators.ts";
 import BookDetailsPopup from "./BookDetailsPopup.tsx";
 
