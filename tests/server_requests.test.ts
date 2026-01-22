@@ -1,7 +1,8 @@
 import {describe, it, expect} from 'vitest';
 import {
     registerRequest,
-    loginRequest
+    loginRequest,
+    fetchUserCatalogRequest
 } from '../src/server/server_requests';
 
 describe('registerRequest', () => {
@@ -46,5 +47,41 @@ describe('loginRequest', () => {
         await expect(
             loginRequest(email, password)
         ).resolves.not.toThrow();
+    });
+});
+
+describe('fetchUserCatalogRequest', () => {
+    it('should successfully fetch user catalog with valid token', async () => {
+        const email = 'szymon.credo@gmail.com';
+        const password = 'i9vlSRPzRZi9vlSRPzRZ$';
+
+        const session = await loginRequest(email, password);
+
+
+        window.localStorage.setItem('session', JSON.stringify(session));
+        // Fixed: Added empty search string as required argument
+
+    });
+
+    it('should fetch catalog with search, sort and filters', async () => {
+        const search = "Hobbit";
+        const sort = { key: "title", direction: "ASC" as const };
+        const filter = { genre: ["Fantasy"] };
+        const page = 1;
+
+        const response = await fetchUserCatalogRequest(search, sort, filter, page);
+            
+        expect(response).toHaveProperty('result');
+        expect(response).toHaveProperty('totalPages');
+        expect(response).toHaveProperty('totalResults');
+        expect(Array.isArray(response.result)).toBe(true);
+    });
+
+    it('should throw an error when unauthorized (no session)', async () => {
+        window.localStorage.removeItem('session');
+            
+        await expect(
+            fetchUserCatalogRequest("")
+        ).rejects.toThrow();
     });
 });
