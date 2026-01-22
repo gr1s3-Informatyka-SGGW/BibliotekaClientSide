@@ -31,7 +31,7 @@ import {
     InvalidRequestDataError,
     TargetNotFoundError,
     RequestError
-} from '../public/server_requests';
+} from '../src/server/server_requests';
 
 /* =========================
    PEŁNY MOCK LOCALSTORAGE
