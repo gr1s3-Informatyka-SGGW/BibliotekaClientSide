@@ -16,6 +16,12 @@ import type {
 } from "./server_types.ts";
 
 /**
+ * @var {string} API_URL - link do API pobrany z pliku .env
+ * */
+const API_URL = import.meta.env.VITE_API_LINK || "";
+
+
+/**
  * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
  * @extends Error
  * */
@@ -109,7 +115,7 @@ function authHeaders() {
  * */
 export function loginRequest(email: string, password: string): Session{
 
-    return fetch('api/users/login', {
+    return fetch(`${API_URL}/api/users/login`, {
         method: 'POST',
         headers: {
             "Content-Type": "application/json",
@@ -153,7 +159,7 @@ export function loginRequest(email: string, password: string): Session{
 }
 
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
-    const response = await fetch("api/users/register", {
+    const response = await fetch(`${API_URL}/api/users/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -190,7 +196,7 @@ export async function registerRequest(name:string, surname:string, email:string,
 
 // ProfileView
 export async function fetchUserInfoRequest(): Promise<User>{
-    const response = await fetch("/api/users/loginInfo", {
+    const response = await fetch(`${API_URL}//api/users/loginInfo`, {
         method: "GET",
         headers:{
             "Content-Type": "application/json",
@@ -214,7 +220,7 @@ export async function fetchUserInfoRequest(): Promise<User>{
 }
 
 export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
-    const response= await fetch("/api/users/editClientData", {
+    const response = await fetch(`${API_URL}//api/users/editClientData`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -241,7 +247,7 @@ export async function changeClientDataRequest(name: string, surname: string): Pr
     throw new RequestError(response.status.toString());
 }
 export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
-    const response = await fetch("/api/users/editClientCreditCard", {
+    const response = await fetch(`${API_URL}//api/users/editClientCreditCard`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -270,7 +276,7 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
 }
 
 export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
-    const response = await fetch("/api/users/newPassword", {
+    const response = await fetch(`${API_URL}//api/users/newPassword`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -315,8 +321,8 @@ export async function cancelReservationRequest(
     throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
   }
 
-  const r = await fetch("/api/books/cancelReservation", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/cancelReservation`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ reservation_id }),
   });
@@ -344,8 +350,8 @@ export async function claimReservationRequest(
     throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
   }
 
-  const r = await fetch("/api/books/takeBook", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/takeBook`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ reservation_id }),
   });
@@ -371,8 +377,8 @@ export async function extendRentRequest(rent_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
   }
 
-  const r = await fetch("/api/books/extendRent", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/extendRent`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ rent_id }),
   });
@@ -398,8 +404,8 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
   }
 
-  const r = await fetch("/api/books/returnBook", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/returnBook`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ rent_id }),
   });
@@ -413,7 +419,7 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
 *   słowem potrzebuje by zwracał obiekt zawierający informacje o tym do kiedy książka jest wypożyczona co trzeba wyliczyć
 * */
 export async function fetchBorrowedBooksRequest(): Promise<Rent[]>{
-    const response = await fetch("/api/users/borrowedBooks", {
+    const response = await fetch(`${API_URL}//api/users/borrowedBooks`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -450,8 +456,8 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]>{
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchAuthorsRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/authors", {
-    headers: authHeaders(),
+    const r = await fetch(`${API_URL}//api/books/authors`, {
+        headers: authHeaders(),
   });
 
   if (!r.ok) {
@@ -469,8 +475,8 @@ export async function fetchAuthorsRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchTagsRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/tags", {
-    headers: authHeaders(),
+    const r = await fetch(`${API_URL}//api/books/tags`, {
+        headers: authHeaders(),
   });
 
   if (!r.ok) {
@@ -488,8 +494,8 @@ export async function fetchTagsRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchGenresRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/genres", {
-    headers: authHeaders(),
+    const r = await fetch(`${API_URL}//api/books/genres`, {
+        headers: authHeaders(),
   });
 
   if (!r.ok) {
@@ -507,8 +513,8 @@ export async function fetchGenresRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchPublishersRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/publishers", {
-    headers: authHeaders(),
+    const r = await fetch(`${API_URL}//api/books/publishers`, {
+        headers: authHeaders(),
   });
 
   if (!r.ok) {
@@ -526,8 +532,8 @@ export async function fetchPublishersRequest(): Promise<string[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchLanguagesRequest(): Promise<string[]> {
-  const r = await fetch("/api/books/languages", {
-    headers: authHeaders(),
+    const r = await fetch(`${API_URL}//api/books/languages`, {
+        headers: authHeaders(),
   });
 
   if (!r.ok) {
@@ -563,8 +569,8 @@ export async function fetchUserCatalogRequest(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-  const r = await fetch("/api/books/search", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/search`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ search, sort, filter, page }),
   });
@@ -594,8 +600,8 @@ export async function rentBookRequest(book_id: number, instance_id: number): Pro
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/books/rentBook", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/rentBook`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ book_id }),
   });
@@ -621,8 +627,8 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/books/reserveBook", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/reserveBook`, {
+        method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ book_id }),
   });
@@ -688,8 +694,8 @@ export async function fetchAdminCatalogRequest(
     );
   }
 
-  const r = await fetch("/api/books/search", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/search`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({
       page,
@@ -760,8 +766,8 @@ export async function editBookRequest(book: Book): Promise<void> {
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-  const r = await fetch("/api/users/books/edit", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/books/edit`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify(book),
   });
@@ -791,8 +797,8 @@ export async function removeBookRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-  const r = await fetch("/api/users/books/delete", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/books/delete`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ id_ksiazki: book_id }),
   });
@@ -822,8 +828,8 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
 
-  const r = await fetch("/api/users/copies/delete", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/copies/delete`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ id_egzemplarza: instance_id }),
   });
@@ -853,8 +859,8 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
 
-  const r = await fetch("/api/users/copies/markDestroyed", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/copies/markDestroyed`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ id_egzemplarza: instance_id }),
   });
@@ -886,8 +892,8 @@ export async function markMendedBookInstanceRequest(
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
 
-  const r = await fetch("/api/users/copies/markUndestroyed", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/copies/markUndestroyed`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ id_egzemplarza: instance_id }),
   });
@@ -916,8 +922,8 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-  const r = await fetch("/api/books/addCopy", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/addCopy`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ book_id }),
   });
@@ -954,8 +960,8 @@ export async function fetchUserListRequest(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-  const r = await fetch("/api/users/listUsers", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/listUsers`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ filter, page }),
   });
@@ -983,8 +989,8 @@ export async function removeUserRequest(email: string): Promise<void> {
     throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-  const r = await fetch("/api/users/deleteUser", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/deleteUser`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ email }),
   });
@@ -1014,8 +1020,8 @@ export async function toggleUserBlockRequest(
     throw new InvalidRequestDataError("Niepoprawne ID użytkownika", false);
   }
 
-  const r = await fetch("/api/users/toggleBlock", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/toggleBlock`, {
+        method: "POST",
     headers: {
       ...adminHeaders(),
       "Content-Type": "application/json",
@@ -1073,8 +1079,8 @@ export async function addAdminRequest(
     throw new InvalidRequestDataError("Brak wymaganych danych", false);
   }
 
-  const r = await fetch("/api/users/registerWorker", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/users/registerWorker`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ name, surname, email, password }),
   });
@@ -1110,8 +1116,8 @@ export async function addBookRequest(
   book: Book,
   instance_number: number
 ): Promise<{ book_id: number; instance_ids: number[] }> {
-  const r = await fetch("/api/books/addBook", {
-    method: "POST",
+    const r = await fetch(`${API_URL}//api/books/addBook`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({
       ...book,
@@ -1161,8 +1167,8 @@ export async function fetchRentLog(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-  const r = await fetch("/api/books/listRentedBooks", {
-    method: "POST",
+    const r = await fetch(`${API_URL}/api/books/listRentedBooks`, {
+        method: "POST",
     headers: adminHeaders(),
     body: JSON.stringify({ filter, page }),
   });

@@ -24,9 +24,9 @@ const UserProfileView = lazy(() => import("./elements_user/UserProfileView"));
 
 // admin only
 const AdminProfileView = lazy(() => import("./elements_admin/AdminProfileView"));
-const RentLogView = lazy(() => import("./elements_admin/RentLogView"));
+const UsersListView = lazy(() => import("./elements_admin/UsersListView.tsx"));
 const AddBookView = lazy(() => import("./elements_admin/AddBookView"));
-const RentedBooksListView = lazy(() => import("./elements_admin/RentedBooksListView"));
+const RentLogView = lazy(() => import("./elements_admin/UsersListView.tsx"));
 
 export default function App() {
   const auth = useContext(AuthContext);
@@ -101,7 +101,7 @@ export default function App() {
               path="/users-view"
               element={
                 <ProtectedRoute mode="admin">
-                  <RentLogView />
+                  <UsersListView />
                 </ProtectedRoute>
               }
             />
@@ -119,7 +119,7 @@ export default function App() {
               path="/rented-books"
               element={
                 <ProtectedRoute mode="admin">
-                  <RentedBooksListView />
+                  <RentLogView />
                 </ProtectedRoute>
               }
             />

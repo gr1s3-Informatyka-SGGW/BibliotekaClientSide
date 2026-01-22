@@ -1,529 +1,752 @@
 /**
- * @file Implementuje widok zarządzania użytkownikami dla administratora (UsersListView).
- * Komponent ten umożliwia przeglądanie, filtrowanie oraz modyfikację statusów użytkowników biblioteki.
- * * Funkcjonalności widoku:
- * - Wyświetlanie listy użytkowników z podziałem na role (użytkownik, bibliotekarz, zablokowany).
- * - Zaawansowane filtrowanie według statusu konta (wielokrotny wybór).
- * - Sortowanie wyników według nazwiska (A-Z, Z-A), liczby wypożyczeń lub zaległości.
- * - Wyszukiwanie użytkowników po nazwisku lub innych danych.
- * - Obsługa akcji administracyjnych: blokowanie, odblokowywanie oraz trwałe usuwanie użytkowników.
- * - Wyświetlanie szczegółów dotyczących wypożyczonych książek w oknie modalnym.
- * @author Aleksander Grzegrzułka
- */
-import "./UsersListView.css"
-import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../server/server_types.ts";
-import {
-    removeUserRequest,
-    blockUserRequest,
-    unblockUserRequest,
-    fetchUserListRequest,
-    addAdminRequest
-} from '../server/server_requests.ts'
+ * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
+ * @author Karol Dziuba
+ * */
+import type { Book, User, RentFullInfo } from "../server/server_types.ts";
+import { extendRentRequest, fetchRentLog, returnBookRequest } from "../server/server_requests.ts";
+import CustomTooltip from "../custom_components/CustomTooltip.tsx";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {useNavigate, useSearchParams} from "react-router-dom";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
+import { Pagination } from "../general_elements/Pagination.tsx";
 import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
-import Popup from "../custom_components/Popup.tsx";
-import { Pagination } from '../general_elements/Pagination.tsx';
-import React, { useState, useEffect, type JSX } from "react";
-import UserComponent from './UserComponent.tsx';
-import { useSearchParams } from "react-router-dom";
-import iconGroup from "../assets/group.svg";
-import iconAdd from "../assets/add.svg";
-import iconError from "../assets/error.svg";
-import { validators, type ValidationResult } from "../server/validators.ts";
-import BookDetailsPopup from "./BookDetailsPopup.tsx";
+import ToggleButton from "../custom_components/ToggleButton.tsx";
+import Popup, { Alert } from "../custom_components/Popup.tsx";
+import './RentLogView.css';
+
+import bookIcon from '/assets/book.svg';
+import userIcon from '/assets/mail.svg';
+import calendarIcon from '/assets/calendar.svg';
+import errorIcon from '/assets/error.svg';
+import checkIcon from '/assets/check.svg';
+import scheduleIcon from '/assets/schedule.svg';
+import refreshIcon from '/assets/refresh.svg';
+import returnsIcon from '/assets/returns.svg';
+import borrowIcon from '/assets/borrow.svg';
 
 /**
- * Główny komponent widoku listy użytkowników.
- * Zarządza stanem aplikacji w kontekście wyszukiwania, sortowania i filtrowania użytkowników,
- * a także obsługuje logikę okien modalnych (popupów) dla akcji.
- * @component
- * @returns {JSX.Element} Wyrenderowany widok z panelem bocznym, panelem wyszukiwania i listą użytkowników.
+ * Określa maksymalną liczbę wpisów wypożyczonych książek wyświetlanych na jednej stronie
+ * w widoku stronicowania.
+ *
+ * @constant
+ * @type {number}
  */
-export default function UsersListView(): JSX.Element {
-    // URL Params
+const ITEMS_PER_PAGE: number = 3;
+
+/**
+ * @interface ExtendedRentInfo Reprezentuje szczegółowe informacje dotyczące transakcji wypożyczenia książki.
+ * Rozszerza standardowy model danych o pola obliczane po stronie klienta (status, kara).
+ *
+ * @extends {Omit<RentFullInfo, 'borrow_date' | 'return_date' | 'return_to_date'>}
+ *
+ * @prop {number} id - Unikalne ID wypożyczenia
+ * @prop {Date} borrow_date - Data wypożyczenia
+ * @prop {Date} return_date - Termin zwrotu (deadline)
+ * @prop {'active' | 'returned_pending'} status - Status logiczny: 'active' (wypożyczona) lub 'returned_pending' (oddana, czeka na akceptację/archiwum)
+ * @prop {number} fineAmount - Obliczona kwota kary finansowej
+ * @prop {Date} [actualReturnDate] - Data faktycznego zwrotu (jeśli nastąpił)
+ */
+export interface ExtendedRentInfo extends Omit<RentFullInfo, 'borrow_date' | 'return_date' | 'return_to_date'> {
+    id: number;
+    borrow_date: Date;
+    return_date: Date;
+    status: 'active' | 'returned_pending';
+    fineAmount: number;
+    actualReturnDate?: Date;
+}
+
+/**
+ * Props dla głównego komponentu widoku.
+ *
+ * @interface RentedBooksListViewProps
+ */
+interface RentedBooksListViewProps {
+    /**
+     * Opcjonalne dane początkowe. Jeśli podane, komponent działa w trybie "offline" (lokalnym),
+     * filtrując i sortując tę tablicę, zamiast wysyłać zapytania do API.
+     */
+    initialData?: ExtendedRentInfo[];
+}
+
+/**
+ * Komponent widoku /rented-books.
+ * Służy do zarządzania procesem wypożyczeń, oferując wgląd w listę, filtrowanie, sortowanie oraz akcje (przedłużenie, zwrot).
+ *
+ * @param {RentedBooksListViewProps} props - Właściwości komponentu.
+ * @returns {React.JSX.Element} Pełny widok strony zarządzania wypożyczeniami.
+ */
+export default function RentLogView({ initialData }: RentedBooksListViewProps): React.JSX.Element {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // State - Dane
-    const [users, setUsers] = useState<UserInfo[]>([]);
+    const [rents, setRents] = useState<ExtendedRentInfo[]>([]);
+    const isUpdatingUrlRef = useRef(false);
 
-    // State - Paginacja
-    const [currentPage, setCurrentPage] = useState(() => {
-        const p = searchParams.get("page");
-        return p ? parseInt(p) : 1;
+    const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || "");
+    const [filters, setFilters] = useState<any>(() => {
+        const sort = searchParams.get('sort');
+        const status = searchParams.get('status');
+        const overdue = searchParams.get('overdue');
+        const initialFilters: any = {};
+        if (sort) initialFilters.sort = [sort];
+        if (status) initialFilters.status = status.split(',');
+        if (overdue) initialFilters.overdue = overdue.split(',');
+        return initialFilters;
     });
 
+    const [currentPage, setCurrentPage] = useState(() => parseInt(searchParams.get('page') || '1', 10));
     const [totalPages, setTotalPages] = useState(1);
 
-    // State — Wyszukiwanie i Filtry
-    const [search, setSearch] = useState<SearchPanelReturn | undefined>(() => {
-        const q = searchParams.get("q");
-        return q ? { search: q } : undefined;
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+    const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
+    const [isBookPopupOpen, setIsBookPopupOpen] = useState(false);
+
+    const [alertConfig, setAlertConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onAccept?: () => void;
+        type?: 'prolong' | 'return' | 'error';
+    }>({ isOpen: false, title: "", message: "" });
+
+    const [activeFilters, setActiveFilters] = useState<{ [key: string]: string[] }>(() => {
+        const sort = searchParams.get('sort');
+        const status = searchParams.get('status');
+        const overdue = searchParams.get('overdue');
+        const initialActiveFilters: { [key: string]: string[] } = {};
+        if (sort) initialActiveFilters.sort = [sort];
+        if (status) initialActiveFilters.status = status.split(',');
+        if (overdue) initialActiveFilters.overdue = overdue.split(',');
+        return initialActiveFilters;
     });
 
-    const [sorting, setSorting] = useState<SearchSort>(() => ({
-        key: searchParams.get("sort_key") || "surname",
-        direction: (searchParams.get("sort_dir") as 'ASC' | 'DESC') || "ASC"
-    }));
+    /**
+     * Przetwarza surowe dane z API na ujednolicony format `ExtendedRentInfo`.
+     * Dokonuje konwersji dat ze stringów na obiekty Date oraz oblicza status i ewentualną karę.
+     *
+     * @param {any} rawData - Surowe dane (tablica lub obiekt z polem result/items).
+     * @returns {ExtendedRentInfo[]} Przetworzona lista wypożyczeń.
+     */
+    const processApiData = (rawData: any): ExtendedRentInfo[] => {
+        const dataArray = Array.isArray(rawData) ? rawData : (rawData?.result || rawData?.items || []);
 
-    const [statusFilter, setStatusFilter] = useState<('user' | 'admin' | 'blocked')[]>(() => {
-        return searchParams.getAll("status") as ('user' | 'admin' | 'blocked')[];
-    });
+        return dataArray.map((item: any,index: number) => {
+            const borrowDate = new Date(item.borrow_date);
+            const deadlineDate = new Date(item.return_to_date);
+            const actualReturnDate = item.return_date ? new Date(item.return_date) : undefined;
+            const now = new Date();
 
-    const [resetToken, setResetToken] = useState(0);
+            let status: ExtendedRentInfo['status'] = 'active';
+            let calculatedFine = 0;
 
-    // State - Popupy
-    const [shownPopup, setShownPopup] = useState<
-        undefined | "addLibrarian" | "blockConfirm" | "unblockConfirm" | "deleteConfirm" | "bookDetails" | "success" | "error"
-    >(undefined);
-
-    interface PopupData {
-        user?: UserInfo;
-        book?: Book;
-        title?: string;
-        message?: string;
-    }
-    const [popupData, setPopupData] = useState<PopupData>({});
-
-    // === Logika ===
-
-    // Synchronizacja URL
-    useEffect(() => {
-        const params = new URLSearchParams();
-        if (search?.search) params.set("q", search.search);
-        if (currentPage > 1) params.set("page", currentPage.toString());
-
-        params.set("sort_key", sorting.key);
-        params.set("sort_dir", sorting.direction);
-
-        statusFilter.forEach(s => params.append("status", s));
-
-        setSearchParams(params, { replace: true });
-    }, [search, currentPage, sorting, statusFilter, setSearchParams]);
-
-    // Pobieranie danych
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const filter: UserListSearchFilter = { status: statusFilter };
-
-                const result = await fetchUserListRequest(search?.search, sorting, filter, currentPage);
-
-                setUsers(result.result);
-                setTotalPages(result.totalPages);
-            } catch (e) {
-                const msg = e instanceof Error ? e.message : String(e ?? "W wyniku nieznanego błędu nie udało się pobrać listy użytkowników.");
-                setPopupData({ title: "Błąd", message: msg })
-                setShownPopup("error")
-                setUsers([]);
+            if (actualReturnDate) {
+                status = 'returned_pending';
+                if (actualReturnDate > deadlineDate) {
+                    const daysOver = Math.ceil((actualReturnDate.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+                    calculatedFine = daysOver * 15;
+                }
+            } else {
+                if (now > deadlineDate) {
+                    const daysOver = Math.ceil((now.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+                    calculatedFine = daysOver * 15;
+                }
             }
 
+            return {
+                ...item,
+                id: item.id || item.rent_id || (index + 1000),
+                user: item.user,
+                book: item.book,
+                borrow_date: borrowDate,
+                return_date: deadlineDate,
+                status: status,
+                fineAmount: item.fineAmount || calculatedFine,
+                actualReturnDate: actualReturnDate
+            };
+        });
+    };
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
+    /**
+     * Asynchroniczna funkcja odświeżająca dane w widoku.
+     * Obsługuje dwa tryby działania:
+     * 1. **Tryb lokalny (`initialData`)**: Filtruje i sortuje dane przekazane w propsach po stronie klienta.
+     * 2. **Tryb API**: Wysyła zapytanie do serwera (`fetchRentLog`) z parametrami paginacji, sortowania i filtrów.
+     *
+     * Funkcja jest memoizowana (useCallback) w zależności od filtrów, strony i danych wejściowych.
+     */
+    const refreshData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            if (initialData) {
+                let processedData = [...initialData];
+
+                if (searchQuery) {
+                    const lowerQuery = searchQuery.toLowerCase();
+                    processedData = processedData.filter(item =>
+                        item.book.title.toLowerCase().includes(lowerQuery) ||
+                        item.user.surname.toLowerCase().includes(lowerQuery) ||
+                        item.user.name.toLowerCase().includes(lowerQuery)
+                    );
+                }
+
+                if (filters.status && filters.status.length > 0 && !filters.status.includes('any')) {
+                    processedData = processedData.filter(item => {
+                        if (filters.status.includes('active') && item.status === 'active') return true;
+                        return (filters.status.includes('returned_pending') && item.status === 'returned_pending')
+                    });
+                }
+
+                if (filters.overdue && filters.overdue.includes('any')) {
+                    const now = new Date();
+                    processedData = processedData.filter(item => {
+                        if (item.status === 'active') {
+                            return now > item.return_date;
+                        }
+                        if (item.status === 'returned_pending' && item.actualReturnDate) {
+                            return item.actualReturnDate > item.return_date;
+                        }
+                        return false;
+                    });
+                }
+
+                if (filters.sort && filters.sort.length > 0) {
+                    const sortKey = filters.sort[0];
+                    processedData.sort((a, b) => {
+                        switch (sortKey) {
+                            case 'fine_desc': return b.fineAmount - a.fineAmount;
+                            case 'fine_asc': return a.fineAmount - b.fineAmount;
+                            case 'date_desc': return b.borrow_date.getTime() - a.borrow_date.getTime();
+                            case 'date_asc': return a.borrow_date.getTime() - b.borrow_date.getTime();
+                            default: return 0;
+                        }
+                    });
+                }
+
+                setRents(processedData);
+                setTotalPages(Math.ceil(processedData.length / ITEMS_PER_PAGE) || 1);
+            } else {
+                const rawData = await fetchRentLog(
+                    searchQuery,
+                    filters.sort,
+                    filters,
+                    currentPage
+                );
+                const safeResponse = rawData as any; // <--- Rzutowanie na any, aby ominąć sprawdzanie typów dla .items
+                let rawItems = safeResponse.result || safeResponse.items || [];
+
+                if (rawItems.length > ITEMS_PER_PAGE) {
+                    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+                    const end = start + ITEMS_PER_PAGE;
+                    rawItems = rawItems.slice(start, end);
+                }
+                const processedData = processApiData(rawItems);
+
+
+                let finalData = processedData;
+                if (filters.overdue && filters.overdue.includes('any')) {
+                    const now = new Date();
+                    finalData = finalData.filter(item => {
+                        if (item.status === 'active') return now > item.return_date;
+                        if (item.status === 'returned_pending' && item.actualReturnDate) {
+                            return item.actualReturnDate > item.return_date;
+                        }
+                        return false;
+                    });
+                }
+
+                setRents(finalData);
+                setTotalPages(rawData.totalPages || 1);
+            }
+
+        } catch (error) {
+            console.error("Błąd podczas pobierania danych:", error);
+            setAlertConfig({
+                isOpen: true,
+                title: "Błąd serwera",
+                message: "Nie udało się pobrać danych o wypożyczeniach.",
+                onAccept: () => setAlertConfig(prev => ({...prev, isOpen: false})),
+                type: 'error'
             });
-        };
-        void fetchData();
-    }, [search, sorting, statusFilter, currentPage, resetToken]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [initialData, searchQuery, filters, currentPage]);
 
     useEffect(() => {
-        setCurrentPage(1);
-    }, [statusFilter, sorting, search])
+        if (isUpdatingUrlRef.current) {
+            isUpdatingUrlRef.current = false;
+            return;
+        }
 
+        const query = searchParams.get('search') || '';
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const sort = searchParams.get('sort');
+        const status = searchParams.get('status');
+        const overdue = searchParams.get('overdue');
+
+        const initialFilters: any = {};
+        const initialActiveFilters: { [key: string]: string[] } = {};
+
+        if (sort) {
+            initialFilters.sort = [sort];
+            initialActiveFilters.sort = [sort];
+        }
+        if (status) {
+            const statusArray = status.split(',');
+            initialFilters.status = statusArray;
+            initialActiveFilters.status = statusArray;
+        }
+        if (overdue) {
+            const poTerminieArray = overdue.split(',');
+            initialFilters.overdue = poTerminieArray;
+            initialActiveFilters.overdue = poTerminieArray;
+        }
+
+        setSearchQuery(query);
+        setFilters(initialFilters);
+        setActiveFilters(initialActiveFilters);
+        setCurrentPage(page);
+    }, [searchParams]);
+
+    const [lastRefreshParams, setLastRefreshParams] = useState<string>("");
+
+    useEffect(() => {
+        const currentParams = JSON.stringify({ searchQuery, filters, currentPage });
+        if (currentParams !== lastRefreshParams) {
+            setLastRefreshParams(currentParams);
+            void refreshData();
+        }
+    }, [refreshData, searchQuery, filters, currentPage, lastRefreshParams]);
+
+
+    /**
+     * Obsługuje zdarzenie wyszukiwania z komponentu SearchPanel.
+     * Resetuje paginację do pierwszej strony.
+     */
+    const handleSearch = (data: SearchPanelReturn) => {
+        setSearchQuery(data.search);
+        setFilters(data.filter);
+        setCurrentPage(1);
+        updateUrlParams(data.search, data.filter, 1);
+    };
+
+    /**
+     * Obsługuje zmianę pojedynczego filtra (np. sortowanie, status).
+     * @param key - Klucz filtra.
+     */
+    const handleFilterChange = (key: string) => (values: string[]) => {
+        const newActiveFilters = {...activeFilters, [key]: values};
+        const newFilters = {...filters, [key]: values};
+        setActiveFilters(newActiveFilters);
+        setFilters(newFilters);
+        setCurrentPage(1);
+        updateUrlParams(searchQuery, newFilters, 1);
+    };
+
+    /**
+     * Resetuje wszystkie aktywne filtry i wyszukiwanie.
+     */
     const handleResetFilters = () => {
-        setSearch({ search: "" });
-        setSorting({ key: "surname", direction: "ASC" });
-        setStatusFilter([]);
+        setActiveFilters({});
+        setFilters({});
+        setSearchQuery("");
         setCurrentPage(1);
-        setResetToken(prev => prev + 1);
+        updateUrlParams("", {}, 1);
     };
 
-    // Obsługa akcji użytkownika
-    const onBlockUserPressed = (user: UserInfo) => {
-        setPopupData({ user });
-        setShownPopup("blockConfirm");
-    };
+    /**
+     * Aktualizuje parametry URL na podstawie aktualnego stanu wyszukiwania, filtrów i strony.
+     */
+    const updateUrlParams = (search: string, currentFilters: any, page: number) => {
+        const params = new URLSearchParams();
 
-    const onUnblockUserPressed = (user: UserInfo) => {
-        setPopupData({ user });
-        setShownPopup("unblockConfirm");
-    };
+        if (search) {
+            params.set('search', search);
+        }
+        if (page > 1) {
+            params.set('page', page.toString());
+        }
+        if (currentFilters.sort && currentFilters.sort.length > 0) {
+            params.set('sort', currentFilters.sort[0]);
+        }
+        if (currentFilters.status && currentFilters.status.length > 0) {
+            params.set('status', currentFilters.status.join(','));
+        }
+        if (currentFilters.overdue && currentFilters.overdue.length > 0) {
+            params.set('overdue', currentFilters.overdue.join(','));
+        }
 
-    const onRemoveUserPressed = (user: UserInfo) => {
-        setPopupData({ user });
-        setShownPopup("deleteConfirm");
-    };
-
-    const onBookDetailsPressed = (book: Book) => {
-        setPopupData({ book });
-        setShownPopup("bookDetails");
-    };
-
-    // Wykonanie requestów
-    const executeBlockUser = async () => {
-        if (!popupData.user?.user_id) return;
-        setShownPopup(undefined); // Zamknij confirm
-        try {
-            await blockUserRequest(popupData.user.user_id);
-            setPopupData({ title: "Zablokowano użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został zablokowany.` });
-            setShownPopup("success");
-            setResetToken(prev => prev + 1); // Odśwież listę
-        } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e ?? "Wystąpił nieznany błąd");
-            setPopupData({ title: "Błąd blokowania", message: msg });
-            setShownPopup("error");
+        const paramsString = params.toString();
+        if (paramsString !== searchParams.toString()) {
+            isUpdatingUrlRef.current = true;
+            setSearchParams(params, { replace: true });
         }
     };
 
-    const executeUnblockUser = async () => {
-        if (!popupData.user?.user_id) return;
-        setShownPopup(undefined);
-        try {
-            await unblockUserRequest(popupData.user.user_id);
-            setPopupData({ title: "Odblokowano użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został odblokowany.` });
-            setShownPopup("success");
-            setResetToken(prev => prev + 1);
-        } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e ?? "Wystąpił nieznany błąd");
-            setPopupData({ title: "Błąd odblokowania", message: msg });
-            setShownPopup("error");
-        }
+
+    /**
+     * Inicjuje procedurę przedłużenia wypożyczenia.
+     * Wyświetla okno dialogowe z prośbą o potwierdzenie.
+     */
+    const handleExtend = (rent: ExtendedRentInfo) => {
+        setAlertConfig({
+            isOpen: true,
+            title: "Przedłużenie wypożyczenia",
+            message: `Czy na pewno chcesz przedłużyć wypożyczenie książki "${rent.book.title}" dla użytkownika ${rent.user.name} ${rent.user.surname}?`,
+            onAccept: async () => {
+                try {
+                    await extendRentRequest(rent.id);
+                    await refreshData();
+                } catch (error) {
+                    setAlertConfig({
+                        isOpen: true, title: "Niepowodzenie", message: "Wystąpił błąd.", type: 'error',
+                        onAccept: () => setAlertConfig(prev => ({...prev, isOpen: false}))
+                    });
+                }
+            },
+            type: 'prolong'
+        });
     };
 
-    const executeRemoveUser = async () => {
-        if (!popupData?.user) return;
-        setShownPopup(undefined);
-        try {
-            await removeUserRequest(popupData.user.email);
-            setPopupData({ title: "Usunięto użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został usunięty.` });
-            setShownPopup("success");
-            setResetToken(prev => prev + 1);
-        } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e ?? "Wystąpił nieznany błąd");
-            setPopupData({ title: "Błąd usuwania", message: msg });
-            setShownPopup("error");
-        }
+    /**
+     * Inicjuje procedurę zatwierdzenia zwrotu książki.
+     * Wyświetla okno dialogowe z informacją o ewentualnej karze.
+     */
+    const handleReturn = (rent: ExtendedRentInfo) => {
+        setAlertConfig({
+            isOpen: true,
+            title: "Potwierdzenie zwrotu",
+            message: `Czy potwierdzasz odbiór książki "${rent.book.title}" od użytkownika ${rent.user.name} ${rent.user.surname}? \nKara do zapłaty: ${rent.fineAmount} zł`,
+            onAccept: async () => {
+                try {
+                    await returnBookRequest(rent.id);
+                    await refreshData();
+                } catch (error) {
+                    setAlertConfig({
+                        isOpen: true, title: "Niepowodzenie", message: "Wystąpił błąd.", type: 'error',
+                        onAccept: () => setAlertConfig(prev => ({...prev, isOpen: false}))
+                    });
+                }
+            },
+            type: 'return'
+        });
     };
 
-    const hidePopups = () => {
-        setShownPopup(undefined);
-        setPopupData({});
-    };
+    const activeFilterCount = (Object.values(activeFilters) as string[][]).reduce((acc, curr) => acc + curr.length, 0);
 
-    const notFoundText = ((): string => {
-        const hasSearch = search?.search && search.search.trim().length > 0;
-        const hasFilters = statusFilter.length > 0;
+    let currentRents = rents;
 
-        if (hasSearch && hasFilters) {
-            return `Nie znaleziono użytkownika dla frazy „${search?.search}” przy wybranych filtrach.`;
-        }
-
-        if (hasSearch) {
-            return `Brak wyników pasujących do frazy „${search?.search}”.`;
-        }
-
-        if (hasFilters) {
-            return "Żaden użytkownik nie spełnia wybranych kryteriów filtrowania.";
-        }
-
-        return "Lista użytkowników jest obecnie pusta.";
-    })();
+    if (initialData) {
+        const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+        const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+        currentRents = rents.slice(indexOfFirstItem, indexOfLastItem);
+    }
 
     return (
         <>
-            {/* Block User Confirm */}
-            <Popup isOpen={shownPopup === "blockConfirm"} setIsOpen={(v:boolean) => !v && hidePopups()} title="Zablokuj użytkownika" onClose={hidePopups}>
-                <p>Czy na pewno chcesz zablokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
-                <div className="flex flex-row *:flex-1 mt-6 gap-2">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={executeBlockUser} className="bg-amber-600 hover:bg-amber-500">Zablokuj</button>
-                </div>
-            </Popup>
-
-            {/* Unblock User Confirm */}
-            <Popup isOpen={shownPopup === "unblockConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Odblokuj użytkownika" onClose={hidePopups}>
-                <p>Czy na pewno chcesz odblokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
-                <div className="flex flex-row *:flex-1 mt-6 gap-2">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={executeUnblockUser}>Odblokuj</button>
-                </div>
-            </Popup>
-
-            {/* Delete User Confirm */}
-            <Popup isOpen={shownPopup === "deleteConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Usuń użytkownika" onClose={hidePopups}>
-                <p>Czy na pewno chcesz trwale usunąć użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
-                <p><strong>Tej operacji nie można cofnąć.</strong></p>
-                <div className="flex flex-row *:flex-1 mt-6 gap-2">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={executeRemoveUser} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
-                </div>
-            </Popup>
-
-            {/* Generic Success */}
-            <Popup isOpen={shownPopup === "success"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Sukces"} onClose={hidePopups}>
-                <p>{popupData.message}</p>
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-
-            {/* Generic Error - Dynamic Title/Content */}
-            <Popup isOpen={shownPopup === "error"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Błąd"} icon={iconError} onClose={hidePopups}>
-                <p className="text-justify italic"><strong>{popupData.message}</strong></p>
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-
-            {/* Add Librarian */}
-            <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups}/>
-
-            {/* Book Details Popup */}
-            <BookDetailsPopup isOpen={shownPopup === "bookDetails"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups} book={popupData.book} />
-
             <NavSidebar />
-            {/* === GŁÓWNY LAYOUT === */}
-            <main>
-            <h1 style={{ textAlign: "center", marginBottom: "1em" }}>
-                <img src={iconGroup} alt="" style={{ verticalAlign: 'middle', marginRight: '0.5em' }} />
-                Lista użytkowników
-            </h1>
+            <main id="main-content">
+                <h1><img src={borrowIcon} alt="" /> Wypożyczenia i zwroty</h1>
 
-
-            <div>
-
-                {/* Panel Wyszukiwania */}
-                <SearchPanel
-                    placeholder="Szukaj użytkownika po nazwisku, wypożyczeniu..."
-                    onSearch={(data: SearchPanelReturn) => setSearch(data)}
-                    defaultValue={search?.search ?? ""}
-                >
-                    <FilterResetButton activeCount={statusFilter.length} onReset={handleResetFilters} />
-
-                    {/* Sortowanie */}
-                    <CustomSelect
-                        filterKey="sort"
-                        label="Sortuj"
-                        initialValues={(() => {
-                            const { key, direction } = sorting;
-                            if (key === "surname" && direction === "ASC") return ["Nazwisko (A-Z)"];
-                            if (key === "surname" && direction === "DESC") return ["Nazwisko (Z-A)"];
-                            if (key === "rent_count" && direction === "ASC") return ["Liczba wypożyczeń (rosnąco)"];
-                            if (key === "rent_count" && direction === "DESC") return ["Liczba wypożyczeń (malejąco)"];
-                            if (key === "overdue_count" && direction === "ASC") return ["Liczba zaległości (rosnąco)"];
-                            if (key === "overdue_count" && direction === "DESC") return ["Liczba zaległości (malejąco)"];
-                            return ["Nazwisko (A-Z)"];
-                        })()}
-                        onChange={(v: string[]) => {
-                            const val = v[0];
-                            if (val.includes("Nazwisko (A-Z)")) setSorting({ key: "surname", direction: "ASC" });
-                            else if (val.includes("Nazwisko (Z-A)")) setSorting({ key: "surname", direction: "DESC" });
-                            else if (val.includes("Liczba wypożyczeń (rosnąco)")) setSorting({ key: "rent_count", direction: "ASC" });
-                            else if (val.includes("Liczba wypożyczeń (malejąco)")) setSorting({ key: "rent_count", direction: "DESC" });
-                            else if (val.includes("Liczba zaległości (rosnąco)")) setSorting({ key: "overdue_count", direction: "ASC" });
-                            else if (val.includes("Liczba zaległości (malejąco)")) setSorting({ key: "overdue_count", direction: "DESC" });
+                <SearchPanel onSearch={handleSearch}>
+                    <FilterResetButton
+                        activeCount={activeFilterCount}
+                        onReset={handleResetFilters}
+                        label="Wyczyść filtry"
+                    />
+                    <CustomSelect label='Sortuj' filterKey='sort' initialValues={activeFilters['sort']} onChange={handleFilterChange('sort')}>
+                        <CustomOption value="fine_asc">Kwota kary (rosnąco)</CustomOption>
+                        <CustomOption value="fine_desc">Kwota kary (malejąco)</CustomOption>
+                        <CustomOption value="date_asc">Data wypożyczenia (rosnąco)</CustomOption>
+                        <CustomOption value="date_desc">Data wypożyczenia (malejąco)</CustomOption>
+                    </CustomSelect>
+                    <div className="separator"></div>
+                    <CustomSelect label='Status' filterKey='status' initialValues={activeFilters['status']} onChange={handleFilterChange('status')}>
+                        <CustomOption value="active">Aktywny</CustomOption>
+                        <CustomOption value="returned_pending">Archiwalne</CustomOption>
+                    </CustomSelect>
+                    <ToggleButton
+                        label="Po terminie"
+                        initialValue={activeFilters['overdue']?.includes('any') ?? false}
+                        onChange={(isActive) => {
+                            const valueToSend = isActive ? ['any'] : [];
+                            handleFilterChange('overdue')(valueToSend);
                         }}
-                    >
-                        <CustomOption value="Nazwisko (A-Z)">Nazwisko (A-Z)</CustomOption>
-                        <CustomOption value="Nazwisko (Z-A)">Nazwisko (Z-A)</CustomOption>
-                        <CustomOption value="Liczba wypożyczeń (rosnąco)">Liczba wypożyczeń (rosnąco)</CustomOption>
-                        <CustomOption value="Liczba wypożyczeń (malejąco)">Liczba wypożyczeń (malejąco)</CustomOption>
-                        <CustomOption value="Liczba zaległości (rosnąco)">Liczba zaległości (rosnąco)</CustomOption>
-                        <CustomOption value="Liczba zaległości (malejąco)">Liczba zaległości (malejąco)</CustomOption>
-                    </CustomSelect>
-
-                    {/* Status Filter */}
-                    <CustomSelect
-                        filterKey="status"
-                        label="Status"
-                        allow_multiple
-                        key={`status-${resetToken}`}
-                        initialValues={statusFilter}
-                        onChange={(v: string[]) => setStatusFilter(v as ('user' | 'admin' | 'blocked')[])}
-                    >
-                        <CustomOption value="user">Użytkownik</CustomOption>
-                        <CustomOption value="admin">Bibliotekarz</CustomOption>
-                        <CustomOption value="blocked">Zablokowany</CustomOption>
-                    </CustomSelect>
+                    />
                 </SearchPanel>
 
-                {/* Zarządzaj Bibliotekarzami Panel */}
-                <div className="panel librarian add">
-                    <h3 className="header">Zarządzaj bibliotekarzami</h3>
-                    <button onClick={() => setShownPopup("addLibrarian")} >
-                        <img src={iconAdd} alt="" style={{ marginRight: '0.5em' }} /> Dodaj nowego bibliotekarza
-                    </button>
-                </div>
-
-                {/* Lista Użytkowników */}
-                <div className="users-list">
-                    {users.map((user, idx) => (
-                        <UserComponent
-                            key={idx}
-                            userInfo={user}
-                            onBlockUser={onBlockUserPressed}
-                            onUnblockUser={onUnblockUserPressed}
-                            onRemoveUser={onRemoveUserPressed}
-                            onBookClick={onBookDetailsPressed}
-                        />
-                    ))}
-
-                    {users.length === 0 && (
-                        <div className="text-center">
-                            <h3 className="mt-8 mb-3">{notFoundText}</h3>
-                            <a onClick={handleResetFilters}>Pokaż wszystkich użytkowników</a>
+                <div className="book-section">
+                    {isLoading ? (
+                        <div style={{textAlign: 'center', padding: '20px'}}>Ładowanie danych...</div>
+                    ) : (
+                        <div id="mixed-list" className="returns-list">
+                            {currentRents.map((rent) => (
+                                <RentedBookComponent
+                                    key={rent.id}
+                                    rent_info={rent}
+                                    onUserClick={() => { setSelectedUser(rent.user); setIsUserPopupOpen(true); }}
+                                    onBookClick={() => { setSelectedBook(rent.book); setIsBookPopupOpen(true); }}
+                                    onExtend={() => handleExtend(rent)}
+                                    onReturn={() => handleReturn(rent)}
+                                />
+                            ))}
+                            {currentRents.length === 0 && <p style={{textAlign:'center', width:'100%'}}>Brak wyników</p>}
                         </div>
                     )}
                 </div>
 
-                {/* Paginacja */}
-                {users.length > 0 && (
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={(p) => setCurrentPage(p)}
-                    />
-                )}
-
-            </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => {
+                        setCurrentPage(page);
+                        updateUrlParams(searchQuery, filters, page);
+                    }}
+                />
             </main>
+
+            <Popup
+                title="Szczegóły użytkownika"
+                isOpen={isUserPopupOpen}
+                setIsOpen={setIsUserPopupOpen}
+                icon={userIcon}
+            >
+                {selectedUser && (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'inherit' }}>
+                        <tbody>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Imię i nazwisko:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedUser.name} {selectedUser.surname}</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Email:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedUser.email}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                )}
+            </Popup>
+
+            <Popup
+                title="Szczegóły książki"
+                isOpen={isBookPopupOpen}
+                setIsOpen={setIsBookPopupOpen}
+                icon={bookIcon}
+            >
+                {selectedBook && (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'inherit' }}>
+                        <tbody>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Tytuł:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.title}</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Autor:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.authors.join(", ")}</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>Wydawnictwo:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.publisher} ({selectedBook.publish_year})</td>
+                        </tr>
+                        <tr>
+                            <td style={{ padding: '4px 0', fontWeight: 'bold' }}>ISBN:</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right' }}>{selectedBook.isbn_number}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                )}
+            </Popup>
+
+            <Alert
+                isOpen={alertConfig.isOpen}
+                setIsOpen={(val: boolean) => {
+                    setAlertConfig({ ...alertConfig, isOpen: val });
+                }}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onAccept={alertConfig.onAccept}
+                icon={alertConfig.type === 'error' ? errorIcon : (alertConfig.type === 'return' ? checkIcon : refreshIcon)}
+            />
         </>
     );
 }
-/**
- * @interface AddAdminPopupProps
- * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna
- * @property {React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void)} setIsOpen - setter isOpen
- * @property {()=>void} [onClose] - event wywołany przy zamknięciu okna poprzez kliknięcie escape lub poza komponent
- */
-export interface AddAdminPopupProps {
-    isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
-    onClose?: () => void;
-}
 
 /**
- * Komponent formularza dodania nowego bibliotekarza.
- * Waliduje dane wejściowe i wysyła żądanie addAdminRequest.
- * @component
- * @param {AddAdminPopupProps} props - Właściwości przekazywane do komponentu.
- * @returns {JSX.Element}
+ * Komponent klasowy prezentujący pojedynczą kartę wypożyczenia.
+ * Odpowiada za wyświetlenie danych, statusu, dat oraz przycisków akcji.
  */
-function AddAdminForm(props: AddAdminPopupProps): JSX.Element {
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [repPassword, setRepPassword] = useState("");
+class RentedBookComponent extends React.Component<{
+    rent_info: ExtendedRentInfo,
+    onUserClick: () => void,
+    onBookClick: () => void,
+    onExtend: () => void,
+    onReturn: () => void
+}, any> {
 
-    const [error, setError] = useState<string | null>(null);
-    const [successMsg, setSuccessMsg] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    /**
+     * Formatuje datę do polskiego formatu (DD-MM-YYYY).
+     */
+    private formatDate(date: Date): string {
+        return date.toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '-');
+    }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setSuccessMsg(null);
+    /**
+     * Oblicza różnicę dni między dwiema datami.
+     */
+    private getDaysDiff(date1: Date, date2: Date): number {
+        const diffTime = Math.abs(date2.getTime() - date1.getTime());
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
 
-        const validate: ValidationResult[] = [validators.firstName(firstName), validators.lastName(lastName), validators.email(email)];
-        const error = validate.find((v: ValidationResult) => !v.ok);
-        if (error) {
-            setError(error.reason || "Nieznany błąd");
-            return;
+    render() {
+        const { rent_info, onUserClick, onBookClick, onReturn } = this.props;
+
+        const isReturnedPending = rent_info.status === 'returned_pending';
+        const isAnyReturned = isReturnedPending;
+
+        const isOverdue = !isReturnedPending && new Date() > rent_info.return_date;
+
+        let daysDiff;
+        if (isAnyReturned && rent_info.actualReturnDate) {
+            daysDiff = this.getDaysDiff(rent_info.actualReturnDate, rent_info.return_date);
+        } else {
+            daysDiff = this.getDaysDiff(new Date(), rent_info.return_date);
         }
 
-        setIsSubmitting(true);
-        try {
-            if(password !== repPassword){
-                throw new Error("Hasła nie są takie same");
-            }
+        const panelClass = isAnyReturned ? "panel type-return" : "panel type-active";
+        const headerIcon = isAnyReturned ? returnsIcon : bookIcon;
+        const headerText = isAnyReturned ? "Zwrócono" : "Aktywne wypożyczenie";
 
-            await addAdminRequest(firstName, lastName, email, password);
+        const dateContainerStyle = isReturnedPending
+            ? { backgroundColor: '#fee6f0' }
+            : {};
 
-            setSuccessMsg("Bibliotekarz został pomyślnie dodany. Hasło zostało wysłane na e-mail.");
+        const gridColumns = isAnyReturned ? 'repeat(3, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))';
+        const showFine = isAnyReturned && rent_info.fineAmount > 0;
 
-            setFirstName("");
-            setLastName("");
-            setEmail("");
+        return (
+            <div className={panelClass}>
+                <h3 className="header">
+                    <img src={headerIcon} alt="" /> {headerText}
+                </h3>
 
-        } catch (er) {
-            const err = er as Error;
-            setError(err.message ?? "Wystąpił błąd podczas dodawania bibliotekarza.");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+                <CustomTooltip title="Naciśnij, aby zobaczyć szczegóły użytkownika">
+                    <a onClick={onUserClick} style={{ textAlign: 'left', display: 'block', cursor: 'pointer' }}>
+                        <strong>{rent_info.user.name} {rent_info.user.surname}</strong>
+                        <span className="user-email">
+                            <img src={userIcon} className="date-icon" alt="" />
+                            <span>{rent_info.user.email}</span>
+                        </span>
+                    </a>
+                </CustomTooltip>
 
-    return (
-        <Popup title="Dodaj bibliotekarza" isOpen={props.isOpen} setIsOpen={props.setIsOpen} onClose={props.onClose}>
-            <form onSubmit={handleSubmit} className="add-admin-form" style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
-                <div className="row">
-                    <div style={{flex: 1}}>
-                        <label htmlFor="firstName">Imię</label>
-                        <input
-                            id="firstName"
-                            type="text"
-                            placeholder="Imię"
-                            autoComplete="given-name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
+                <CustomTooltip title="Naciśnij, aby zobaczyć szczegóły książki" >
+                    <a onClick={onBookClick} style={{ textAlign: 'left', display: 'block', cursor: 'pointer' }}>
+                        <strong>Tytuł: „{rent_info.book.title}”</strong>
+                        <span className="user-email" style={{ display: 'block', marginTop: '0.25em' }}>
+                            <img
+                                src={bookIcon}
+                                className="date-icon"
+                                alt=""
+                                style={{ filter: 'invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%)' }}
+                            />
+                            <span>Autor: {rent_info.book.authors.join(", ")}</span>
+                        </span>
+                    </a>
+                </CustomTooltip>
+
+                <div className="details-grid" style={{ gridTemplateColumns: gridColumns }}>
+                    <div className="date-container" style={dateContainerStyle}>
+                        <span className="date-label">Data wypożyczenia</span>
+                        <div className="date-value">
+                            <img src={calendarIcon} className="date-icon" alt="" />
+                            <span>{this.formatDate(rent_info.borrow_date)}</span>
+                        </div>
                     </div>
 
-                    <div style={{flex: 1}}>
-                        <label htmlFor="lastName">Nazwisko</label>
-                        <input
-                            id="lastName"
-                            type="text"
-                            placeholder="Nazwisko"
-                            autoComplete="family-name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
+                    <div className="date-container" style={dateContainerStyle}>
+                        <span className="date-label">Termin zwrotu</span>
+                        <div className="date-value">
+                            <img src={calendarIcon} className="date-icon" alt="" />
+                            <span>{this.formatDate(rent_info.return_date)}</span>
+                        </div>
                     </div>
+
+                    {isAnyReturned && (
+                        <div className="date-container" style={dateContainerStyle}>
+                            <span className="date-label">Data faktycznego zwrotu</span>
+                            <div className="date-value">
+                                <img src={calendarIcon} className="date-icon" alt="" />
+                                <span>
+                                    {rent_info.actualReturnDate
+                                        ? this.formatDate(rent_info.actualReturnDate)
+                                        : "---"
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <div>
-                    <label htmlFor="email">E-mail</label>
-                    <input
-                        id="email"
-                        type="email"
-                        placeholder="adres@example.com"
-                        autoComplete="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
+                <div className="action-row">
+                    <div className="status-fine-row">
+                        {isAnyReturned ? (
+                            rent_info.fineAmount > 0 ? (
+                                <span className="status-badge status-overdue">
+                                    <img src={errorIcon} className="status-icon" alt="" />
+                                    Oddano {daysDiff} dni po terminie
+                                </span>
+                            ) : (
+                                <span className="status-badge status-ontime">
+                                    <img src={checkIcon} className="status-icon" alt="" />
+                                    Oddano w terminie
+                                </span>
+                            )
+                        ) : (
+                            isOverdue ? (
+                                <span className="status-badge status-overdue">
+                                    <img src={errorIcon} className="status-icon" alt="" />
+                                    Przeterminowane: {daysDiff} dni
+                                </span>
+                            ) : (
+                                <span className="status-badge status-pending">
+                                    <img src={scheduleIcon} className="status-icon" alt="" />
+                                    Pozostało {daysDiff} dni
+                                </span>
+                            )
+                        )}
 
-                <div>
-                    <label htmlFor="password">Hasło</label>
-                    <input
-                        id="password"
-                        type="password"
-                        placeholder="Hasło"
-                        autoComplete="new-password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="password_rep">Powtórz hasło</label>
-                    <input
-                        id="password_rep"
-                        type="password"
-                        placeholder="Powtórz hasło"
-                        autoComplete="new-password"
-                        value={repPassword}
-                        onChange={(e) => setRepPassword(e.target.value)}
-                    />
-                </div>
+                        {showFine && (
+                            <div className="fine-display">
+                                <span className="fine-label">
+                                    Naliczona kara
+                                </span>
+                                <span className="fine-red">
+                                    {rent_info.fineAmount.toFixed(2)}
+                                </span>
+                            </div>
+                        )}
+                    </div>
 
-                {error && <p style={{color: "red", marginTop: 10}}>{error}</p>}
-                {successMsg && <p style={{color: "green", marginTop: 10}}>{successMsg}</p>}
-                <button type="submit">Zarejestruj się</button>
-            </form>
-        </Popup>
-    );
+                    {isAnyReturned ? (
+                        <button style={{ width: '100%', display:'None' }} onClick={onReturn}>
+                            <img src={checkIcon} alt="" /> Potwierdź odbiór książki
+                        </button>
+                    ) : (
+                        <div className="button-row">
+                            <button onClick={() => this.extendRent()}>
+                                <img src={refreshIcon} alt="" /> Przedłuż wypożyczenie
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+    private extendRent(){
+        this.props.onExtend();
+    }
 }
