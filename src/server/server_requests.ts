@@ -813,10 +813,10 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
 
 // todo: search panel nie był uwzględniony i kolejność w sygnaturze uległa zmianie check
 export async function fetchAdminCatalogRequest(
-  page: number = 1,
   search_bar?: string,
   sort?: SearchSort,
-  filter?: BookSearchFilter
+  filter?: BookSearchFilter,
+    page: number = 1
 ): Promise<PagedResponse<BookAdmin>> {
   if (page <= 0) {
     throw new InvalidRequestDataError("Niepoprawne dane paginacji", false);
