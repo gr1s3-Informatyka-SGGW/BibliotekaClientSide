@@ -23,11 +23,6 @@ import UserBookComponent from "../elements_user/UserBookComponent";
 import {
     fetchAdminCatalogRequest,
     fetchUserCatalogRequest,
-    fetchAuthorsRequest,
-    fetchGenresRequest,
-    fetchTagsRequest,
-    fetchPublishersRequest,
-    fetchLanguagesRequest,
     reserveBookRequest,
     rentBookRequest,
     addBookInstanceRequest,
@@ -37,7 +32,7 @@ import {
     markDamagedBookInstanceRequest,
     markMendedBookInstanceRequest,
     fetchAdminBookRequest,
-    fetchUserBookRequest
+    fetchUserBookRequest, fetchFiltersRequest
 } from "../server/server_requests.ts";
 import catalogIcon from "/assets/newsstand.svg"
 import { AuthContext } from "../server/UserAuth.tsx";
@@ -228,10 +223,8 @@ function CatalogView(): JSX.Element {
     useEffect(() => {
         const loadOptions = async () => {
             try {
-                const [author, genre, tags, publisher, language] = await Promise.all([
-                    fetchAuthorsRequest(), fetchGenresRequest(), fetchTagsRequest(), fetchPublishersRequest(), fetchLanguagesRequest()
-                ]);
-                setAllFilters({ author, genre, tags, publisher, language });
+                const filters = await fetchFiltersRequest();
+                setAllFilters(filters);
             } catch (error: any) {
                 setPopupData({error: error.message})
                 setShownPopup("ScanError")
@@ -526,7 +519,7 @@ function CatalogView(): JSX.Element {
         }
 
         try {
-            await rentBookRequest(book.book_id, data.instanceId);
+            await rentBookRequest(data.instanceId);
             await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("rentSuccess");

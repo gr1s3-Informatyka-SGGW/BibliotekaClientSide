@@ -5,27 +5,19 @@
  * @author Szymon Doba
  */
 import React, {useState, Component, type FormEvent} from "react";
-import {
-    fetchAuthorsRequest,
-    fetchGenresRequest,
-    fetchTagsRequest,
-    fetchPublishersRequest,
-    fetchLanguagesRequest
-} from "../server/server_requests.ts";
-
-import DynamicSelect from "../custom_components/DynamicSelect.tsx";
-import {validators} from "../server/validators.ts";
-import {addBookRequest, editBookRequest, addBookInstanceRequest} from "../server/server_requests.ts";
+import {fetchFiltersRequest, addBookRequest} from "../server/server_requests.ts";
 import {type Book} from "../server/server_types.ts";
+import {validators} from "../server/validators.ts";
+
 import type IFormComponent from "../custom_components/IFormComponent.tsx";
-import { Alert } from "../custom_components/Popup.tsx";
+import DynamicSelect from "../custom_components/DynamicSelect.tsx";
 import InstanceQR from "./InstanceQR.tsx";
-import Popup from "../custom_components/Popup.tsx";
+import NavSidebar from "../general_elements/NavSidebar.tsx";
+
 import AddBoxIcon from "/assets/add_box.svg";
 import BookIcon from "/assets/book.svg";
 import SaveIcon from "/assets/save.svg";
 import "./AddBookView.css";
-import NavSidebar from "../general_elements/NavSidebar.tsx";
 
 /**
  * Pełen widok książki, z paskiem nawigacyjnym i formularzem dodawania książki
@@ -39,7 +31,7 @@ export default function AddBookView(){
     const [isQRopen, setIsQRopen] = useState(false);
     const [instanceIds, setInstanceIds] = useState<number[] | null>(null);
     const [bookId, setBookId] = useState<number | null>(null);
-    
+
 
 
     async function sendForm(book: Book, copies: number) {
@@ -151,11 +143,12 @@ export class AddBookForm
     }
 
     async componentDidMount() {
-        this.availableAuthors = await fetchAuthorsRequest();
-        this.availableGenres = await fetchGenresRequest();
-        this.availableTags = await fetchTagsRequest();
-        this.availablePublishers = await fetchPublishersRequest();
-        this.availableLanguages = await fetchLanguagesRequest();
+        let filters = await fetchFiltersRequest();
+        this.availableAuthors = filters.author ?? []
+        this.availableGenres = filters.genre ?? []
+        this.availableTags = filters.tags ?? []
+        this.availablePublishers = filters.publisher ?? []
+        this.availableLanguages = filters.language ?? []
         this.forceUpdate();
     }
 

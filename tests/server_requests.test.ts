@@ -1,5 +1,8 @@
 import {describe, it, expect} from 'vitest';
-import {registerRequest, loginRequest} from '../src/server/server_requests';
+import {
+    registerRequest,
+    loginRequest
+} from '../src/server/server_requests';
 
 describe('registerRequest', () => {
     it('should successfully register a new user with valid data', async () => {
