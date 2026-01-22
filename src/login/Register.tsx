@@ -61,6 +61,11 @@ function Register() {
             return;
         }
 
+        // Konwersja exp z formatu YYYY-MM na MM/YY
+        const [year, month] = exp.split('-');
+        const formattedExp = `${month}/${year.slice(-2)}`;
+
+
         if (!validators.cvv(cvv).ok) {
             setError("Nieprawidłowy CVV.");
             return;
@@ -73,6 +78,7 @@ function Register() {
 
         // ===== REQUEST =====
         try {
+            
             await registerRequest(
                 firstName,
                 lastName,
@@ -80,7 +86,7 @@ function Register() {
                 password,
                 {
                     number: cardNumber,
-                    exp_date: exp,
+                    exp_date: formattedExp,
                     cvv: cvv
                 });
                 
