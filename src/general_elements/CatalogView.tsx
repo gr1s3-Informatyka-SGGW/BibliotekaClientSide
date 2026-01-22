@@ -900,20 +900,20 @@ function CatalogView(): JSX.Element {
             </SearchPanel>
 
             <div className="books">
-                {books.length === 0 && (
+                {books && books.length === 0 && (
                     <div className="text-center">
                         <h3 className="mt-8 mb-3">{notFoundText}</h3>
                         <a onClick={handleResetFilters}>Pokaż cały katalog</a>
                     </div>
                 )}
-                {!isLibrarian && books.map((book, index) => (
+                {!isLibrarian && books && books.map((book, index) => (
                     <UserBookComponent
                         book_info={book as BookUser} key={book.book_id || index}
                         onRentBookPressed={onRentBookPressed}
                         onReserveBookPressed={onReserveBookPressed}
                     />
                 ))}
-                {isLibrarian && books.map((book, index) => (
+                {isLibrarian && books && books.map((book, index) => (
                     <AdminBookComponent
                         book_info={book as BookAdmin} key={book.book_id || index}
                         onAddInstancePressed={(b: BookAdmin) => void onAddInstancePressed(b)}
@@ -927,7 +927,7 @@ function CatalogView(): JSX.Element {
                 ))}
             </div>
 
-            {books.length > 0 && (
+            {books && books.length > 0 && (
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

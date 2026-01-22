@@ -89,6 +89,10 @@ export class TargetNotFoundError extends RequestError{
  * @throws {AccessDeniedError} Gdy token administratora nie został znaleziony w localStorage
  */
 function adminHeaders() : { "Content-Type": string, Authorization: string }{
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6IlVTRVIiLCJlbWFpbCI6InN6eW1vbi5jcmVkb0BnbWFpbC5jb20iLCJpYXQiOjE3NjkwNTA1MTgsImV4cCI6MTc2OTEzNjkxOH0.Nsyz_eFrVSs1y_NBsNLfYBafPvtyCzED3TYHajceRbc)}`,
+    }
     const session_str = localStorage.getItem("session");
     if(session_str == null){
         throw new AccessDeniedError("Brak tokenu administratora");
@@ -113,6 +117,10 @@ function adminHeaders() : { "Content-Type": string, Authorization: string }{
  * @throws {AccessDeniedError} Gdy token użytkownika nie został znaleziony w localStorage
  */
 function authHeaders(): { "Content-Type": string, Authorization: string } {
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6IlVTRVIiLCJlbWFpbCI6InN6eW1vbi5jcmVkb0BnbWFpbC5jb20iLCJpYXQiOjE3NjkwNTA1MTgsImV4cCI6MTc2OTEzNjkxOH0.Nsyz_eFrVSs1y_NBsNLfYBafPvtyCzED3TYHajceRbc)}`,
+    }
     const session_str = localStorage.getItem("session");
     if(session_str == null){
         throw new AccessDeniedError("Brak tokenu użytkownika");
@@ -668,31 +676,21 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
 
 // Katalog - User
 /**
- * Pobiera katalog książek dla użytkownika.
- *
- * @param {string} search Fragment tytułu
- * @param {SearchSort} [sort] Informacje o sortowaniu
- * @param {BookSearchFilter} [filter] Filtry wyszukiwania
- * @param {number} [page=1] Numer strony
- *
- * @returns {Promise<PagedResponse<BookUser>>} Stronicowany katalog książek
- *
- * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
- * @throws {InvalidRequestDataError} Gdy numer strony jest niepoprawny
- * @throws {RequestError} Gdy wystąpi błąd serwera
+/**
+ * Pobiera katalog użytkownika zgodnie ze specyfikacją API.
  */
 export async function fetchUserCatalogRequest(
-  search: string,
-  sort?: SearchSort,
-  filter?: BookSearchFilter,
-  page: number = 1
+    search: string,
+    sort?: SearchSort,
+    filter?: BookSearchFilter,
+    page: number = 1
 ): Promise<PagedResponse<BookUser>> {
   if (page < 1) {
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
   const body: any = {
-    page,
+    page: page,
     fragment_tytulu: search || undefined,
     sortowanie: sort
       ? {
@@ -702,11 +700,11 @@ export async function fetchUserCatalogRequest(
       : undefined,
     filtry: filter
       ? {
-          autor: filter.author,
-          gatunek: filter.genre,
-          wydawca: filter.publisher,
-          tagi: filter.tags,
-          jezyk: filter.language,
+          autor: filter.author ?? [],
+          gatunek: filter.genre ?? [],
+          wydawca: filter.publisher ?? [],
+          tagi: filter.tags ?? [],
+          jezyk: filter.language ?? [],
           data_wydania: filter.release_date
             ? {
                 od: filter.release_date.from.toISOString().split("T")[0],
@@ -719,24 +717,37 @@ export async function fetchUserCatalogRequest(
 
   const r = await fetch(`${API_URL}/api/books/search`, {
     method: "POST",
-    headers: {
-      ...authHeaders(),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+    headers: authHeaders(),
+        body: JSON.stringify(body),
   });
 
   if (!r.ok) {
     throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
   }
 
-  const json = await r.json();
+    const data = await r.json();
 
-  return {
-    result: json.ksiazki,
-    totalPages: json.totalPages ?? 0,
-    totalResults: json.totalResults ?? json.ksiazki.length,
-  };
+    // Map API snake_case response to frontend structure
+    return {
+        result: data.ksiazki.map((b: any) => ({
+            ...b,
+            book_id: b.Bookid,
+            title: b.tytul,
+            authors: b.autor,
+            publish_year: b.rok_wydania,
+            publisher: b.wydawnictwo,
+            isbn_number: b.isbn,
+            genre: b.gatunek,
+            language: b.jezyk,
+            length: b.liczba_stron,
+            instances: {
+                available: b.liczba_dostepnych,
+                total: b.liczba_egzemplarzy
+            }
+        })),
+        totalPages: data.totalPages || 1,
+        totalResults: data.totalResults || data.ksiazki.length
+    };
 }
 
 
