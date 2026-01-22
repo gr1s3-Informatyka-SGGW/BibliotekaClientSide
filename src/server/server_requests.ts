@@ -646,24 +646,31 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
     const r = await fetch(`${API_URL}/api/books/filters`, {
         headers: authHeaders()
     });
-    if(!r.ok)
-        throw new RequestError("Nieznany błąd serwera");
-    const resp = await r.json()
 
-    if(resp.code !== 200)
-        throw new RequestError(resp.error);
+    if (!r.ok) {
+        if (r.status === 400) throw new RequestError("Nie znaleziono użytkownika dla tokenu");
+        throw new RequestError("Nieznany błąd serwera");
+    }
+
+    const resp = await r.json();
+
+    if (resp.code !== 200) {
+        throw new RequestError(resp.error || "Nieznany błąd serwera");
+    }
+
     return {
         author: resp.autorzy,
         genre: resp.gatunki,
-        language: resp.jezyki,
         publisher: resp.wydawcy,
-        release_date: {
-            from: resp.min_year,
-            to: resp.max_year
-        }
-    }
-
+        tags: resp.tagi,
+        language: resp.jezyki,
+        release_date: resp.zakresy ? {
+            from: new Date(resp.zakresy.rok_min, 0, 1),  // ustawiamy 1 stycznia danego roku
+            to: new Date(resp.zakresy.rok_max, 11, 31)  // ustawiamy 31 grudnia danego roku
+        } : undefined
+    };
 }
+
 
 
 // Katalog - User
