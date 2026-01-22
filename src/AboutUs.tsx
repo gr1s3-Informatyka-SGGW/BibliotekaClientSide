@@ -12,8 +12,8 @@ import NavSidebar from "./general_elements/NavSidebar";
 function AboutUs(): JSX.Element {
     return <>
         <NavSidebar></NavSidebar>
-        <h1><img src={aboutIcon} alt="icon" /> O bibliotece</h1>
-        <main className="login-panel" style={{ margin: "auto", width: "auto", textAlign: "justify" }}>
+        <main className="login-panel" style={{ width: "auto", textAlign: "justify", borderRadius: "0" }}>
+            <h1><img src={aboutIcon} alt="icon" /> O bibliotece</h1>
 
             <p>Witamy w miejscu, gdzie tradycyjna pasja do czytania spotyka się z nowoczesną technologią. Nasza biblioteka to nie tylko regały pełne książek, to innowacyjny system zaprojektowany z myślą o Twojej wygodzie i oszczędności czasu. Stawiamy na samoobsługę, przejrzystość i łatwy dostęp do wiedzy.</p>
 

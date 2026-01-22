@@ -20,7 +20,9 @@ import type {
  * */
 
 const API_URL =  import.meta.env.VITE_API_LINK || "";
-
+if(API_URL === ""){
+    console.error("Brak linku do API w pliku .env");
+}
 /**
  * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
  * @extends Error
@@ -139,16 +141,20 @@ function authHeaders(): { "Content-Type": string, Authorization: string } {
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
 export async function loginRequest(email: string, password: string): Promise<Session>{
-
-    return await fetch(`${API_URL}/api/users/login`, {
+    const requestUrl = `${API_URL}/api/users/login`;
+    const requestOptions = {
         method: 'POST',
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({email, password})
-    })
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+
+    return await fetch(requestUrl, requestOptions)
         .then(async (response) => {
             const data = await response.json();
+            console.log('Response from:', requestUrl, 'Status:', response.status, 'Data:', data);
 
             if(!response.ok){
                 if(response.status === 400 || response.status === 401){
@@ -197,7 +203,8 @@ export async function loginRequest(email: string, password: string): Promise<Ses
  * @throws {RequestError} Gdy wystąpi nieoczekiwany błąd serwera
  */
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
-    console.log(`${API_URL}/api/users/register`, {
+    const requestUrl = `${API_URL}/api/users/register`;
+    const requestOptions = {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -211,27 +218,16 @@ export async function registerRequest(name:string, surname:string, email:string,
             cardNumber: card_info.number,
             expirationDate: card_info.exp_date,
             cvv: card_info.cvv,
-        })});
-    const response = await fetch(`${API_URL}/api/users/register`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: name,
-            surname: surname,
-            email: email,
-            password: password,
-            phone: '0',
-            cardNumber: card_info.number,
-            expirationDate: card_info.exp_date,
-            cvv: card_info.cvv,
-        })});
+        })
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const response = await fetch(requestUrl, requestOptions);
 
-        const data = await response.json();;
+    const data = await response.json();
+    console.log('Response from:', requestUrl, 'Status:', response.status, 'Data:', data);
 
 
-        if (response.status === 201) {
+    if (response.status === 201) {
             return;
         }
 
@@ -273,11 +269,15 @@ export async function addAdminRequest(
         throw new InvalidRequestDataError("Brak wymaganych danych", false);
     }
 
-    const r = await fetch(`${API_URL}/api/users/registerWorker`, {
+    const requestUrl = `${API_URL}/api/users/registerWorker`;
+    const requestOptions = {
         method: "POST",
         headers: adminHeaders(),
-        body: JSON.stringify({ name, surname, email, password }),
-    });
+        body: JSON.stringify({name, surname, email, password}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (r.status === 400) {
         throw new InvalidRequestDataError("Nieprawidłowe dane rejestracji", false);
@@ -293,16 +293,22 @@ export async function addAdminRequest(
 }
 // ProfileView
 export async function fetchUserInfoRequest(): Promise<User>{
-    const response = await fetch(`${API_URL}/api/users/loginInfo`, {
+    const requestUrl = `${API_URL}/api/users/loginInfo`;
+    const requestOptions = {
         method: "GET",
-        headers:{
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
-    });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const response = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', response.status);
 
-    if(response.status === 200){
-        return await response.json();
+    if (response.status === 200) {
+        const data = await response.json();
+        console.log('Response data:', data);
+        return data;
     }
 
     if(response.status === 400){
@@ -317,7 +323,8 @@ export async function fetchUserInfoRequest(): Promise<User>{
 }
 
 export async function changeClientDataRequest(name: string, surname: string): Promise<void>{
-    const response = await fetch(`${API_URL}/api/users/editClientData`, {
+    const requestUrl = `${API_URL}/api/users/editClientData`;
+    const requestOptions = {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -327,7 +334,10 @@ export async function changeClientDataRequest(name: string, surname: string): Pr
             name: name,
             surname: surname
         }),
-    });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const response = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', response.status);
 
     if(response.status === 200){
         return;
@@ -344,7 +354,8 @@ export async function changeClientDataRequest(name: string, surname: string): Pr
     throw new RequestError(response.status.toString());
 }
 export async function changeClientCreditCardRequest({number, cvv, exp_date}: CreditCardInfo): Promise<void>{
-    const response = await fetch(`${API_URL}/api/users/editClientCreditCard`, {
+    const requestUrl = `${API_URL}/api/users/editClientCreditCard`;
+    const requestOptions = {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -355,7 +366,10 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
             cvv: cvv,
             exp_date: exp_date
         }),
-    });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const response = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', response.status);
 
     if(response.status === 200){
         return;
@@ -385,7 +399,8 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
  * @throws {RequestError} Gdy wystąpi nieoczekiwany błąd serwera
  */
 export async function changeClientPasswordRequest(old_password: string, new_password: string): Promise<void>{
-    const response = await fetch(`${API_URL}/api/users/newPassword`, {
+    const requestUrl = `${API_URL}/api/users/newPassword`;
+    const requestOptions = {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -395,7 +410,10 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
             old_password: old_password,
             new_password: new_password
         }),
-    });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const response = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', response.status);
 
     if(response.status === 200){
         return;
@@ -423,10 +441,14 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
-    const response = await fetch(`${API_URL}/api/users/borrowedBooks`, {
+    const requestUrl = `${API_URL}/api/users/borrowedBooks`;
+    const requestOptions = {
         method: "GET",
         headers: authHeaders()
-    });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const response = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', response.status);
 
     if (response.status === 400) {
         throw new InvalidRequestDataError(
@@ -441,6 +463,7 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
     }
 
     const data = await response.json();
+    console.log('Response data:', data);
 
     await data.map(async (item: {
         Bookid: number,
@@ -483,12 +506,16 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
-  const r = await fetch(`${API_URL}/api/users/reservedBooks`, {
-    method: "GET",
-    headers: authHeaders(),
-  });
+    const requestUrl = `${API_URL}/api/users/reservedBooks`;
+    const requestOptions = {
+        method: "GET",
+        headers: authHeaders(),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new TargetNotFoundError("Nie znaleziono użytkownika dla tokenu");
   }
 
@@ -497,8 +524,9 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
   }
 
   const data = await r.json();
+    console.log('Response data:', data);
 
-  return data.map((item: any) => ({
+    return data.map((item: any) => ({
     book: {
       book_id: item.Bookid,
       title: item.tytul,
@@ -534,13 +562,17 @@ export async function cancelReservationRequest(
     throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/cancelReservation`, {
+    const requestUrl = `${API_URL}/api/books/cancelReservation`;
+    const requestOptions = {
         method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ reservation_id }),
-  });
+        headers: authHeaders(),
+        body: JSON.stringify({reservation_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd anulowania rezerwacji");
   }
 }
@@ -563,13 +595,17 @@ export async function claimReservationRequest(
     throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/takeBook`, {
+    const requestUrl = `${API_URL}/api/books/takeBook`;
+    const requestOptions = {
         method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ reservation_id }),
-  });
+        headers: authHeaders(),
+        body: JSON.stringify({reservation_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd odbioru rezerwacji");
   }
 }
@@ -590,13 +626,17 @@ export async function extendRentRequest(rent_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/extendRent`, {
+    const requestUrl = `${API_URL}/api/books/extendRent`;
+    const requestOptions = {
         method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ rent_id }),
-  });
+        headers: authHeaders(),
+        body: JSON.stringify({rent_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd przedłużania wypożyczenia");
   }
 }
@@ -617,13 +657,17 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/returnBook`, {
+    const requestUrl = `${API_URL}/api/books/returnBook`;
+    const requestOptions = {
         method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ rent_id }),
-  });
+        headers: authHeaders(),
+        body: JSON.stringify({rent_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd zwrotu książki");
   }
 }
@@ -643,9 +687,13 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
  * @throws {RequestError} Gdy wystąpi błąd serwera lub odpowiedź zawiera kod błędu
  */
 export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
-    const r = await fetch(`${API_URL}/api/books/filters`, {
+    const requestUrl = `${API_URL}/api/books/filters`;
+    const requestOptions = {
         headers: authHeaders()
-    });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
         if (r.status === 400) throw new RequestError("Nie znaleziono użytkownika dla tokenu");
@@ -653,6 +701,7 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
     }
 
     const resp = await r.json();
+    console.log('Response data:', resp);
 
     if (resp.code !== undefined && resp.code !== 200) {
         throw new RequestError(resp.error || "Nieznany błąd serwera");
@@ -717,17 +766,22 @@ export async function fetchUserCatalogRequest(
       : undefined,
   };
 
-  const r = await fetch(`${API_URL}/api/books/search`, {
-    method: "POST",
-    headers: authHeaders(),
+    const requestUrl = `${API_URL}/api/books/search`;
+    const requestOptions = {
+        method: "POST",
+        headers: authHeaders(),
         body: JSON.stringify(body),
-  });
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
-    throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
-  }
+    if (!r.ok) {
+        throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
+    }
 
     const data = await r.json();
+    console.log('Response data:', data);
 
     // Map API snake_case response to frontend structure
     return {
@@ -770,15 +824,19 @@ export async function rentBookRequest(instance_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID egzemplarza", false);
   }
 
-  const r = await fetch(`${API_URL}/api/books/rentBook`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({
-      Copyid: instance_id,
-    }),
-  });
+    const requestUrl = `${API_URL}/api/books/rentBook`;
+    const requestOptions = {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+            Copyid: instance_id,
+        }),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new RequestError(
       "Nie można wypożyczyć książki (brak dostępnych egzemplarzy lub już wypożyczona)"
     );
@@ -805,13 +863,17 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/reserveBook`, {
+    const requestUrl = `${API_URL}/api/books/reserveBook`;
+    const requestOptions = {
         method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ book_id }),
-  });
+        headers: authHeaders(),
+        body: JSON.stringify({book_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd rezerwacji książki");
   }
 }
@@ -828,19 +890,25 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
  * @throws {RequestError}
  */
 export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
-  const r = await fetch(`${API_URL}/api/books/${book_id}`, {
-    method: "GET",
-    headers: authHeaders(),
-  });
+    const requestUrl = `${API_URL}/api/books/${book_id}`;
+    const requestOptions = {
+        method: "GET",
+        headers: authHeaders(),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
-    if (r.status === 400) {
-      throw new TargetNotFoundError("Nie znaleziono książki");
+    if (!r.ok) {
+        if (r.status === 400) {
+            throw new TargetNotFoundError("Nie znaleziono książki");
+        }
+        throw new RequestError("Błąd pobierania książki");
     }
-    throw new RequestError("Błąd pobierania książki");
-  }
 
-  return await r.json();
+    const data = await r.json();
+    console.log('Response data:', data);
+    return data;
 }
 
 // Katalog - Admin
@@ -901,21 +969,27 @@ export async function fetchAdminCatalogRequest(
     body.filtry = filtry;
   }
 
-  const r = await fetch(`${API_URL}/api/books/search`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify(body),
-  });
+    const requestUrl = `${API_URL}/api/books/search`;
+    const requestOptions = {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(body),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Nieprawidłowe dane wyszukiwania", false);
-  }
+    if (r.status === 400) {
+        throw new InvalidRequestDataError("Nieprawidłowe dane wyszukiwania", false);
+    }
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania katalogu książek");
-  }
+    if (!r.ok) {
+        throw new RequestError("Błąd pobierania katalogu książek");
+    }
 
-  return (await r.json()) as PagedResponse<BookAdmin>;
+    const data = (await r.json()) as PagedResponse<BookAdmin>;
+    console.log('Response data:', data);
+    return data;
 }
 
 /**
@@ -937,24 +1011,30 @@ export async function fetchAdminBookRequest(
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-  const r = await fetch(`${API_URL}/api/books/workerbook/${book_id}`, {
-    method: "GET",
-    headers: adminHeaders(),
-  });
+    const requestUrl = `${API_URL}/api/books/workerbook/${book_id}`;
+    const requestOptions = {
+        method: "GET",
+        headers: adminHeaders(),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 403) {
-    throw new AccessDeniedError("Brak uprawnień do pobrania książki");
-  }
+    if (r.status === 403) {
+        throw new AccessDeniedError("Brak uprawnień do pobrania książki");
+    }
 
-  if (r.status === 404) {
-    throw new TargetNotFoundError("Nie znaleziono książki");
-  }
+    if (r.status === 404) {
+        throw new TargetNotFoundError("Nie znaleziono książki");
+    }
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania danych książki");
-  }
+    if (!r.ok) {
+        throw new RequestError("Błąd pobierania danych książki");
+    }
 
-  return (await r.json()) as BookAdmin;
+    const data = (await r.json()) as BookAdmin;
+    console.log('Response data:', data);
+    return data;
 }
 
 /**
@@ -973,13 +1053,17 @@ export async function editBookRequest(book: Book): Promise<void> {
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/edit`, {
+    const requestUrl = `${API_URL}/api/books/edit`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify(book),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify(book),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new InvalidRequestDataError("Nie można edytować książki", true);
   }
   if (!r.ok) {
@@ -1004,13 +1088,17 @@ export async function removeBookRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Brak id książki", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/delete`, {
+    const requestUrl = `${API_URL}/api/books/delete`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_ksiazki: book_id }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({id_ksiazki: book_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new TargetNotFoundError("Nie znaleziono książki");
   }
   if (!r.ok) {
@@ -1035,13 +1123,17 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
 
-    const r = await fetch(`${API_URL}/api/copies/delete`, {
+    const requestUrl = `${API_URL}/api/copies/delete`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_egzemplarza: instance_id }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({id_egzemplarza: instance_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new TargetNotFoundError("Nie znaleziono egzemplarza");
   }
   if (!r.ok) {
@@ -1066,13 +1158,17 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/copies/markDestroyed`, {
+    const requestUrl = `${API_URL}/api/books/copies/markDestroyed`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_egzemplarza: instance_id }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({id_egzemplarza: instance_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new TargetNotFoundError("Nie znaleziono egzemplarza");
   }
   if (!r.ok) {
@@ -1099,13 +1195,17 @@ export async function markMendedBookInstanceRequest(
     throw new InvalidRequestDataError("Brak id egzemplarza", false);
   }
 
-    const r = await fetch(`${API_URL}/api/copies/markUndestroyed`, {
+    const requestUrl = `${API_URL}/api/copies/markUndestroyed`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id_egzemplarza: instance_id }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({id_egzemplarza: instance_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
+    if (r.status === 400) {
     throw new TargetNotFoundError("Nie znaleziono egzemplarza");
   }
   if (!r.ok) {
@@ -1129,13 +1229,17 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
     throw new InvalidRequestDataError("Niepoprawne ID książki", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/addCopy`, {
+    const requestUrl = `${API_URL}/api/books/addCopy`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ book_id }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({book_id}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd dodawania egzemplarza");
   }
 }
@@ -1185,23 +1289,28 @@ export async function fetchUserListRequest(
     body.status = filter.status[0];
   }
 
-  const r = await fetch(`${API_URL}/api/users/listUsers`, {
-    method: "POST",
-    headers: authHeaders(), // token WORKER
-    body: JSON.stringify(body),
-  });
+    const requestUrl = `${API_URL}/api/users/listUsers`;
+    const requestOptions = {
+        method: "POST",
+        headers: authHeaders(), // token WORKER
+        body: JSON.stringify(body),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", false);
-  }
+    if (r.status === 400) {
+        throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", false);
+    }
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania użytkowników");
-  }
+    if (!r.ok) {
+        throw new RequestError("Błąd pobierania użytkowników");
+    }
 
-  const json = await r.json();
+    const json = await r.json();
+    console.log('Response data:', json);
 
-  return {
+    return {
     result: (json.uzytkownicy ?? []).map((u: any): UserInfo => ({
       user_id: u.user_id,
       name: u.imie,
@@ -1246,13 +1355,17 @@ export async function removeUserRequest(email: string): Promise<void> {
     throw new InvalidRequestDataError("Email jest wymagany", false);
   }
 
-    const r = await fetch(`${API_URL}/api/users/deleteUser`, {
+    const requestUrl = `${API_URL}/api/users/deleteUser`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ email }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({email}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     throw new RequestError("Błąd usuwania użytkownika");
   }
 }
@@ -1277,19 +1390,23 @@ export async function toggleUserBlockRequest(
     throw new InvalidRequestDataError("Niepoprawne ID użytkownika", false);
   }
 
-    const r = await fetch(`${API_URL}/api/users/toggleBlock`, {
+    const requestUrl = `${API_URL}/api/users/toggleBlock`;
+    const requestOptions = {
         method: "POST",
-    headers: {
-      ...adminHeaders(),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      userId,
-      status,
-    }),
-  });
+        headers: {
+            ...adminHeaders(),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            userId,
+            status,
+        }),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
+    if (!r.ok) {
     if (r.status === 400) {
       throw new RequestError(
         "Nie można zmienić statusu blokady użytkownika"
@@ -1331,28 +1448,33 @@ export async function addBookRequest(
   book: Book,
   instance_number: number
 ): Promise<{ book_id: number; instance_ids: number[] }> {
-    const r = await fetch(`${API_URL}/api/books/addBook`, {
+    const requestUrl = `${API_URL}/api/books/addBook`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({
-      ...book,
-      ilosc_egzemplarzy: instance_number,
-    }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({
+            ...book,
+            ilosc_egzemplarzy: instance_number,
+        }),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (r.status === 400) {
-    throw new InvalidRequestDataError("Niepoprawne dane wejściowe", true);
-  }
+    if (r.status === 400) {
+        throw new InvalidRequestDataError("Niepoprawne dane wejściowe", true);
+    }
 
-  if (!r.ok) {
-    throw new RequestError("Błąd serwera", "Serwer odmówił odpowiedzi", 500);
-  }
+    if (!r.ok) {
+        throw new RequestError("Błąd serwera", "Serwer odmówił odpowiedzi", 500);
+    }
 
-  const data = await r.json();
+    const data = await r.json();
+    console.log('Response data:', data);
 
-  return {
-    book_id: data.Bookid,
-    instance_ids: data.Copyids,
+    return {
+        book_id: data.Bookid,
+        instance_ids: data.Copyids,
   };
 }
 
@@ -1361,7 +1483,6 @@ export async function addBookRequest(
  * Pobiera log wypożyczeń.
  *
  * @param {string} [search_bar] fragment nazwy użytkoni
- * @param [sort]
  * @param {RentLogSearchFilter} [filter] Filtry logu
  * @param {number} [page=1] Numer strony
  *
@@ -1382,15 +1503,21 @@ export async function fetchRentLog(
     throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/listBorrowedBooks`, {
+    const requestUrl = `${API_URL}/api/books/listBorrowedBooks`;
+    const requestOptions = {
         method: "POST",
-    headers: adminHeaders(),
-    body: JSON.stringify({ filter, page }),
-  });
+        headers: adminHeaders(),
+        body: JSON.stringify({filter, page}),
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania logu wypożyczeń");
-  }
+    if (!r.ok) {
+        throw new RequestError("Błąd pobierania logu wypożyczeń");
+    }
 
-  return await r.json();
+    const data = await r.json();
+    console.log('Response data:', data);
+    return data;
 }
