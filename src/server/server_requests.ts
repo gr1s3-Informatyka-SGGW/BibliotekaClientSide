@@ -20,7 +20,6 @@ import type {
  * */
 
 const API_URL =  import.meta.env.VITE_API_LINK || "";
-console.log(API_URL);
 
 /**
  * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
@@ -109,7 +108,7 @@ function adminHeaders() {
  *
  * @throws {AccessDeniedError} Gdy token użytkownika nie został znaleziony w localStorage
  */
-function authHeaders() {
+function authHeaders(): object {
   const token = localStorage.getItem("token");
   if (!token) {
     throw new AccessDeniedError("Brak tokenu użytkownika");
@@ -131,13 +130,12 @@ function authHeaders() {
  * @throws RequestError dla nieprzewidzianego błędu serwera przy tworzeniu użytkownika
  * @throws InvalidRequestDataError gdy dane nie spełniają wymagań
  * */
-export function loginRequest(email: string, password: string): Session{
+export async function loginRequest(email: string, password: string): Promise<Session>{
 
-    return fetch(`${API_URL}/api/users/login`, {
+    return await fetch(`${API_URL}/api/users/login`, {
         method: 'POST',
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({email, password})
     })
@@ -191,36 +189,56 @@ export function loginRequest(email: string, password: string): Session{
  * @throws {RequestError} Gdy wystąpi nieoczekiwany błąd serwera
  */
 export async function registerRequest(name:string, surname:string, email:string, password:string, card_info: CreditCardInfo): Promise<void>{
-    const response = await fetch(`${API_URL}/api/users/register`, {
+    console.log(`${API_URL}/api/users/register`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             name: name,
             surname: surname,
             email: email,
             password: password,
+            phone: '0',
             cardNumber: card_info.number,
             expirationDate: card_info.exp_date,
-            cvv: card_info.cvv
-        }),
-    });
+            cvv: card_info.cvv,
+        })});
+    const response = await fetch(`${API_URL}/api/users/register`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name,
+            surname: surname,
+            email: email,
+            password: password,
+            phone: '0',
+            cardNumber: card_info.number,
+            expirationDate: card_info.exp_date,
+            cvv: card_info.cvv,
+        })});
 
-    const data = await response.json();
+        const data = await response.json();;
 
-    if (data.status === 201) {
-        return;
+
+        if (response.status === 201) {
+            return;
+        }
+
+        if (response.status === 409) {
+            throw new InvalidRequestDataError("Błąd rejestracji, Użytkownik o tym mailu już istnieje",
+                true);
+        }
+
+        throw new RequestError(
+            data?.error || "Nieoczekiwany błąd zapytania",
+            undefined,
+            response.status
+        );
+
     }
-
-    if (data.status === 409) {
-        throw new InvalidRequestDataError("Błąd rejestracji, Użytkownik o tym mailu już istnieje",
-            true);
-    }
-    throw new RequestError(data.status.toString());
-
-}
 
 
 /**
@@ -623,7 +641,7 @@ export async function fetchAuthorsRequest(): Promise<string[]> {
 
   return await r.json();
 }
-
+// todo: filtry są innym requestem
 /**
  * Pobiera listę tagów książek.
  *

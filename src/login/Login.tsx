@@ -22,7 +22,7 @@ function Login() {
     throw new Error("Login must be used inside AuthProvider");
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -32,23 +32,24 @@ function Login() {
     }
 
     if (!validators.password(password).ok) {
-      setError("Hasło nie spełnia wymagań bezpieczeństwa.");
+      setError("Hasło nie spełnia wymagań bezpieczeństwa. (min. 12 znaków, duża/mała litera, cyfra, znak specjalny)");
       return;
     }
     let response;
     try {
-        response = loginRequest(email, password);
+        console.log(email, password);
+        response = await loginRequest(email, password);
     }
-    catch(er: unknown){
-        const error = er as Error;
-        setError(error.message ?? "Błąd logowania.");
+    catch(er: any){
+        const erro = er as Error;
+        setError(erro.message ?? "Błąd logowania.");
         return;
     }
 
     const { user, access, token }: Session = response;
 
     auth.login(user, access, token);
-    navigate(access === "admin" ? "/admin" : "/catalog");
+    navigate("/");
   };
 
   return (
