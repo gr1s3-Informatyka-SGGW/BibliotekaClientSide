@@ -446,10 +446,48 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
     });
     return data;
 }
-// todo: brakuje mi tej funkcji, nazywa się jakoś inaczej?
-export async function fetchReservedBooksRequest(): Promise<Reservation[]>{
-    throw new RequestError("Funkcja fetchReservedBooksRequest nie jest zaimplementowana");
-    // /api/users/reservedBooks
+// todo: sprawdzic
+/**
+ * Pobiera listę zarezerwowanych książek aktualnie zalogowanego użytkownika.
+ *
+ * @returns {Promise<Reservation[]>} Lista rezerwacji użytkownika (może być pusta)
+ *
+ * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
+ * @throws {TargetNotFoundError} Gdy nie znaleziono użytkownika dla tokenu
+ * @throws {RequestError} Gdy wystąpi błąd serwera
+ */
+export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
+  const r = await fetch(`${API_URL}/api/users/reservedBooks`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+
+  if (r.status === 400) {
+    throw new TargetNotFoundError("Nie znaleziono użytkownika dla tokenu");
+  }
+
+  if (!r.ok) {
+    throw new RequestError("Błąd pobierania zarezerwowanych książek");
+  }
+
+  const data = await r.json();
+
+  return data.map((item: any) => ({
+    book: {
+      book_id: item.Bookid,
+      title: item.tytul,
+      authors: [item.autor],
+
+      publish_year: 0,
+      isbn_number: "",
+      length: 0,
+      language: "",
+      publisher: "",
+      keywords: [],
+      genre: [],
+    },
+    reserve_to: item.termin_zwrotu,
+  }));
 }
 
 /**
@@ -704,7 +742,6 @@ export async function fetchUserCatalogRequest(
 /**
  * Wypożycza książkę.
  *
- * @param {number} book_id Id książki
  * @param {number} instance_id Id egzemplarza do wypożyczenia
  *
  * @returns {Promise<void>}
@@ -713,17 +750,25 @@ export async function fetchUserCatalogRequest(
  * @throws {InvalidRequestDataError} Gdy id książki jest niepoprawne
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
-// todo: musi móc przyjmować dwa argumenty, na rzecz wypożyczenia książki poprzez zeskanowanie kodu
-export async function rentBookRequest(book_id: number, instance_id: number): Promise<void> {
-  if (book_id <= 0) {
-    throw new InvalidRequestDataError("Niepoprawne ID książki", false);
+// todo: check
+export async function rentBookRequest(instance_id: number): Promise<void> {
+  if (instance_id <= 0) {
+    throw new InvalidRequestDataError("Niepoprawne ID egzemplarza", false);
   }
 
-    const r = await fetch(`${API_URL}/api/books/rentBook`, {
-        method: "POST",
+  const r = await fetch(`${API_URL}/api/books/rentBook`, {
+    method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ book_id }),
+    body: JSON.stringify({
+      Copyid: instance_id,
+    }),
   });
+
+  if (r.status === 400) {
+    throw new RequestError(
+      "Nie można wypożyczyć książki (brak dostępnych egzemplarzy lub już wypożyczona)"
+    );
+  }
 
   if (!r.ok) {
     throw new RequestError("Błąd wypożyczenia książki");
