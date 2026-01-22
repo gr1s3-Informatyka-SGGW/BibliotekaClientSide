@@ -631,100 +631,40 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
 
 // Katalog - Ogólne
 
-/**
- * Pobiera listę autorów dostępnych w systemie.
- *
- * @returns {Promise<string[]>} Lista autorów
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchAuthorsRequest(): Promise<string[]> {
-    const r = await fetch(`${API_URL}/api/books/authors`, {
-        headers: authHeaders(),
-  });
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania autorów");
-  }
-
-  return await r.json();
-}
-// todo: filtry są innym requestem
-/**
- * Pobiera listę tagów książek.
- *
- * @returns {Promise<string[]>} Lista tagów
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchTagsRequest(): Promise<string[]> {
-    const r = await fetch(`${API_URL}/api/books/tags`, {
-        headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania tagów");
-  }
-
-  return await r.json();
-}
 
 /**
- * Pobiera listę gatunków książek.
+ * Pobiera dostępne filtry wyszukiwania książek z systemu.
+ * Zwraca listę autorów, gatunków, języków, wydawców oraz zakres dat wydania.
  *
- * @returns {Promise<string[]>} Lista gatunków
+ * @returns {Promise<BookSearchFilter>} Obiekt zawierający dostępne filtry wyszukiwania
  *
- * @throws {RequestError} Gdy wystąpi błąd serwera
+ * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
+ * @throws {RequestError} Gdy wystąpi błąd serwera lub odpowiedź zawiera kod błędu
  */
-export async function fetchGenresRequest(): Promise<string[]> {
-    const r = await fetch(`${API_URL}/api/books/genres`, {
-        headers: authHeaders(),
-  });
+export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
+    const r = await fetch(`${API_URL}/api/books/filters`, {
+        headers: authHeaders()
+    });
+    if(!r.ok)
+        throw new RequestError("Nieznany błąd serwera");
+    const resp = await r.json()
 
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania gatunków");
-  }
+    if(resp.code !== 200)
+        throw new RequestError(resp.error);
+    return {
+        author: resp.autorzy,
+        genre: resp.gatunki,
+        language: resp.jezyki,
+        publisher: resp.wydawcy,
+        release_date: {
+            from: resp.min_year,
+            to: resp.max_year
+        }
+    }
 
-  return await r.json();
 }
 
-/**
- * Pobiera listę wydawców.
- *
- * @returns {Promise<string[]>} Lista wydawców
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchPublishersRequest(): Promise<string[]> {
-    const r = await fetch(`${API_URL}/api/books/publishers`, {
-        headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania wydawców");
-  }
-
-  return await r.json();
-}
-
-/**
- * Pobiera listę języków.
- *
- * @returns {Promise<string[]>} Lista języków
- *
- * @throws {RequestError} Gdy wystąpi błąd serwera
- */
-export async function fetchLanguagesRequest(): Promise<string[]> {
-    const r = await fetch(`${API_URL}/api/books/languages`, {
-        headers: authHeaders(),
-  });
-
-  if (!r.ok) {
-    throw new RequestError("Błąd pobierania języków");
-  }
-
-  return await r.json();
-}
 
 // Katalog - User
 /**
