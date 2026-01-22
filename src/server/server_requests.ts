@@ -88,15 +88,19 @@ export class TargetNotFoundError extends RequestError{
  *
  * @throws {AccessDeniedError} Gdy token administratora nie został znaleziony w localStorage
  */
-function adminHeaders() {
-    const token = localStorage.getItem("token");
-    if (!token) {
+function adminHeaders() : { "Content-Type": string, Authorization: string }{
+    const session_str = localStorage.getItem("session");
+    if(session_str == null){
+        throw new AccessDeniedError("Brak tokenu administratora");
+    }
+    const session: Session = JSON.parse(session_str);
+    if (!session?.token) {
         throw new AccessDeniedError("Brak tokenu administratora");
     }
 
     return {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${session.token}`,
     };
 }
 
@@ -108,16 +112,20 @@ function adminHeaders() {
  *
  * @throws {AccessDeniedError} Gdy token użytkownika nie został znaleziony w localStorage
  */
-function authHeaders(): object {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new AccessDeniedError("Brak tokenu użytkownika");
-  }
+function authHeaders(): { "Content-Type": string, Authorization: string } {
+    const session_str = localStorage.getItem("session");
+    if(session_str == null){
+        throw new AccessDeniedError("Brak tokenu użytkownika");
+    }
+    const session: Session = JSON.parse(session_str);
+    if (!session?.token) {
+        throw new AccessDeniedError("Brak tokenu użytkownika");
+    }
 
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`,
+    };
 }
 
 // Login page requests
