@@ -1,6 +1,5 @@
 /**
- * @file UserAuth.tsx
- * @description Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
+ * @file Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
  * zarządzanie sesją oraz ochrona tras. Implementacja wykorzystuje React Context.
  * @author Szymon Doba
  */
