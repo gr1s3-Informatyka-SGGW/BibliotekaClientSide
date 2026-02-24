@@ -96,7 +96,7 @@ export interface Reservation{
  * @prop {string} name
  * @prop {string} surname
  * @prop {string} email
- * @prop {string|undefined} credit_card_number - Używany tylko przy pobieraniu danych na rzecz strony /profile dla użytkownika, są to cztery ostatnie cyfry karty płatniczej
+ * @prop {string} [credit_card_number] - Używany tylko przy pobieraniu danych na rzecz strony /profile dla użytkownika, są to cztery ostatnie cyfry karty płatniczej
  * */
 export interface User{
     name: string;

@@ -72,6 +72,7 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
         release_date
     };
 }
+
 /**
  * Fetches the current logged-in user's profile information.
  *
@@ -91,16 +92,28 @@ export async function fetchUserInfoRequest(): Promise<User>{
     console.log('Response from:', requestUrl, 'Status:', response.status);
 
     if (response.status === 200) {
-        const data = await response.json();
+        const data: any = await response.json();
         console.log('Response data:', data);
-        return data;
+
+        // Map backend fields -> frontend User type
+        const user: User = {
+            name: String(data?.name ?? ""),
+            surname: String(data?.surname ?? ""),
+            email: String(data?.email ?? ""),
+            credit_card_number:
+                data?.ostatnie4CyfryKarty != null ? String(data.ostatnie4CyfryKarty) : undefined,
+        };
+
+
+
+        return user;
     }
 
-    if(response.status === 400){
+    if (response.status >= 400 && response.status < 500) {
         throw new InvalidRequestDataError(
             "Błąd profilu",
             true,
-            "Nie znaleziono użytkownika dla podanego tokenu."
+            "Nie znaleziono użytkownika dla danej sesji."
         );
     }
 

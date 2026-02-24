@@ -15,16 +15,16 @@ if(API_URL === ""){
 }
 /**
  * Stała przełączająca między trybami autoryzacji na rzecz testów.
- * @note Działa wyłącznie gdy wczytana zostanie testowa baza danych, definiująca używanych użytkowników.
+ * @note Działa wyłącznie, gdy wczytana zostanie testowa baza danych, definiująca używanych użytkowników.
  * Gdy ustawione na `false` Funkcje `adminHeaders` i `authHeaders` działają normalnie.
- * Gdy stąła ustawiona na `'user'` lub `'admin'` zamiast zapisanych danych logowania, używane są predefiniowane tokeny o odpowiednich uprawnieniach.
+ * Gdy stąła ustawiona na `'user'`, `'blocked'` lub `'admin'` zamiast zapisanych danych logowania, używane są predefiniowane tokeny o odpowiednich uprawnieniach.
  * Po ustawieniu zmiennej na 'noauth' zapytania będą traktowane jako dla osoby nie zalogowanej
  * */
-var MOCK_AUTH: 'user'|'admin'| 'noauth'| false = false
+var MOCK_AUTH: 'user'|'admin'| 'blocked' | 'noauth'| false = false
 /**
  * Funkcja zmieniająca wartość 'stałej' `MOCK_AUTH` na podany parametr. Używana przy testowaniu dostepu funkcji w różnych trybach
  * */
-export function setMockAuth(mode: 'user'|'admin'| 'noauth'| false){
+export function setMockAuth(mode: 'user'| 'blocked'| 'admin' | 'noauth' | false){
     MOCK_AUTH = mode;
 }
 /**
@@ -97,10 +97,9 @@ export class TargetNotFoundError extends RequestError{
  */
 export function adminHeaders() : { "Content-Type": string, Authorization: string }{
     if (MOCK_AUTH === 'admin'){
-        // todo: add admin token
         return {
             "Content-Type": "application/json",
-            Authorization: `Bearer `
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6IldPUktFUiIsImlhdCI6MTc3MTk0NjM5OH0.J8xSE_b2OpMFfCWoPmc3asjTtmDpesGd6MxcUH7xwSk`
         }
     }
 
@@ -131,7 +130,13 @@ export function authHeaders(): { "Content-Type": string, Authorization: string }
     if(MOCK_AUTH == 'user'){
         return {
             "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6IlVTRVIiLCJlbWFpbCI6InN6eW1vbi5jcmVkb0BnbWFpbC5jb20iLCJpYXQiOjE3NjkwNTA1MTgsImV4cCI6MTc2OTEzNjkxOH0.Nsyz_eFrVSs1y_NBsNLfYBafPvtyCzED3TYHajceRbc`
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzE5NDYzOTh9.gdFGSUQGwJaxc2X0Ty5xLUHwjqQfUN0lbFmLPgzxHo8`
+        }
+    }
+    if(MOCK_AUTH == 'blocked'){
+        return {
+            "Content-Type": "application/json",
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzE5NDY1ODl9.zrRnKFqHNGy9jElZYJSjyels1fcQmSIa2Xf-Wo5rwY8`
         }
     }
     if(MOCK_AUTH == 'noauth' || !localStorage){
