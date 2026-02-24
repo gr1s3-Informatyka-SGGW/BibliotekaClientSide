@@ -1,7 +1,7 @@
 import {describe, test, expect, expectTypeOf} from 'vitest';
 import {
     fetchBorrowedBooksRequest,
-    fetchFiltersRequest,
+    fetchFiltersRequest, fetchReservedBooksRequest,
     fetchUserBookRequest,
     fetchUserInfoRequest
 } from "../src/server/requests/fetch_requests";
@@ -78,6 +78,34 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
 
         setMockAuth('noauth')
         await expect(fetchBorrowedBooksRequest()).rejects.toThrow('Błąd pobierania wypożyczeń')
+
+        setMockAuth(false)
+    })
+    test('Test funkcji `fetchReservedBooksRequest`', async () => {
+        setMockAuth('user')
+
+        let data = await fetchReservedBooksRequest();
+        expect(data).toEqual([
+            {
+                book: {
+                    "book_id": 1,
+                    "title": "Wiedźmin",
+                    "authors": [
+                        "Andrzej Sapkowski"
+                    ],
+                    "publish_year": 0,
+                    "isbn_number": "",
+                    "length": 0,
+                    "language": "",
+                    "publisher": "",
+                    "keywords": [],
+                    "genre": []
+                },
+                "reserve_to": new Date("2026-03-10T00:00:00.000Z")}
+        ])
+
+        setMockAuth('noauth')
+        await expect(fetchReservedBooksRequest()).rejects.toThrow('Nie znaleziono użytkownika dla tokenu')
 
         setMockAuth(false)
     })

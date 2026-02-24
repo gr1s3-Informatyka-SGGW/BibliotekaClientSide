@@ -176,6 +176,7 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
         };
     });
 }
+
 /**
  * Pobiera listę zarezerwowanych książek aktualnie zalogowanego użytkownika.
  *
@@ -185,6 +186,9 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
  * @throws {TargetNotFoundError} Gdy nie znaleziono użytkownika dla tokenu
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
+/* todo: nie zwracane przez request: publish_year, isbn_number, length, language, publisher, keywords, genre
+        autor nie jest tablicą tylko pojedyńczą wartością
+* */
 export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
     const requestUrl = `${API_URL}/api/users/reservedBooks`;
     const requestOptions = {
@@ -195,7 +199,7 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
+    if (r.status >= 400 && r.status < 500) {
         throw new TargetNotFoundError("Nie znaleziono użytkownika dla tokenu");
     }
 
@@ -208,7 +212,7 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
 
     return data.map((item: any) => ({
         book: {
-            book_id: item.Bookid,
+            book_id: item.BookId,
             title: item.tytul,
             authors: [item.autor],
 
@@ -220,7 +224,7 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
             keywords: [],
             genre: [],
         },
-        reserve_to: item.termin_zwrotu,
+        reserve_to: new Date(item.dataKoncaRezerwacji),
     }));
 }
 
