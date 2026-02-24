@@ -1,5 +1,10 @@
 import {describe, test, expect, expectTypeOf} from 'vitest';
-import {fetchFiltersRequest, fetchUserBookRequest, fetchUserInfoRequest} from "../src/server/requests/fetch_requests";
+import {
+    fetchBorrowedBooksRequest,
+    fetchFiltersRequest,
+    fetchUserBookRequest,
+    fetchUserInfoRequest
+} from "../src/server/requests/fetch_requests";
 import {AccessDeniedError, InvalidRequestDataError, setMockAuth} from "../src/server/requests/connection";
 import {BookSearchFilter} from "../src/server/server_types";
 // todo: w readme musi być wytłumaczenie kiedy te testy działają
@@ -44,6 +49,35 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
 
         await expect(fetchUserInfoRequest(), 'Test reakcji na brak sesji').rejects.toThrow('Błąd profilu')
 
+
+        setMockAuth(false)
+    })
+    test('Test funkcji `fetchBorrowedBooksRequest`', async () => {
+        setMockAuth('user')
+        let data = await fetchBorrowedBooksRequest();
+        expect(data).to.deep.equal([{
+            "book": {
+                "title": "Testowanie Softu",
+                "authors": [
+                    "Janusz Tester"
+                ],
+                "publish_year": 0,
+                "isbn_number": "",
+                "length": 0,
+                "language": "",
+                "publisher": "",
+                "keywords": [],
+                "genre": []
+            },
+            "borrow_date": new Date("2026-02-24T00:00:00.000Z"),
+            "return_date": new Date("2026-03-26T00:00:00.000Z")
+        }])
+        setMockAuth('blocked')
+        let blocked_data = await fetchBorrowedBooksRequest();
+        expect(blocked_data).to.deep.equal([], "For user without any borrowed books, empty array should be returned")
+
+        setMockAuth('noauth')
+        await expect(fetchBorrowedBooksRequest()).rejects.toThrow('Błąd pobierania wypożyczeń')
 
         setMockAuth(false)
     })

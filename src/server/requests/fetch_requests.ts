@@ -129,6 +129,7 @@ export async function fetchUserInfoRequest(): Promise<User>{
  * @throws {InvalidRequestDataError} Gdy nie znaleziono użytkownika dla podanego tokenu
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
+// todo: nie zwracane przez request: publish_year, isbn_number, length, language, publisher, keywords, genre
 export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
     const requestUrl = `${API_URL}/api/users/borrowedBooks`;
     const requestOptions = {
@@ -139,9 +140,9 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
     const response = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', response.status);
 
-    if (response.status === 400) {
+    if (response.status >= 400 && response.status < 500) {
         throw new InvalidRequestDataError(
-            "Błąd pobierania wypożyczeń",
+            "Błąd pobierania wypożyczeń. Nie znaleziono użytkownika dla podanego tokenu.",
             true,
             "Nie znaleziono użytkownika dla podanego tokenu."
         );
@@ -151,40 +152,30 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
         throw new RequestError(response.status.toString());
     }
 
-    const data = await response.json();
+    const data: any[] = await response.json();
     console.log('Response data:', data);
 
-    await data.map(async (item: {
-        Bookid: number,
-        tytul: string,
-        autor: string,
-        dataWypozyczenia : string,
-        ilosc_przedluzen: number
-    }): Promise<Rent> => {
-        // oblicz datę zwrotu
-        // data wypożyczenia + 30 + 30 * ilość przedłużeń
-        const baseDate = new Date(item.dataWypozyczenia );
-        const extensions = item.ilosc_przedluzen || 0;
-        const finalReturnDate = new Date(baseDate);
-        finalReturnDate.setDate(finalReturnDate.getDate() + (extensions * 30));
-
-        // Pobierz dodatkowe informacje o książce
-        let bookDetails: BookUser | null = null;
-        try {
-            bookDetails = await fetchUserBookRequest(item.Bookid);
-        } catch (error: any) {
-            throw new RequestError(`Nie udało się pobrać szczegółów książki ${item.Bookid}: ${error.message}`);
-        }
+    return (data ?? []).map((item: any): Rent => {
+        const borrowDate = new Date(String(item?.dataWypozyczenia ?? ""));
+        const returnDate = new Date(String(item?.terminOddania ?? ""));
 
         return {
-            book: bookDetails,
-            borrow_date: baseDate,
-            return_date: finalReturnDate,
-        }
+            book: {
+                title: String(item?.tytul ?? ""),
+                authors: item?.autor != null ? [String(item.autor)] : [],
+                publish_year: 0,
+                isbn_number: "",
+                length: 0,
+                language: "",
+                publisher: "",
+                keywords: [],
+                genre: [],
+            },
+            borrow_date: borrowDate,
+            return_date: returnDate,
+        };
     });
-    return data;
 }
-// todo: sprawdzic
 /**
  * Pobiera listę zarezerwowanych książek aktualnie zalogowanego użytkownika.
  *
