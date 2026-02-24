@@ -14,6 +14,20 @@ if(API_URL === ""){
     console.error("Brak linku do API w pliku .env");
 }
 /**
+ * Stała przełączająca między trybami autoryzacji na rzecz testów.
+ * @note Działa wyłącznie gdy wczytana zostanie testowa baza danych, definiująca używanych użytkowników.
+ * Gdy ustawione na `false` Funkcje `adminHeaders` i `authHeaders` działają normalnie.
+ * Gdy stąła ustawiona na `'user'` lub `'admin'` zamiast zapisanych danych logowania, używane są predefiniowane tokeny o odpowiednich uprawnieniach.
+ * Po ustawieniu zmiennej na 'noauth' zapytania będą traktowane jako dla osoby nie zalogowanej
+ * */
+var MOCK_AUTH: 'user'|'admin'| 'noauth'| false = false
+/**
+ * Funkcja zmieniająca wartość 'stałej' `MOCK_AUTH` na podany parametr. Używana przy testowaniu dostepu funkcji w różnych trybach
+ * */
+export function setMockAuth(mode: 'user'|'admin'| 'noauth'| false){
+    MOCK_AUTH = mode;
+}
+/**
  * Błędy zwracane przez funkcje zapytania w przypadku, gdy server zwrócił informacje o niepowodzeniu (kod 400 lub niektórych wypadkach 500)
  * @extends Error
  * */
@@ -72,12 +86,7 @@ export class TargetNotFoundError extends RequestError{
 }
 
 
-/**
- * Stała przełączająca między trybami autoryzacji na rzecz testów.
- * Gdy ustawione na `false` Funkcje `adminHeaders` i `authHeaders` działają normalnie.
- * Gdy stąła ustawiona na `'user'` lub `'admin'` zamiast zapisanych danych logowania, używane są predefiniowane tokeny o odpowiednich uprawnieniach
- * */
-const MOCK_AUTH: 'user'|'admin'| false = false
+
 /**
  * Tworzy nagłówki HTTP dla zapytań wymagających uprawnień administratora.
  * Pobiera token z localStorage i dodaje go do nagłówka Authorization.
@@ -123,6 +132,12 @@ export function authHeaders(): { "Content-Type": string, Authorization: string }
         return {
             "Content-Type": "application/json",
             Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6IlVTRVIiLCJlbWFpbCI6InN6eW1vbi5jcmVkb0BnbWFpbC5jb20iLCJpYXQiOjE3NjkwNTA1MTgsImV4cCI6MTc2OTEzNjkxOH0.Nsyz_eFrVSs1y_NBsNLfYBafPvtyCzED3TYHajceRbc`
+        }
+    }
+    if(MOCK_AUTH == 'noauth' || !localStorage){
+        return {
+            "Content-Type": "application/json",
+            Authorization: `Bearer `
         }
     }
     const session_str = localStorage.getItem("session");

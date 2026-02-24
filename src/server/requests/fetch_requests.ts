@@ -27,6 +27,52 @@ import type {
 } from "../server_types.ts";
 
 /**
+ * Pobiera dostępne filtry wyszukiwania książek z systemu.
+ * Zwraca listę autorów, gatunków, języków, wydawców oraz zakres dat wydania.
+ *
+ * @returns {Promise<BookSearchFilter>} Obiekt zawierający dostępne filtry wyszukiwania
+ *
+ * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
+ * @throws {RequestError} Gdy wystąpi błąd serwera lub odpowiedź zawiera kod błędu
+ */
+export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
+    const requestUrl = `${API_URL}/api/books/filters`;
+    const requestOptions = {
+        headers: authHeaders()
+    };
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
+
+    if (!r.ok) {
+        if (r.status === 400) throw new RequestError("Nie znaleziono użytkownika dla tokenu");
+        throw new RequestError("Nieznany błąd serwera");
+    }
+
+    const resp = await r.json();
+    console.log('Response data:', resp);
+
+    if (resp.code !== undefined && resp.code !== 200) {
+        throw new RequestError(resp.error || "Nieznany błąd serwera");
+    }
+
+    const release_date = resp.zakresy && resp.zakresy.rok_max > 0
+        ? {
+            from: new Date(resp.zakresy.rok_min, 0, 1),
+            to: new Date(resp.zakresy.rok_max, 11, 31)
+        }
+        : undefined;
+
+    return {
+        author: resp.autorzy || [],
+        genre: resp.gatunki || [],
+        publisher: resp.wydawcy || [],
+        tags: resp.tagi || [],
+        language: resp.jezyki || [],
+        release_date
+    };
+}
+/**
  * Fetches the current logged-in user's profile information.
  *
  * @returns {Promise<User>} User profile data including name, email, and other account details
@@ -38,10 +84,7 @@ export async function fetchUserInfoRequest(): Promise<User>{
     const requestUrl = `${API_URL}/api/users/loginInfo`;
     const requestOptions = {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: authHeaders(),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const response = await fetch(requestUrl, requestOptions);
@@ -176,52 +219,7 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
         reserve_to: item.termin_zwrotu,
     }));
 }
-/**
- * Pobiera dostępne filtry wyszukiwania książek z systemu.
- * Zwraca listę autorów, gatunków, języków, wydawców oraz zakres dat wydania.
- *
- * @returns {Promise<BookSearchFilter>} Obiekt zawierający dostępne filtry wyszukiwania
- *
- * @throws {AccessDeniedError} Gdy brak tokenu użytkownika
- * @throws {RequestError} Gdy wystąpi błąd serwera lub odpowiedź zawiera kod błędu
- */
-export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
-    const requestUrl = `${API_URL}/api/books/filters`;
-    const requestOptions = {
-        headers: authHeaders()
-    };
-    console.log('Request to:', requestUrl, 'Options:', requestOptions);
-    const r = await fetch(requestUrl, requestOptions);
-    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (!r.ok) {
-        if (r.status === 400) throw new RequestError("Nie znaleziono użytkownika dla tokenu");
-        throw new RequestError("Nieznany błąd serwera");
-    }
-
-    const resp = await r.json();
-    console.log('Response data:', resp);
-
-    if (resp.code !== undefined && resp.code !== 200) {
-        throw new RequestError(resp.error || "Nieznany błąd serwera");
-    }
-
-    const release_date = resp.zakresy && resp.zakresy.rok_max > 0
-        ? {
-            from: new Date(resp.zakresy.rok_min, 0, 1),
-            to: new Date(resp.zakresy.rok_max, 11, 31)
-        }
-        : undefined;
-
-    return {
-        author: resp.autorzy || [],
-        genre: resp.gatunki || [],
-        publisher: resp.wydawcy || [],
-        tags: resp.tagi || [],
-        language: resp.jezyki || [],
-        release_date
-    };
-}
 /**
  * Pobiera katalog użytkownika zgodnie ze specyfikacją API.
  */
