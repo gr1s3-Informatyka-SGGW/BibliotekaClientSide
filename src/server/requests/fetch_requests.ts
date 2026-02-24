@@ -101,7 +101,7 @@ export async function fetchUserInfoRequest(): Promise<User>{
             surname: String(data?.surname ?? ""),
             email: String(data?.email ?? ""),
             credit_card_number:
-                data?.ostatnie4CyfryKarty != null ? String(data.ostatnie4CyfryKarty) : undefined,
+                data?.ostatnie4CyfryKarty != null && data?.ostatnie4CyfryKarty != "BRAK" ? String(data.ostatnie4CyfryKarty) : undefined,
         };
 
 
@@ -323,6 +323,7 @@ export async function fetchUserCatalogRequest(
  * @throws {TargetNotFoundError} Gdy książka nie istnieje
  * @throws {RequestError}
  */
+// todo: użyty request nie zwraca następujących informacji: length, language, publisher
 export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
     const requestUrl = `${API_URL}/api/books/${book_id}`;
     const requestOptions = {
@@ -340,9 +341,37 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
         throw new RequestError("Błąd pobierania książki");
     }
 
-    const data = await r.json();
+    const data: any = await r.json();
     console.log('Response data:', data);
-    return data;
+
+    const book: BookUser = {
+        book_id: Number(data?.Bookid),
+        title: String(data?.tytul ?? ""),
+        authors: Array.isArray(data?.autorzy) ? data.autorzy.map((a: any) => String(a)) : [],
+
+        publish_year: Number(data?.rok_wydania ?? 0),
+        isbn_number: String(data?.isbn ?? ""),
+
+        // API doesn't send these in the shown response -> defaults required by `Book`
+        length: undefined,
+        language: undefined,
+        publisher: undefined,
+
+        keywords: Array.isArray(data?.slowa_kluczowe) ? data.slowa_kluczowe.map((k: any) => String(k)) : [],
+        genre: Array.isArray(data?.gatunki) ? data.gatunki.map((g: any) => String(g)) : [],
+
+        instances: {
+            available: Number(data?.liczba_dostepnych ?? 0),
+            total: Number(data?.liczba_egzemplarzy ?? 0),
+        },
+    };
+
+    // Optional: fail fast if backend changes / returns incomplete payload
+    if (!book.book_id || !book.title) {
+        throw new RequestError("Invalid book payload from server");
+    }
+
+    return book;
 }
 /**
  * Pobiera katalog książek z paginacją, filtrowaniem i sortowaniem dla widoku administratora.
