@@ -2,7 +2,7 @@ import {describe, test, expect, expectTypeOf} from 'vitest';
 import {
     fetchBorrowedBooksRequest,
     fetchFiltersRequest, fetchReservedBooksRequest,
-    fetchUserBookRequest,
+    fetchUserBookRequest, fetchUserCatalogRequest,
     fetchUserInfoRequest
 } from "../src/server/requests/fetch_requests";
 import {AccessDeniedError, InvalidRequestDataError, setMockAuth} from "../src/server/requests/connection";
@@ -152,6 +152,23 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
             publisher: undefined
         })
         await expect(fetchUserBookRequest(3)).rejects.toThrow('Nie znaleziono książki')
+        setMockAuth(false)
+    })
+    test('Test funkcji `fetchUserCatalogRequest`', async () => {
+        setMockAuth('user')
+        let data = await fetchUserCatalogRequest();
+        expect(data, "Domyślne wyszukanie").to.deep.equal({"result":[{"book_id":"2","title":"Testowanie Softu","authors":["Janusz Tester"],"publish_year":2024,"isbn_number":"222","publisher":"Wydawnictwo Testowe","genre":[],"language":"PL","length":150,"instances":{"available":1,"total":3}},{"book_id":"1","title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","publisher":"Wydawnictwo Testowe","genre":[],"language":"PL","length":300,"instances":{"available":1,"total":2}}],"totalPages":1,"totalResults":2})
 
+        data = await fetchUserCatalogRequest("Wie");
+        expect(data, "Przy filtrowaniu po tytule").to.deep.equal({"result":[{"book_id":"1","title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","publisher":"Wydawnictwo Testowe","genre":[],"language":"PL","length":300,"instances":{"available":1,"total":2}}],"totalPages":1,"totalResults":1})
+
+        data = await fetchUserCatalogRequest('', undefined, undefined, 2)
+        expect(data, "Gdy użyje błędnej strony").to.deep.equal({result: [], totalPages: 1, totalResults: 0})
+
+        setMockAuth('noauth')
+        await expect(fetchUserCatalogRequest(), "Gdy użytkownik niezalogowany").rejects.toThrow('Błąd pobierania katalogu: 401')
+
+
+        setMockAuth(false)
     })
 })

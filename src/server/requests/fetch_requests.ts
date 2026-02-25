@@ -231,8 +231,9 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
 /**
  * Pobiera katalog użytkownika zgodnie ze specyfikacją API.
  */
+// todo: stronicowanie coś nie teges bo server o nim nie informuje
 export async function fetchUserCatalogRequest(
-    search: string,
+    search: string = '',
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
@@ -287,13 +288,12 @@ export async function fetchUserCatalogRequest(
     // Map API snake_case response to frontend structure
     return {
         result: data.ksiazki.map((b: any) => ({
-            ...b,
             book_id: b.Bookid,
             title: b.tytul,
             authors: b.autor,
             publish_year: b.rok_wydania,
-            publisher: b.wydawnictwo,
             isbn_number: b.isbn,
+            publisher: b.wydawnictwo,
             genre: b.gatunek,
             language: b.jezyk,
             length: b.liczba_stron,
