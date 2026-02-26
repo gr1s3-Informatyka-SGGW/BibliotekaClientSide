@@ -8,8 +8,7 @@ import {
     RequestError,
     AccessDeniedError,
     TargetNotFoundError,
-    authHeaders,
-    adminHeaders
+    authHeaders
 } from "./connection.ts";
 import type {
     User,
@@ -383,7 +382,8 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania katalogu
  */
-// todo: search panel nie był uwzględniony i kolejność w sygnaturze uległa zmianie check
+// todo: podobnie jak u użytkownika prawdopodobnie jest problem ze stronicowaniem
+// todo: nie zwraca informacji na temat egzemplarzy, słów kluczowych
 export async function fetchAdminCatalogRequest(
     search?: string,
     sort?: SearchSort,
@@ -423,7 +423,7 @@ export async function fetchAdminCatalogRequest(
         };
     }
 
-    const requestUrl = `${API_URL}/api/books/search`;
+    const requestUrl = `${API_URL}/api/books/worker/search`;
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
@@ -437,6 +437,10 @@ export async function fetchAdminCatalogRequest(
         throw new InvalidRequestDataError("Nieprawidłowe dane wyszukiwania", false);
     }
 
+    if (r.status === 403) {
+        throw new AccessDeniedError("Brak uprawnień do pobrania katalogu");
+    }
+
     if (!r.ok) {
         throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
     }
@@ -446,24 +450,45 @@ export async function fetchAdminCatalogRequest(
 
     const ksiazki: any[] = Array.isArray(json?.ksiazki) ? json.ksiazki : [];
 
+    const mapInstanceStatus = (raw: any): BookAdmin["instances"][number]["status"] => {
+        // backend sometimes uses "destroyed" -> in UI we treat it as "damaged"
+        if (raw === "destroyed") return "damaged";
+        if (raw === "available" || raw === "rented" || raw === "reserved" || raw === "damaged") return raw;
+        // safest fallback (keeps UI usable even if backend adds a new state)
+        return "damaged";
+    };
+
     return {
         result: ksiazki.map((b: any): BookAdmin => ({
             book_id: b?.Bookid != null ? Number(b.Bookid) : undefined,
             title: String(b?.tytul ?? ""),
             authors: Array.isArray(b?.autor) ? b.autor.map((a: any) => String(a)) : [],
+
             publish_year: Number(b?.rok_wydania ?? 0),
             isbn_number: String(b?.isbn ?? ""),
+
             length: b?.liczba_stron != null ? Number(b.liczba_stron) : undefined,
             language: b?.jezyk != null ? String(b.jezyk) : undefined,
             publisher: b?.wydawnictwo != null ? String(b.wydawnictwo) : undefined,
-            keywords: [], // endpoint doesn't return them
+
+            keywords: [], // search endpoint doesn't return keywords
             genre: Array.isArray(b?.gatunek) ? b.gatunek.map((g: any) => String(g)) : [],
-            instances: [], // endpoint doesn't return per-instance list; details endpoint does
+
+            // IMPORTANT: BookAdmin requires instances[], and search endpoint returns `egzemplarze`
+            instances: Array.isArray(b?.egzemplarze)
+                ? b.egzemplarze
+                      .map((e: any) => ({
+                          id: e?.Copyid != null ? Number(e.Copyid) : Number(e?.id),
+                          status: mapInstanceStatus(e?.status),
+                      }))
+                      .filter((e: any) => Number.isFinite(e.id))
+                : [],
         })),
         totalPages: Number(json?.totalPages ?? 1),
         totalResults: Number(json?.totalResults ?? ksiazki.length),
     };
 }
+
 /**
  * Pobiera szczegółowe informacje o książce dla pracownika.
  *
@@ -483,10 +508,10 @@ export async function fetchAdminBookRequest(
         throw new InvalidRequestDataError("Brak id książki", false);
     }
 
-    const requestUrl = `${API_URL}/api/books/workerbook/${book_id}`;
+    const requestUrl = `${API_URL}/api/books/worker/book/${book_id}`;
     const requestOptions = {
         method: "GET",
-        headers: adminHeaders(),
+        headers: authHeaders(),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
@@ -504,9 +529,38 @@ export async function fetchAdminBookRequest(
         throw new RequestError("Błąd pobierania danych książki");
     }
 
-    const data = (await r.json()) as BookAdmin;
-    console.log('Response data:', data);
-    return data;
+    const json: any = await r.json();
+    console.log("Response data:", json);
+
+
+
+    const book: BookAdmin = {
+        book_id: json?.Bookid != null ? Number(json.Bookid) : undefined,
+        title: String(json?.tytul ?? ""),
+        authors: Array.isArray(json?.autorzy) ? json.autorzy.map((a: any) => String(a)) : [],
+
+        publish_year: Number(json?.rok_wydania ?? 0),
+        isbn_number: String(json?.isbn ?? ""),
+
+        publisher: json?.wydawnictwo != null ? String(json.wydawnictwo) : undefined,
+        language: json?.jezyk != null ? String(json.jezyk) : undefined,
+        length: json?.liczba_stron != null ? Number(json.liczba_stron) : undefined,
+
+        keywords: Array.isArray(json?.slowa_kluczowe)
+            ? json.slowa_kluczowe.map((k: any) => String(k))
+            : [],
+        genre: Array.isArray(json?.gatunki) ? json.gatunki.map((g: any) => String(g)) : [],
+
+        instances: Array.isArray(json?.egzemplarze)
+            ? json.egzemplarze.map((e: any) => ({
+                    id: Number(e?.Copyid),
+                    status: e?.status == 'destroyed' ? 'damaged' : e?.status as BookAdmin["instances"][number]["status"],
+                }))
+            : [],
+    };
+
+
+    return book;
 }
 /**
  * Pobiera listę użytkowników dla panelu administratora z możliwością filtrowania i sortowania.
@@ -628,7 +682,7 @@ export async function fetchRentLog(
     const requestUrl = `${API_URL}/api/books/listBorrowedBooks`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({filter, page}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);

@@ -1,5 +1,6 @@
 import {describe, test, expect, expectTypeOf} from 'vitest';
 import {
+    fetchAdminBookRequest,
     fetchAdminCatalogRequest,
     fetchBorrowedBooksRequest,
     fetchFiltersRequest, fetchReservedBooksRequest,
@@ -177,10 +178,10 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
     test('Test funkcji `fetchAdminCatalogRequest`', async () => {
         setMockAuth('admin')
         let data = await fetchAdminCatalogRequest();
-        expect(data, "Domyślne wyszukanie").to.deep.equal({"result":[{"book_id":2,"title":"Testowanie Softu","authors":["Janusz Tester"],"publish_year":2024,"isbn_number":"222","length":150,"language":"PL","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],"instances":[]},{"book_id":1,"title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","length":300,"language":"PL","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],"instances":[]}],"totalPages":1,"totalResults":2})
+        expect(data, "Domyślne wyszukanie").to.deep.equal({"result":[{"book_id":2,"title":"Testowanie Softu","authors":["Janusz Tester"],"publish_year":2024,"isbn_number":"222","length":150,"language":"PL","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],"instances":[{"id":4,"status":"damaged"},{"id":3,"status":"rented"},{"id":5,"status":"available"}]},{"book_id":1,"title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","length":300,"language":"PL","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],"instances":[{"id":2,"status":"reserved"},{"id":1,"status":"available"}]}],"totalPages":1,"totalResults":2})
 
         data = await fetchAdminCatalogRequest("Wie");
-        expect(data, "Przy filtrowaniu po tytule").to.deep.equal({"result":[{"book_id":1,"title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","length":300,"language":"PL","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],"instances":[]}],"totalPages":1,"totalResults":1})
+        expect(data, "Przy filtrowaniu po tytule").to.deep.equal({"result":[{"book_id":1,"title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","length":300,"language":"PL","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],"instances":[{"id":2,"status":"reserved"},{"id":1,"status":"available"}]}],"totalPages":1,"totalResults":1})
 
         data = await fetchAdminCatalogRequest('', undefined, undefined, 2)
         expect(data, "Gdy użyje błędnej strony").to.deep.equal({result: [], totalPages: 1, totalResults: 0})
@@ -191,6 +192,22 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
         // todo: that might be a problem, user can fetch Admin catalog
         // setMockAuth('user')
         // await expect(fetchAdminCatalogRequest(), "Gdy użytkownik nie ma uprawnień").rejects.toThrow('Błąd pobierania katalogu: 401')
+
+        setMockAuth(false)
+    })
+    test('Test funkcji `fetchAdminBookRequest`', async () => {
+        setMockAuth('admin')
+        let data = await fetchAdminBookRequest(1);
+        expect(data).to.deep.equal({"book_id":1,"title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","publisher":"Wydawnictwo Testowe", "language": undefined, "length": undefined,"keywords":[],"genre":[],"instances":[{"id":1,"status":"available"},{"id":2,"status":"reserved"}]})
+
+        data = await fetchAdminBookRequest(2);
+        expect(data).to.deep.equal({"book_id":2,"title":"Testowanie Softu","authors":["Janusz Tester"],"publish_year":2024,"isbn_number":"222","publisher":"Wydawnictwo Testowe","keywords":[],"genre":[],  "language": undefined, "length": undefined,"instances":[{"id":3,"status":"rented"},{"id":4,"status":"damaged"},{"id":5,"status":"available"}]})
+
+        await expect(fetchUserBookRequest(3)).rejects.toThrow('Nie znaleziono książki')
+
+        // todo: that might be a problem, user can fetch Admin catalog
+        // setMockAuth('user')
+        // await expect(fetchUserBookRequest(1)).rejects.toThrow('')
 
         setMockAuth(false)
     })

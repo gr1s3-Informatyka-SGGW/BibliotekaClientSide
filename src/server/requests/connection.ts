@@ -16,7 +16,7 @@ if(API_URL === ""){
 /**
  * Stała przełączająca między trybami autoryzacji na rzecz testów.
  * @note Działa wyłącznie, gdy wczytana zostanie testowa baza danych, definiująca używanych użytkowników.
- * Gdy ustawione na `false` Funkcje `adminHeaders` i `authHeaders` działają normalnie.
+ * Gdy ustawione na `false` Funkcja `authHeaders` działają normalnie.
  * Gdy stąła ustawiona na `'user'`, `'blocked'` lub `'admin'` zamiast zapisanych danych logowania, używane są predefiniowane tokeny o odpowiednich uprawnieniach.
  * Po ustawieniu zmiennej na 'noauth' zapytania będą traktowane jako dla osoby nie zalogowanej
  * */
@@ -87,37 +87,7 @@ export class TargetNotFoundError extends RequestError{
 
 
 
-/**
- * Tworzy nagłówki HTTP dla zapytań wymagających uprawnień administratora.
- * Pobiera token z localStorage i dodaje go do nagłówka Authorization.
- *
- * @returns {Object} Obiekt zawierający nagłówki HTTP z tokenem Bearer
- *
- * @throws {AccessDeniedError} Gdy token administratora nie został znaleziony w localStorage
- */
-// todo: nie wiem po co to istnieje
-export function adminHeaders() : { "Content-Type": string, Authorization: string }{
-    if (MOCK_AUTH === 'admin'){
-        return {
-            "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6IldPUktFUiIsImlhdCI6MTc3MTk0NjM5OH0.J8xSE_b2OpMFfCWoPmc3asjTtmDpesGd6MxcUH7xwSk`
-        }
-    }
 
-    const session_str = localStorage.getItem("session");
-    if(session_str == null){
-        throw new AccessDeniedError("Brak tokenu administratora");
-    }
-    const session: Session = JSON.parse(session_str);
-    if (!session?.token) {
-        throw new AccessDeniedError("Brak tokenu administratora");
-    }
-
-    return {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.token}`,
-    };
-}
 
 /**
  * Tworzy nagłówki HTTP dla zapytań wymagających uwierzytelnienia użytkownika.
