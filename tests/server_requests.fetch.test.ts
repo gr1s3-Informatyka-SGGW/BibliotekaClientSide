@@ -5,7 +5,7 @@ import {
     fetchBorrowedBooksRequest,
     fetchFiltersRequest, fetchReservedBooksRequest,
     fetchUserBookRequest, fetchUserCatalogRequest,
-    fetchUserInfoRequest
+    fetchUserInfoRequest, fetchUserListRequest
 } from "../src/server/requests/fetch_requests";
 import {AccessDeniedError, InvalidRequestDataError, setMockAuth} from "../src/server/requests/connection";
 import {BookSearchFilter} from "../src/server/server_types";
@@ -208,6 +208,21 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
         // todo: that might be a problem, user can fetch Admin catalog
         // setMockAuth('user')
         // await expect(fetchUserBookRequest(1)).rejects.toThrow('')
+
+        setMockAuth(false)
+    })
+    test('Test funckji `fetchUserListRequest`', async () => {
+        setMockAuth('admin')
+        let data = await fetchUserListRequest();
+        expect(data, "Domyślne wyszukanie").to.deep.equal({"result":[{"user_id":1,"name":"Jan","surname":"Kowalski","email":"jan.kowalski@test.pl","status":"user","currently_rented":[],"currently_reserved":[]},{"user_id":3,"name":"Anna","surname":"Nowak","email":"anna.nowak@test.pl","status":"blocked","currently_rented":[],"currently_reserved":[]},{"user_id":2,"name":"Marek","surname":"Testowy","email":"marek@test.pl","status":"user","currently_rented":[],"currently_reserved":[]}],"totalPages":1,"totalResults":3})
+        data = await fetchUserListRequest("Ja");
+        expect(data, "Przy filtrowaniu po tytule").to.deep.equal({"result":[{"user_id":1,"name":"Jan","surname":"Kowalski","email":"jan.kowalski@test.pl","status":"user","currently_rented":[],"currently_reserved":[]}],"totalPages":1,"totalResults":1})
+
+        setMockAuth('noauth')
+        await expect(fetchUserListRequest(), "Gdy użytkownik niezalogowany").rejects.toThrow("Odmowa dostępu, wymagany dostęp pracownika")
+
+        setMockAuth('user')
+        await expect(fetchUserListRequest(), "Gdy użytkownik nie ma uprawnień").rejects.toThrow("Odmowa dostępu, wymagany dostęp pracownika")
 
         setMockAuth(false)
     })

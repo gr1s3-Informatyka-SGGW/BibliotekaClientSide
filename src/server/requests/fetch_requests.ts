@@ -577,6 +577,11 @@ export async function fetchAdminBookRequest(
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania użytkowników
  */
 // todo: search_bar i sort is never used check
+// todo: status nie może być filtrowany po paru elementach
+// todo: backend nie zwraca informacji o tym czy użytkownik jest adminem
+// todo: informacje na temat książki są niekompletne
+// todo: backend nie zwraca informacji o rezerwacjach
+// todo: paginacja również wydaje się nie działać
 export async function fetchUserListRequest(
     search_bar?: string,
     sort?: SearchSort,
@@ -609,14 +614,16 @@ export async function fetchUserListRequest(
     const requestUrl = `${API_URL}/api/users/listUsers`;
     const requestOptions = {
         method: "POST",
-        headers: authHeaders(), // token WORKER
+        headers: authHeaders(),
         body: JSON.stringify(body),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
+    if (r.status >= 400 && r.status < 500) {
+        if(r.status == 401 || r.status == 403)
+            throw new AccessDeniedError("Odmowa dostępu, wymagany dostęp pracownika", false);
         throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", false);
     }
 
@@ -626,18 +633,19 @@ export async function fetchUserListRequest(
 
     const json = await r.json();
     console.log('Response data:', json);
-
     return {
-        result: (json.uzytkownicy ?? []).map((u: any): UserInfo => ({
+        result: (json.uzytkownicy ?? []).map((u: any): UserInfo => {
+            return {
             user_id: u.user_id,
             name: u.imie,
             surname: u.nazwisko,
             email: u.email,
-            status: u.status ?? 'user',
+            status: u.is_blocked ? 'blocked' : 'user', // nie mam rozróżnienia między niezablokowanym a user'em
             currently_rented: (u.wypozyczenia ?? []).map((w: any): Rent => ({
                 book: {
                     title: w.nazwa,
                     authors: w.autor,
+
                     publish_year: 0,
                     isbn_number: "",
                     length: 0,
@@ -650,15 +658,17 @@ export async function fetchUserListRequest(
                 return_date: new Date(w.termin_zwrotu),
             })),
             currently_reserved: [], // backend nie zwraca rezerwacji
-        })),
+            }
+        }),
         totalPages: 1,
         totalResults: json.uzytkownicy?.length ?? 0,
     };
 }
+
 /**
  * Pobiera log wypożyczeń.
  *
- * @param {string} [search_bar] fragment nazwy użytkoni
+ * @param {string} [search_bar] fragment nazwy użytkowi
  * @param {RentLogSearchFilter} [filter] Filtry logu
  * @param {number} [page=1] Numer strony
  *
