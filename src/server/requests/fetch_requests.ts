@@ -368,11 +368,12 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
 
     return book;
 }
+
 /**
  * Pobiera katalog książek z paginacją, filtrowaniem i sortowaniem dla widoku administratora.
  *
+ * @param {string} [search] Fragment tytułu do wyszukania
  * @param {number} [page=1] Numer strony (paginacja, domyślnie 1)
- * @param {string} [search_bar] Fragment tytułu do wyszukania w panelu wyszukiwania
  * @param {SearchSort} [sort] Obiekt określający sortowanie wyników
  * @param {BookSearchFilter} [filter] Obiekt zawierający filtry wyszukiwania
  *
@@ -382,10 +383,9 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania katalogu
  */
-
 // todo: search panel nie był uwzględniony i kolejność w sygnaturze uległa zmianie check
 export async function fetchAdminCatalogRequest(
-    search_bar?: string,
+    search?: string,
     sort?: SearchSort,
     filter?: BookSearchFilter,
     page: number = 1
@@ -396,8 +396,8 @@ export async function fetchAdminCatalogRequest(
 
     const body: any = { page };
 
-    if (search_bar && search_bar.trim().length > 0) {
-        body.fragment_tytulu = search_bar;
+    if (search && search.trim().length > 0) {
+        body.fragment_tytulu = search;
     }
 
     if (sort) {
@@ -408,21 +408,19 @@ export async function fetchAdminCatalogRequest(
     }
 
     if (filter) {
-        const filtry: any = {};
-
-        if (filter.author) filtry.autor = filter.author;
-        if (filter.genre) filtry.gatunek = filter.genre;
-        if (filter.publisher) filtry.wydawca = filter.publisher;
-        if (filter.tags) filtry.tagi = filter.tags;
-        if (filter.language) filtry.jezyk = filter.language;
-        if (filter.release_date) {
-            filtry.data_wydania = {
-                od: filter.release_date.from.toISOString().split('T')[0],
-                do: filter.release_date.to.toISOString().split('T')[0],
-            };
-        }
-
-        body.filtry = filtry;
+        body.filtry = {
+            autor: filter.author ?? undefined,
+            gatunek: filter.genre ?? undefined,
+            wydawca: filter.publisher ?? undefined,
+            tagi: filter.tags ?? undefined,
+            jezyk: filter.language ?? undefined,
+            data_wydania: filter.release_date
+                ? {
+                    od: filter.release_date.from.toISOString().split('T')[0],
+                    do: filter.release_date.to.toISOString().split('T')[0],
+                }
+                : undefined,
+        };
     }
 
     const requestUrl = `${API_URL}/api/books/search`;
@@ -440,12 +438,31 @@ export async function fetchAdminCatalogRequest(
     }
 
     if (!r.ok) {
-        throw new RequestError("Błąd pobierania katalogu książek");
+        throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
     }
 
-    const data = (await r.json()) as PagedResponse<BookAdmin>;
-    console.log('Response data:', data);
-    return data;
+    const json: any = await r.json();
+    console.log("Response data:", json);
+
+    const ksiazki: any[] = Array.isArray(json?.ksiazki) ? json.ksiazki : [];
+
+    return {
+        result: ksiazki.map((b: any): BookAdmin => ({
+            book_id: b?.Bookid != null ? Number(b.Bookid) : undefined,
+            title: String(b?.tytul ?? ""),
+            authors: Array.isArray(b?.autor) ? b.autor.map((a: any) => String(a)) : [],
+            publish_year: Number(b?.rok_wydania ?? 0),
+            isbn_number: String(b?.isbn ?? ""),
+            length: b?.liczba_stron != null ? Number(b.liczba_stron) : undefined,
+            language: b?.jezyk != null ? String(b.jezyk) : undefined,
+            publisher: b?.wydawnictwo != null ? String(b.wydawnictwo) : undefined,
+            keywords: [], // endpoint doesn't return them
+            genre: Array.isArray(b?.gatunek) ? b.gatunek.map((g: any) => String(g)) : [],
+            instances: [], // endpoint doesn't return per-instance list; details endpoint does
+        })),
+        totalPages: Number(json?.totalPages ?? 1),
+        totalResults: Number(json?.totalResults ?? ksiazki.length),
+    };
 }
 /**
  * Pobiera szczegółowe informacje o książce dla pracownika.

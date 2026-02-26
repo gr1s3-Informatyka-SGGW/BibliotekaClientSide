@@ -95,6 +95,7 @@ export class TargetNotFoundError extends RequestError{
  *
  * @throws {AccessDeniedError} Gdy token administratora nie został znaleziony w localStorage
  */
+// todo: nie wiem po co to istnieje
 export function adminHeaders() : { "Content-Type": string, Authorization: string }{
     if (MOCK_AUTH === 'admin'){
         return {
@@ -137,6 +138,12 @@ export function authHeaders(): { "Content-Type": string, Authorization: string }
         return {
             "Content-Type": "application/json",
             Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzE5NDY1ODl9.zrRnKFqHNGy9jElZYJSjyels1fcQmSIa2Xf-Wo5rwY8`
+        }
+    }
+    if (MOCK_AUTH === 'admin'){
+        return {
+            "Content-Type": "application/json",
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6IldPUktFUiIsImlhdCI6MTc3MTk0NjM5OH0.J8xSE_b2OpMFfCWoPmc3asjTtmDpesGd6MxcUH7xwSk`
         }
     }
     if(MOCK_AUTH == 'noauth' || !localStorage){
