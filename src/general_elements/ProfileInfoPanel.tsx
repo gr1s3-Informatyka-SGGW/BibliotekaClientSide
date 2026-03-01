@@ -506,6 +506,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                 <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
 
                 <table className="profile-data-container">
+                    <tbody>
                     {(['name', 'surname', 'email'] as const).map(field => (
                         <tr key={field} className="profile-row">
                             <td>
@@ -548,6 +549,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                             </td>
                         </tr>
                     )}
+                    </tbody>
                 </table>
 
                 <div className="flex-column" style={{ gap: '1em' }}>

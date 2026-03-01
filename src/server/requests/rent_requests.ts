@@ -1,8 +1,6 @@
 /**
  * @file Moduł funkcji związanych z rezerwacjami i wypożyczaniami książek. Obsługuje zapytania wypożyczania, rezerwacji, przedłużania wypożyczenia i odbioru
  * */
-
-
 import {API_URL, authHeaders, InvalidRequestDataError, RequestError} from "./connection.ts";
 
 /**
@@ -16,7 +14,6 @@ import {API_URL, authHeaders, InvalidRequestDataError, RequestError} from "./con
  * @throws {InvalidRequestDataError} Gdy id książki jest niepoprawne
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
-// todo: check
 export async function rentBookRequest(instance_id: number): Promise<void> {
     if (instance_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID egzemplarza", false);
@@ -34,30 +31,30 @@ export async function rentBookRequest(instance_id: number): Promise<void> {
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
+    if (r.status > 400 && r.status < 500) {
         throw new RequestError(
             "Nie można wypożyczyć książki (brak dostępnych egzemplarzy lub już wypożyczona)"
         );
     }
 
     if (!r.ok) {
-        throw new RequestError("Błąd wypożyczenia książki");
+        throw new RequestError("Błąd wypożyczenia książki: " + r.statusText);
     }
 }
 
 /**
  * Przedłuża wypożyczenie książki.
  *
- * @param {number} rent_id Id wypożyczenia
  *
  * @returns {Promise<void>}
  *
  * @throws {AccessDeniedError}
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
+ * @param instance_id
  */
-export async function extendRentRequest(rent_id: number): Promise<void> {
-    if (rent_id <= 0) {
+export async function extendRentRequest(instance_id: number): Promise<void> {
+    if (instance_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
     }
 
@@ -65,21 +62,25 @@ export async function extendRentRequest(rent_id: number): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({rent_id}),
+        body: JSON.stringify({Copyid: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError("Błąd przedłużania wypożyczenia");
+        if( r.status === 400)
+            throw new RequestError("Błąd przedłużenia: wypożyczenie nie istnieje")
+        if(r.status === 401)
+            throw new RequestError("Błąd przedłużenia: dana książka nie jest wypożyczona przez użytkownika zlecającego przedłużenie")
+        throw new RequestError("Nieprzewidzany błąd przedłużania wypożyczenia");
     }
 }
 
 /**
  * Zwraca wypożyczoną książkę.
  *
- * @param {number} rent_id Id wypożyczenia
+ * @param {number} instance_id Id zwracanej kopii
  *
  * @returns {Promise<void>}
  *
@@ -87,8 +88,8 @@ export async function extendRentRequest(rent_id: number): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
-export async function returnBookRequest(rent_id: number): Promise<void> {
-    if (rent_id <= 0) {
+export async function returnBookRequest(instance_id: number): Promise<void> {
+    if (instance_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID wypożyczenia", false);
     }
 
@@ -96,14 +97,18 @@ export async function returnBookRequest(rent_id: number): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({rent_id}),
+        body: JSON.stringify({Copyid: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError("Błąd zwrotu książki");
+        if( r.status === 400)
+            throw new RequestError('Błąd przy zwrocie książki: nie znaleziono wypożyczenia')
+        if(r.status === 403)
+            throw new RequestError('Błąd przy zwrocie książki: dana książka nie jest wypożyczona przez zwracającego użytkownika')
+        throw new RequestError("Nieznany błąd zwrotu książki");
     }
 }
 
@@ -127,21 +132,23 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({book_id}),
+        body: JSON.stringify({Bookid: book_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError("Błąd rezerwacji książki");
+        if( r.status === 400)
+            throw new RequestError("Błąd przy rezerwacji książki: Brak dostępnych egzemplarza do zarezerwowania")
+        throw new RequestError("Nieprzewidzany błąd rezerwacji książki");
     }
 }
 
 /**
  * Odbiera zarezerwowaną książkę.
  *
- * @param {number} reservation_id Id rezerwacji
+ * @param {number} instance_id Id zarezerwowanego egzemplarza
  *
  * @returns {Promise<void>}
  *
@@ -150,9 +157,9 @@ export async function reserveBookRequest(book_id: number): Promise<void> {
  * @throws {RequestError} niespodziewany błąd serwera
  */
 export async function claimReservationRequest(
-    reservation_id: number
+    instance_id: number
 ): Promise<void> {
-    if (reservation_id <= 0) {
+    if (instance_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
     }
 
@@ -160,20 +167,24 @@ export async function claimReservationRequest(
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({reservation_id}),
+        body: JSON.stringify({Copyid: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError("Błąd odbioru rezerwacji");
+        if( r.status === 400)
+            throw new RequestError('Błąd przy odbieraniu książki: książka nie jest zarezerwowana lub egzemplarz o tym numerze nie istnieje')
+        if(r.status === 403)
+            throw new RequestError('Błąd przy odbieraniu książki: dana książka nie jest zarezerwowana przez odbierającego użytkownika')
+        throw new RequestError("Nieprzewidziany błąd odbioru rezerwacji");
     }
 }
 /**
  * Anuluje rezerwację książki.
  *
- * @param {number} reservation_id Id rezerwacji
+ * @param instance_id
  *
  * @returns {Promise<void>}
  *
@@ -182,9 +193,9 @@ export async function claimReservationRequest(
  * @throws {RequestError} niespodziewany błąd serwera
  */
 export async function cancelReservationRequest(
-    reservation_id: number
+    instance_id: number
 ): Promise<void> {
-    if (reservation_id <= 0) {
+    if (instance_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID rezerwacji", false);
     }
 
@@ -192,13 +203,17 @@ export async function cancelReservationRequest(
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({reservation_id}),
+        body: JSON.stringify({Copyid: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError("Błąd anulowania rezerwacji");
+        if( r.status === 400)
+            throw new RequestError("Błąd przy anulowaniu rezerwacji: podany egzemplarz nie jest zarezerwowany lub nie istnieje")
+        if(r.status === 403)
+            throw new RequestError("Błąd przy anulowaniu rezerwacji: podany egzemplarz nie jest zarezewowany przez tego użytkownika")
+        throw new RequestError("Nieprzewidziany błąd anulowania rezerwacji");
     }
 }

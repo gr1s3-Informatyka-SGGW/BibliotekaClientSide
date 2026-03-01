@@ -335,11 +335,6 @@ function CatalogView(): JSX.Element {
 
     }
 
-    const onRentBookPressed = (book: BookUser) => {
-        setShownPopup("rentConfirm");
-        setPopupData({ book: book });
-    }
-
     const onReserveBookPressed = (book: BookUser) => {
         setShownPopup("reserveConfirm");
         setPopupData({ book: book });
@@ -521,12 +516,10 @@ function CatalogView(): JSX.Element {
             await refreshBook(book.book_id);
             setPopupData({ book: book });
             setShownPopup("rentSuccess");
-            return;
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("rentError");
-            return;
         }
     }
 
@@ -907,7 +900,6 @@ function CatalogView(): JSX.Element {
                 {!isLibrarian && books && books.map((book, index) => (
                     <UserBookComponent
                         book_info={book as BookUser} key={book.book_id || index}
-                        onRentBookPressed={onRentBookPressed}
                         onReserveBookPressed={onReserveBookPressed}
                     />
                 ))}

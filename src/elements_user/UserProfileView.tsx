@@ -2,7 +2,7 @@
  * @file Plik obsługujący stronę /profile-user
  * @author Natalia Bardadyn
  * */
-import React, { useContext, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
 import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
@@ -29,24 +29,27 @@ export default function UserProfileView() {
 
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [isAPIError, setIsAPIError] = useState(false);
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                setUserRents(await fetchBorrowedBooksRequest())
+                setUserReservations(await fetchReservedBooksRequest());
+            }
+            catch (error: any) {
+                setIsAPIError(true);
+                setErrorMessage(error.message);
+            }
+        };
+        void loadData();
+    }, []);
 
-    const loadData = async () => {
-        try {
-            setUserRents(await fetchBorrowedBooksRequest())
-            setUserReservations(await fetchReservedBooksRequest());
-        }
-        catch (error: any) {
-            setIsAPIError(true);
-            setErrorMessage(error.message);
-        }
-    };
 
     return (
         <>
             {/* Sidebar nawigacyjny */}
             <NavSidebar />
 
-            <main className="user-profile-view" onLoad={loadData}>
+            <main className="user-profile-view">
                 {/* 1. Nagłówek: Ikona i Tytuł */}
                 <div style={{
                     textAlign: 'center',
