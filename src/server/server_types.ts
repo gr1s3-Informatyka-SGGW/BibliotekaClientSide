@@ -85,10 +85,12 @@ export interface Rent{
 /**
  * @type Reservation zawiera dane na temat rezerwacji książki
  * @prop {Book} book - informacje o wypożyczonej książce
+ * @prop {number} [instance_id] - id książki, która została zarezerwowana (przypisane przez serwer)
  * @prop {Date} reserve_to - data, do której obowiązuje rezerwacja
  * */
 export interface Reservation{
     book: Book
+    instance_id?: number;
     reserve_to: Date
 }
 /**

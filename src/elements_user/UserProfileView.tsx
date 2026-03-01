@@ -8,8 +8,8 @@ import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
 import { AuthContext } from "../server/UserAuth.tsx";
 
-import {fetchBorrowedBooksRequest, fetchReservedBooksRequest} from '../server/server_requests.ts';
-import { type Rent, type Reservation } from '../server/server_types.ts';
+import {fetchBorrowedBooksRequest, fetchReservedBooksRequest, fetchUserInfoRequest} from '../server/server_requests.ts';
+import {type Rent, type Reservation, type User} from '../server/server_types.ts';
 
 import accountCircleIcon from '/assets/account_circle.svg';
 import bookIcon from '/assets/book.svg';
@@ -24,14 +24,16 @@ import {Alert} from "../custom_components/Popup.tsx";
 export default function UserProfileView() {
     const session = useContext(AuthContext);
 
-    const [userRents, setUserRents] = useState<Rent[]>([]);
-    const [userReservations, setUserReservations] = useState<Reservation[]>([]);
+    const [userInfo, setUserInfo] = useState<User | undefined>(undefined);
+    const [userRents, setUserRents] = useState<Rent[] | undefined>(undefined);
+    const [userReservations, setUserReservations] = useState<Reservation[] | undefined>(undefined);
 
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [isAPIError, setIsAPIError] = useState(false);
     useEffect(() => {
         const loadData = async () => {
             try {
+                setUserInfo(await fetchUserInfoRequest())
                 setUserRents(await fetchBorrowedBooksRequest())
                 setUserReservations(await fetchReservedBooksRequest());
             }
@@ -90,12 +92,7 @@ export default function UserProfileView() {
 
                     {/* LEWA KOLUMNA: Panel profilu */}
                     <div style={{ width: '22em'}}>
-                        <ProfileInfoPanel info={session?.session?.user || {
-                            name: "Jan",
-                            surname: "Kowalski",
-                            email: "jan@example.com",
-                            credit_card_number: "1234567812345678"
-                        }} />
+                        {userInfo ? <ProfileInfoPanel info={userInfo} access={'user'} /> : <></>}
                     </div>
 
                     {/* PRAWA KOLUMNA: Listy książek */}
@@ -103,6 +100,7 @@ export default function UserProfileView() {
                         display: 'flex',
                         flexDirection: 'column'
                     }}>
+                    {userReservations &&
                         <ProfileBookList
                             header="Zarezerwowane książki"
                             icon={ribbonIcon}
@@ -111,7 +109,8 @@ export default function UserProfileView() {
                                 <ReservationComponent key={res.book.book_id} info={res} />
                             ))}
                         </ProfileBookList>
-
+                    }
+                    {userRents &&
                         <ProfileBookList
                             header="Wypożyczone książki"
                             icon={bookIcon}
@@ -120,6 +119,8 @@ export default function UserProfileView() {
                                 <RentComponent key={rent.book.book_id} info={rent} />
                             ))}
                         </ProfileBookList>
+                    }
+
                     </div>
                 </div>
             </main>

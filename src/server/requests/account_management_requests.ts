@@ -152,7 +152,7 @@ export async function addAdminRequest(
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({name, surname, email, password}),
+        body: JSON.stringify({name, surname, email, password, phone: ''}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
@@ -175,10 +175,7 @@ export async function changeClientDataRequest(name: string, surname: string): Pr
     const requestUrl = `${API_URL}/api/users/editClientData`;
     const requestOptions = {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: authHeaders(),
         body: JSON.stringify({
             name: name,
             surname: surname
@@ -207,14 +204,11 @@ export async function changeClientCreditCardRequest({number, cvv, exp_date}: Cre
     const requestUrl = `${API_URL}/api/users/editClientCreditCard`;
     const requestOptions = {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: authHeaders(),
         body: JSON.stringify({
             number: number,
             cvv: cvv,
-            exp_date: exp_date
+            expDate: exp_date
         }),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -252,13 +246,10 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
     const requestUrl = `${API_URL}/api/users/newPassword`;
     const requestOptions = {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: authHeaders(),
         body: JSON.stringify({
-            old_password: old_password,
-            new_password: new_password
+            oldPassword: old_password,
+            newPassword: new_password
         }),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -291,6 +282,7 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
+// todo: brak danych do wykonania requesta, brakuje: userId, email nie potrzebny
 export async function removeUserRequest(email: string): Promise<void> {
     if (!email) {
         throw new InvalidRequestDataError("Email jest wymagany", false);
@@ -333,10 +325,7 @@ export async function toggleUserBlockRequest(
     const requestUrl = `${API_URL}/api/users/toggleBlock`;
     const requestOptions = {
         method: "POST",
-        headers: {
-            ...authHeaders(),
-            "Content-Type": "application/json",
-        },
+        headers: authHeaders(),
         body: JSON.stringify({
             userId,
             status,

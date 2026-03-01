@@ -9,7 +9,7 @@ import accountCircleIcon from '/assets/account_circle.svg';
 import Popup from "../custom_components/Popup.tsx";
 import { validators } from '../server/validators.ts';
 import CustomTooltip from '../custom_components/CustomTooltip.tsx';
-import { changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../server/server_requests.ts";
+import { fetchUserInfoRequest, changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../server/server_requests.ts";
 
 import './ProfileInfoPanel.css';
 
@@ -31,7 +31,7 @@ interface CardFormState {
     expiryDate: string;
     cvv: string;
 }
-type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword']?: string };
+type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword' | 'oldPassword']?: string };
 
 /**
  * Komponent panelu profilu użytkownika.
@@ -146,9 +146,9 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             this.setState({
                 editMode: false,
                 formData: {
-                    name: this.state.user.name,
-                    surname: this.state.user.surname,
-                    email: this.state.user.email,
+                    name: this.props.info.name,
+                    surname: this.props.info.surname,
+                    email: this.props.info.email,
                 },
                 formErrors: {}
             });
@@ -186,7 +186,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                 }));
             } catch (err) {
                 console.error("Błąd zapisu danych:", err);
-                alert("Nie udało się zapisać zmian (Błąd serwera lub brak implementacji).");
                 this.setState({ showGeneralError: true });
             }
         } else {
@@ -201,7 +200,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
     changePassword(): React.ReactNode {
         const { formErrors, passwordData } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
-        const errorStyle: React.CSSProperties = { color: '#d32f2f', fontSize: '0.75rem', marginTop: '0.2em' };
         const isInvalid = !!formErrors.password || !!formErrors.confirmPassword || !passwordData.oldPass || !passwordData.newPass || !passwordData.confirmPass;
 
         return (
@@ -224,20 +222,18 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                         }
 
                         try {
-                            await changeClientPasswordRequest(
-                                passwordData.oldPass,
-                                passwordData.newPass
-                            );
-
-                            alert("Hasło zostało zmienione pomyślnie.");
+                            await changeClientPasswordRequest(passwordData.oldPass, passwordData.newPass);
                             this.setState({
                                 isPasswordOpen: false,
                                 formErrors: {},
-                                passwordData: { oldPass: '', newPass: '', confirmPass: '' }
+                                passwordData: { oldPass: '', newPass: '', confirmPass: ''}
                             });
                         } catch (err) {
                             console.error("Błąd zmiany hasła:", err);
-                            alert("Nie udało się zmienić hasła. Sprawdź poprawność starego hasła lub spróbuj później.");
+                            this.setState({
+                                isPasswordOpen: true,
+                                formErrors: {oldPassword: "Nie udało się zmienić hasła. Sprawdź poprawność starego hasła lub spróbuj później."},
+                            });
                         }
                     }}>
 
@@ -246,12 +242,15 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                             <input
                                 type="password"
                                 required
-                                placeholder=""
                                 value={passwordData.oldPass}
                                 onChange={(e) => this.setState({
                                     passwordData: { ...passwordData, oldPass: e.target.value }
                                 })}
-                                style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                style={{ padding: '8px', borderRadius: '0.75em',
+                                    border: formErrors.oldPassword ? '1px solid #d32f2f' : '1px solid #ccc',
+                                    backgroundColor: formErrors.oldPassword ? '#fff8f8' : 'white',
+                                    outline: 'none'
+                                }}
                             />
                         </div>
 
@@ -288,6 +287,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
 
                         <div className="flex-column">
                             <label htmlFor='password-input'>Powtórz nowe hasło:</label>
+                            <CustomTooltip title={formErrors.confirmPassword}>
                             <input
                                 id='password-input'
                                 type="password"
@@ -312,8 +312,14 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                     });
                                 }}
                             />
-                            {formErrors.confirmPassword && <span style={errorStyle}>{formErrors.confirmPassword}</span>}
+                            </CustomTooltip>
+
                         </div>
+                        <div className='flex-row'>
+                            {formErrors.oldPassword && <span className='errorStyle'>{formErrors.oldPassword}</span>}
+                        </div>
+
+
 
                         <div className="flex-row responsive-buttons" style={{ gap: '0.5em', marginTop: '1em' }}>
                             <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isPasswordOpen: false, formErrors: {} })}>
@@ -484,7 +490,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
      * Renderuje interfejs użytkownika panelu profilu.
      */
     render() {
-        const { user, formData, formErrors, editMode } = this.state;
+        const {user, formData, formErrors, editMode } = this.state;
         const isClient = this.props.access !== 'admin';
         const mainColor = ProfileInfoPanel.mainColor;
         const inputStyle: React.CSSProperties = {
@@ -515,12 +521,12 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                 </label>
                             </td>
 
-                            {editMode ? (
+                            {editMode && field !== 'email' ? (
                                 <td style={{ flex: '0 1 300px', width: '100%'}}>
                                     <CustomTooltip title={formErrors[field] || ""}>
                                         <input
                                             name={field}
-                                            type={field === 'email' ? 'email' : 'text'}
+                                            type='text'
                                             value={formData[field]}
                                             style={{ ...inputStyle, width: '100%' }}
                                             onChange={(e) => {

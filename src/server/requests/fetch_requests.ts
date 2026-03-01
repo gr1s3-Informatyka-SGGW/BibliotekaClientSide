@@ -223,6 +223,7 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
             keywords: undefined,
             genre: undefined,
         },
+        instance_id: item.Copyid,
         reserve_to: new Date(item.dataKoncaRezerwacji),
     }));
 }
