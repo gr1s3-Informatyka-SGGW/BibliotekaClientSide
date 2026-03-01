@@ -6,7 +6,6 @@ import { Component, type JSX } from "react";
 import Collapsible from '../custom_components/Collapsible.tsx'
 import bookIcon from '/assets/book.svg'
 import { type BookUser } from "../server/server_types.ts"
-import { rentBookRequest, reserveBookRequest } from "../server/server_requests.ts";
 
 /**
  * Właściwości (props) dla komponentu UserBookComponent.
@@ -53,7 +52,7 @@ class UserBookComponent extends Component<Props, State> {
 
         const disableRentButton = (b.instances.available === 0);
         const disableReserveButton = (b.instances.available === 0);
-
+        console.log(b)
         return <div className="book">
             <div className="header-actions">
                 <h3 className="header">
@@ -76,7 +75,7 @@ class UserBookComponent extends Component<Props, State> {
                     <span className="label">Język:</span> <span>{b.language}</span>
                     <span className="label">Liczba stron:</span> <span>{b.length}</span>
                     <span className="label">Dostępne egzemplarze:</span> <span>{instances}</span>
-                    <span className="label">Tagi:</span> <div className="tags">{b.keywords.map((keyword, index) => (<div className="tag" key={index}>{keyword}</div>))}</div>
+                    {/*<span className="label">Tagi:</span> <div className="tags">{b.keywords.map((keyword, index) => (<div className="tag" key={index}>{keyword}</div>))}</div>*/}
                 </div>
             </Collapsible>
         </div>

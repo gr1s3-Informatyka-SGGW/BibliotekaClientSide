@@ -1,7 +1,7 @@
 /** @file Moduł funkcji związanych z zarządzaniem książką i jej egzemplarzami: dodawaniem, edycją i zmianami statusu
  * */
 
-import {adminHeaders, API_URL, InvalidRequestDataError, RequestError, TargetNotFoundError} from "./connection.ts";
+import {authHeaders, API_URL, InvalidRequestDataError, RequestError, TargetNotFoundError} from "./connection.ts";
 import type {Book} from "../server_types.ts";
 
 /**
@@ -24,7 +24,7 @@ export async function addBookRequest(
     const requestUrl = `${API_URL}/api/books/addBook`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({
             ...book,
             ilosc_egzemplarzy: instance_number,
@@ -71,7 +71,7 @@ export async function removeBookRequest(book_id: number): Promise<void> {
     const requestUrl = `${API_URL}/api/books/delete`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({id_ksiazki: book_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -105,7 +105,7 @@ export async function editBookRequest(book: Book): Promise<void> {
     const requestUrl = `${API_URL}/api/books/edit`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify(book),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -139,7 +139,7 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
     const requestUrl = `${API_URL}/api/books/addCopy`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({book_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -170,7 +170,7 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
     const requestUrl = `${API_URL}/api/copies/delete`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({id_egzemplarza: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -207,7 +207,7 @@ export async function markMendedBookInstanceRequest(
     const requestUrl = `${API_URL}/api/copies/markUndestroyed`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({id_egzemplarza: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -242,7 +242,7 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
     const requestUrl = `${API_URL}/api/books/copies/markDestroyed`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({id_egzemplarza: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);

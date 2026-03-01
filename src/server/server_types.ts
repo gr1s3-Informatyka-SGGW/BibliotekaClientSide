@@ -32,15 +32,15 @@ export interface Book{
     title: string;
     authors: string[];
 
-    publish_year: number;
-    isbn_number: string;
+    publish_year?: number;
+    isbn_number?: string;
 
     length?: number;
     language?: string;
     publisher?: string;
 
-    keywords: string[];
-    genre: string[];
+    keywords?: string[];
+    genre?: string[];
 }
 
 /**

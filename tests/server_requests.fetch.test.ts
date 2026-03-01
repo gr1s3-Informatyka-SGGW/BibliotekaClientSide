@@ -15,15 +15,15 @@ describe('Test funkcji z pliku fetch_requests.ts bez wymagań co do uprawnień',
         setMockAuth('noauth')
         let data = await fetchFiltersRequest();
         expect(data).to.deep.equal({
-            author: ['Andrzej Sapkowski', 'Janusz Tester'],
-            genre: [],
+            author: ['Sapkowski', 'Tester'],
+            genre: ["Fantasy"],
             language: ['PL'],
             publisher: ['Wydawnictwo Testowe'],
             release_date: {
                 from: new Date('Mon Jan 01 1990 00:00:00 GMT+0100 (czas środkowoeuropejski standardowy)'),
                 to: new Date('Tue Dec 31 2024 00:00:00 GMT+0100 (czas środkowoeuropejski standardowy)')
             },
-            tags: []
+            tags: ['cool']
         } as BookSearchFilter)
         setMockAuth(false)
     })
@@ -95,13 +95,6 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
                     "authors": [
                         "Andrzej Sapkowski"
                     ],
-                    "publish_year": 0,
-                    "isbn_number": "",
-                    "length": 0,
-                    "language": "",
-                    "publisher": "",
-                    "keywords": [],
-                    "genre": []
                 },
                 "reserve_to": new Date("2026-03-10T00:00:00.000Z")
             }
@@ -114,7 +107,7 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
     })
     test('Test funkcji `fetchUserCatalogRequest`', async () => {
         setMockAuth('user')
-        let data = await fetchUserCatalogRequest();
+        let data = await fetchUserCatalogRequest('');
         expect(data, "Domyślne wyszukanie").to.deep.equal({
             "result": [{
                 "book_id": "2",
@@ -134,7 +127,7 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
                 "publish_year": 1990,
                 "isbn_number": "111",
                 "publisher": "Wydawnictwo Testowe",
-                "genre": [],
+                "genre": ["Fantasy"],
                 "language": "PL",
                 "length": 300,
                 "instances": {"available": 1, "total": 2}
@@ -150,12 +143,105 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
                 "publish_year": 1990,
                 "isbn_number": "111",
                 "publisher": "Wydawnictwo Testowe",
-                "genre": [],
+                "genre": ['Fantasy'],
                 "language": "PL",
                 "length": 300,
                 "instances": {"available": 1, "total": 2}
             }], "totalPages": 1, "totalResults": 1
         })
+
+        data = await fetchUserCatalogRequest("", undefined, {publisher: ['Wydawnictwo Testowe']})
+        expect(data, "Przy filtrowaniu po wydawcy").to.deep.equal({
+            "result": [{
+                "book_id": "2",
+                "title": "Testowanie Softu",
+                "authors": ["Janusz Tester"],
+                "publish_year": 2024,
+                "isbn_number": "222",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": [],
+                "language": "PL",
+                "length": 150,
+                "instances": {"available": 1, "total": 3}
+            }, {
+                "book_id": "1",
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ['Fantasy'],
+                "language": "PL",
+                "length": 300,
+                "instances": {"available": 1, "total": 2}
+            }], "totalPages": 1, "totalResults": 2
+        })
+
+        data = await fetchUserCatalogRequest("", undefined, {language: ['PL']})
+        expect(data, "Przy filtrowaniu po języku").to.deep.equal({
+            "result": [{
+                "book_id": "2",
+                "title": "Testowanie Softu",
+                "authors": ["Janusz Tester"],
+                "publish_year": 2024,
+                "isbn_number": "222",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": [],
+                "language": "PL",
+                "length": 150,
+                "instances": {"available": 1, "total": 3}
+            }, {
+                "book_id": "1",
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ['Fantasy'],
+                "language": "PL",
+                "length": 300,
+                "instances": {"available": 1, "total": 2}
+            }], "totalPages": 1, "totalResults": 2
+        })
+
+        data = await fetchUserCatalogRequest("", undefined, {genre: ['Fantasy']})
+        expect(data, "Przy filtrowaniu po gatunku").to.deep.equal({"result":[{"book_id":"1","title":"Wiedźmin","authors":["Andrzej Sapkowski"],"publish_year":1990,"isbn_number":"111","publisher":"Wydawnictwo Testowe","genre":["Fantasy"],"language":"PL","length":300,"instances":{"available":1,"total":2}}],"totalPages":1,"totalResults":1})
+
+        data = await fetchUserCatalogRequest("", undefined, {author: ['Sapkowski']})
+        expect(data, "Przy filtrowaniu po autorze").to.deep.equal({
+            "result": [{
+                "book_id": "1",
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ['Fantasy'],
+                "language": "PL",
+                "length": 300,
+                "instances": {"available": 1, "total": 2}
+            }], "totalPages": 1, "totalResults": 1
+        })
+
+        // todo: wyszukiwanie po tagach powoduje błąd po stronie serwera
+        /* data = await fetchUserCatalogRequest("", undefined, {tags: ['cool']})
+         expect(data, "Przy filtrowaniu po tagach").to.deep.equal({
+            "result": [{
+                "book_id": "1",
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ["Fantasy"],
+                "language": "PL",
+                "length": 300,
+                "instances": {"available": 1, "total": 2}
+            }], "totalPages": 1, "totalResults": 1
+        })
+         */
+
+
 
         data = await fetchUserCatalogRequest('', undefined, undefined, 2)
         expect(data, "Gdy użyje błędnej strony").to.deep.equal({result: [], totalPages: 1, totalResults: 0})
@@ -177,8 +263,8 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
             ],
             "publish_year": 1990,
             "isbn_number": "111",
-            "keywords": [],
-            "genre": [],
+            "keywords": ['cool'],
+            "genre": ['Fantasy'],
             "instances": {
                 "available": 1,
                 "total": 2
@@ -226,7 +312,6 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "length": 150,
                 "language": "PL",
                 "publisher": "Wydawnictwo Testowe",
-                "keywords": [],
                 "genre": [],
                 "instances": [
                     {"id": 3, "status": "rented"},
@@ -242,9 +327,11 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "length": 300,
                 "language": "PL",
                 "publisher": "Wydawnictwo Testowe",
-                "keywords": [],
-                "genre": [],
-                "instances": [{"id": 2, "status": "reserved"}, {"id": 1, "status": "available"}]
+                "genre": ['Fantasy'],
+                "instances": [
+                    {"id": 2, "status": "reserved"},
+                    {"id": 1, "status": "available"},
+                ]
             }], "totalPages": 1, "totalResults": 2
         })
 
@@ -259,8 +346,7 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "length": 300,
                 "language": "PL",
                 "publisher": "Wydawnictwo Testowe",
-                "keywords": [],
-                "genre": [],
+                "genre": ['Fantasy'],
                 "instances": [{"id": 2, "status": "reserved"}, {"id": 1, "status": "available"}]
             }], "totalPages": 1, "totalResults": 1
         })
@@ -289,8 +375,8 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
             "publisher": "Wydawnictwo Testowe",
             "language": undefined,
             "length": undefined,
-            "keywords": [],
-            "genre": [],
+            "keywords": ['cool'],
+            "genre": ['Fantasy'],
             "instances": [{"id": 1, "status": "available"}, {"id": 2, "status": "reserved"}]
         })
 
@@ -325,37 +411,58 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
         let data = await fetchUserListRequest();
         expect(data, "Domyślne wyszukanie").to.deep.equal({
             "result": [
-            {
-                "user_id": 1,
-                "name": "Jan",
-                "surname": "Kowalski",
-                "email": "jan.kowalski@test.pl",
-                "status": "user",
-                "currently_rented": [],
-                "currently_reserved": []
-            },
-            {
-                "user_id": 3,
-                "name": "Anna",
-                "surname": "Nowak",
-                "email": "anna.nowak@test.pl",
-                "status": "blocked",
-                "currently_rented": [],
-                "currently_reserved": []
-            },
-            {
-                "user_id": 2,
-                "name": "Marek",
-                "surname": "Testowy",
-                "email": "marek@test.pl",
-                "status": "user",
-                "currently_rented": [],
-                "currently_reserved": []
-            }], "totalPages": 1, "totalResults": 3
+                {
+                    "user_id": 1,
+                    "name": "Jan",
+                    "surname": "Kowalski",
+                    "email": "jan.kowalski@test.pl",
+                    "status": "user",
+                    "currently_rented": [],
+                    "currently_reserved": []
+                },
+                {
+                    "currently_rented": [],
+                    "currently_reserved": [],
+                       "email": "jan.kowalski@gmail.com",
+                   "name": "Jan",
+                   "status": "user",
+                   "surname": "Kowalski",
+                   "user_id": 4,
+                },
+                {
+                    "currently_rented": [],
+                    "currently_reserved": [],
+                       "email": "anna.maria@gmail.com",
+                   "name": "Anna",
+                   "status": "user",
+                   "surname": "Maria",
+                   "user_id": 5,
+                 },
+
+
+        {
+                    "user_id": 3,
+                    "name": "Anna",
+                    "surname": "Nowak",
+                    "email": "anna.nowak@test.pl",
+                    "status": "blocked",
+                    "currently_rented": [],
+                    "currently_reserved": []
+                },
+                {
+                    "user_id": 2,
+                    "name": "Marek",
+                    "surname": "Testowy",
+                    "email": "marek@test.pl",
+                    "status": "user",
+                    "currently_rented": [],
+                    "currently_reserved": []
+                }], "totalPages": 1, "totalResults": 5
         })
         data = await fetchUserListRequest("Ja");
         expect(data, "Przy filtrowaniu po tytule").to.deep.equal({
-            "result": [{
+            "result": [
+                {
                 "user_id": 1,
                 "name": "Jan",
                 "surname": "Kowalski",
@@ -363,7 +470,18 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "status": "user",
                 "currently_rented": [],
                 "currently_reserved": []
-            }], "totalPages": 1, "totalResults": 1
+                },
+                {
+                    "currently_rented": [],
+                    "currently_reserved": [],
+                    "email": "jan.kowalski@gmail.com",
+                    "name": "Jan",
+                    "status": "user",
+                    "surname": "Kowalski",
+                    "user_id": 4,
+                },
+
+    ], "totalPages": 1, "totalResults": 2
         })
 
         setMockAuth('noauth')

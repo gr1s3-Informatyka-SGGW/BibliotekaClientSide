@@ -86,7 +86,7 @@ const fetchBookRequest = (isLibrarian: boolean, book_id: number):
 /**
  * Komponent funkcyjny reprezentujący główny widok katalogu.
  * Zarządza stanem filtrów, sortowania, paginacji oraz synchronizuje dane z serwerem.
- * * @component
+ * @component
  * @returns {JSX.Element} Wyrenderowany widok katalogu z panelami bocznymi, filtrami i listą wyników.
  */
 function CatalogView(): JSX.Element {
@@ -195,7 +195,7 @@ function CatalogView(): JSX.Element {
             setSearchParams(params, { replace: true });
         }
 
-    }, [activeFilters, sorting, search, currentPage, setSearchParams, searchParams]);
+    }, [activeFilters, sorting, search, currentPage, searchParams]);
 
     // 2. Sync URL -> State (Handle Back Button / External Navigation)
     useEffect(() => {
@@ -280,11 +280,8 @@ function CatalogView(): JSX.Element {
         (async () => {
             await fetchBooksAndScrollToTop();
         })()
-    }, [activeFilters, sorting, search, currentPage, fetchBooksAndScrollToTop]);
+    }, [activeFilters, sorting, search, currentPage]);
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [activeFilters, sorting, search])
 
     const handleResetFilters = () => {
         setSearch({ search: "" });
@@ -318,6 +315,7 @@ function CatalogView(): JSX.Element {
 
         return "Katalog jest obecnie pusty.";
     })();
+
     const onRentBookScanned = async (scanned_str: string) => {
         let parsed_data: {instance: number, book: number};
         let book_info: Book;
@@ -802,7 +800,7 @@ function CatalogView(): JSX.Element {
         <main>
         <h1><img src={catalogIcon} alt="" /> Katalog</h1>
         <div>
-            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); }} defaultValue={search?.search ?? ""}
+            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); setCurrentPage(1); }} defaultValue={search?.search ?? ""}
                 scanButtonFunction={onRentBookScanned}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
                 <CustomSelect filterKey="" label="Sortuj" initialValues={(() => {
@@ -931,7 +929,7 @@ function CatalogView(): JSX.Element {
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={(page: number) => { setCurrentPage(page); }}
+                    onPageChange={(page: number) => { setCurrentPage(page);  }}
                 />
             )}
         </div>

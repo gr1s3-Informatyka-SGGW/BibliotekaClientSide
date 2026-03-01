@@ -39,9 +39,9 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
     const requestOptions = {
         headers: authHeaders()
     };
-    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+    // console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
-    console.log('Response from:', requestUrl, 'Status:', r.status);
+    // console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
         if (r.status === 400) throw new RequestError("Nie znaleziono użytkownika dla tokenu");
@@ -63,7 +63,7 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
         : undefined;
 
     return {
-        author: resp.autorzy || [],
+        author: resp.autorzy ? resp.autorzy.map((v: string) => v.split(' ')[1]) : [],
         genre: resp.gatunki || [],
         publisher: resp.wydawcy || [],
         tags: resp.tagi || [],
@@ -215,13 +215,13 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
             title: item.tytul,
             authors: [item.autor],
 
-            publish_year: 0,
-            isbn_number: "",
-            length: 0,
-            language: "",
-            publisher: "",
-            keywords: [],
-            genre: [],
+            publish_year: undefined,
+            isbn_number: undefined,
+            length: undefined,
+            language: undefined,
+            publisher: undefined,
+            keywords: undefined,
+            genre: undefined,
         },
         reserve_to: new Date(item.dataKoncaRezerwacji),
     }));
@@ -231,6 +231,8 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
  * Pobiera katalog użytkownika zgodnie ze specyfikacją API.
  */
 // todo: stronicowanie coś nie teges bo server o nim nie informuje
+// todo: nie zwraca słów kluczowych (keywords)
+// todo: sortowanie po autorach odbywa się tylko po nazwiskach
 export async function fetchUserCatalogRequest(
     search: string = '',
     sort?: SearchSort,
@@ -252,11 +254,11 @@ export async function fetchUserCatalogRequest(
             : undefined,
         filtry: filter
             ? {
-                autor: filter.author ?? [],
-                gatunek: filter.genre ?? [],
-                wydawca: filter.publisher ?? [],
-                tagi: filter.tags ?? [],
-                jezyk: filter.language ?? [],
+                autor: filter.author ?? undefined,
+                gatunek: filter.genre ?? undefined,
+                wydawca: filter.publisher ?? undefined,
+                tagi: filter.tags ?? undefined,
+                jezyk: filter.language ?? undefined,
                 data_wydania: filter.release_date
                     ? {
                         od: filter.release_date.from.toISOString().split("T")[0],
@@ -471,7 +473,6 @@ export async function fetchAdminCatalogRequest(
             language: b?.jezyk != null ? String(b.jezyk) : undefined,
             publisher: b?.wydawnictwo != null ? String(b.wydawnictwo) : undefined,
 
-            keywords: [], // search endpoint doesn't return keywords
             genre: Array.isArray(b?.gatunek) ? b.gatunek.map((g: any) => String(g)) : [],
 
             // IMPORTANT: BookAdmin requires instances[], and search endpoint returns `egzemplarze`

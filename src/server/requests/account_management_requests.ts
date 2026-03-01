@@ -3,7 +3,6 @@
  */
 import {
     AccessDeniedError,
-    adminHeaders,
     API_URL,
     authHeaders,
     InvalidRequestDataError,
@@ -107,7 +106,7 @@ export async function registerRequest(name:string, surname:string, email:string,
     console.log('Response from:', requestUrl, 'Status:', response.status, 'Data:', data);
 
 
-    if (response.status === 201) {
+    if (response.status >= 200 && response.status < 300) { // success
         return;
     }
 
@@ -152,7 +151,7 @@ export async function addAdminRequest(
     const requestUrl = `${API_URL}/api/users/registerWorker`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({name, surname, email, password}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -300,7 +299,7 @@ export async function removeUserRequest(email: string): Promise<void> {
     const requestUrl = `${API_URL}/api/users/deleteUser`;
     const requestOptions = {
         method: "POST",
-        headers: adminHeaders(),
+        headers: authHeaders(),
         body: JSON.stringify({email}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
@@ -335,7 +334,7 @@ export async function toggleUserBlockRequest(
     const requestOptions = {
         method: "POST",
         headers: {
-            ...adminHeaders(),
+            ...authHeaders(),
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
