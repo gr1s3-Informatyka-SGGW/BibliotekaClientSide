@@ -7,13 +7,14 @@ import {
     fetchUserBookRequest, fetchUserCatalogRequest,
     fetchUserInfoRequest, fetchUserListRequest
 } from "../src/server/requests/fetch_requests";
+
 import {AccessDeniedError, InvalidRequestDataError, setMockAuth} from "../src/server/requests/connection";
 import {BookSearchFilter} from "../src/server/server_types";
 // todo: w readme musi być wytłumaczenie kiedy te testy działają
 describe('Test funkcji z pliku fetch_requests.ts bez wymagań co do uprawnień', () => {
     test('Test funkcji `fetchFiltersRequest`', async () => {
         setMockAuth('noauth')
-        let data = await fetchFiltersRequest();
+        const data = await fetchFiltersRequest();
         expect(data).to.deep.equal({
             author: ['Sapkowski', 'Tester'],
             genre: ["Fantasy"],
@@ -56,7 +57,7 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
     })
     test('Test funkcji `fetchBorrowedBooksRequest`', async () => {
         setMockAuth('user')
-        let data = await fetchBorrowedBooksRequest();
+        const data = await fetchBorrowedBooksRequest();
         expect(data).to.deep.equal([{
             "book": {
                 "title": "Testowanie Softu",
@@ -75,7 +76,7 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
             "return_date": new Date("2026-03-26T00:00:00.000Z")
         }])
         setMockAuth('blocked')
-        let blocked_data = await fetchBorrowedBooksRequest();
+        const blocked_data = await fetchBorrowedBooksRequest();
         expect(blocked_data).to.deep.equal([], "For user without any borrowed books, empty array should be returned")
 
         setMockAuth('noauth')
@@ -86,7 +87,7 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
     test('Test funkcji `fetchReservedBooksRequest`', async () => {
         setMockAuth('user')
 
-        let data = await fetchReservedBooksRequest();
+        const data = await fetchReservedBooksRequest();
         expect(data).toEqual([
             {
                 book: {
@@ -96,6 +97,7 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
                         "Andrzej Sapkowski"
                     ],
                 },
+                "instance_id": 2,
                 "reserve_to": new Date("2026-03-10T00:00:00.000Z")
             }
         ])

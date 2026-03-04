@@ -46,8 +46,8 @@ type State = object;
 export default class AdminBookComponent extends React.Component<Props, State> {
     render(): JSX.Element {
         const b = this.props.book_info;
-        const authors = b.authors.join(", ");
-        const genres = b.genre.join(", ");
+        const authors = b.authors && b.authors.length != 0 ? b.authors.join(", ") : "brak";
+        const genres = b.genre && b.genre.length != 0 ? b.genre?.join(", ") : "brak";
 
         const addInstance = this.props.onAddInstancePressed ?? ((b: BookAdmin) => { });
         const editBook = this.props.onEditBookPressed ?? ((b: BookAdmin) => { });
@@ -80,7 +80,7 @@ export default class AdminBookComponent extends React.Component<Props, State> {
                     <span className="label">Gatunek:</span> <span>{genres}</span>
                     <span className="label">Język:</span> <span>{b.language}</span>
                     <span className="label">Liczba stron:</span> <span>{b.length}</span>
-                    <span className="label">Tagi:</span> <div className="tags">{b.keywords.map((keyword, index) => (<div className="tag" key={index}>{keyword}</div>))}</div>
+                    {/*<span className="label">Tagi:</span> <div className="tags">{b.keywords?.map((keyword, index) => (<div className="tag" key={index}>{keyword}</div>))}</div>*/}
                 </div>
             </Collapsible>
             <Collapsible header="Egzemplarze">

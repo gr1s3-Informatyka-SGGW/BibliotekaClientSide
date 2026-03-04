@@ -136,7 +136,6 @@ export interface CustomSelectProps {
  * @property focusedIndex - Indeks aktualnie podświetlonego elementu (nawigacja klawiaturą)
  * @property position - Obliczona pozycja dropdowna względem przycisku aktywacji
  */
-// todo: potrafi wychodzić poza ekran
 interface CustomSelectState {
     isOpen: boolean;
     selectedValues: Set<string>;
@@ -221,7 +220,7 @@ export class CustomOption extends Component<CustomOptionProps> {
     render() {
         if (!this.context) return null;
 
-        const { selectedValues, searchQuery, focusedIndex } = this.context;
+        const { selectedValues, focusedIndex } = this.context;
         const { value, children, className, index } = this.props;
 
         const isSelected = selectedValues.has(value);

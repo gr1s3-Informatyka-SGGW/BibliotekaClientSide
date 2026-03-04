@@ -19,7 +19,7 @@ interface InstanceQRProps {
     instance_id: number[] | number;
     book_id: number;
     isOpen: boolean
-    setIsOpen: Dispatch<React.SetStateAction<boolean>>
+    setIsOpen: Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
     onClose?: () => void;
 }
 

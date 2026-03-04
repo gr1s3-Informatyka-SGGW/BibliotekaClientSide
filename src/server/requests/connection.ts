@@ -87,7 +87,10 @@ export class TargetNotFoundError extends RequestError{
 
 
 
-
+// Wczytanie tokenów z .env (Vite) zamiast stałych w kodzie
+const TEST_USER_TOKEN: string = import.meta.env.VITE_TEST_USER_TOKEN || "";
+const TEST_ADMIN_TOKEN: string = import.meta.env.VITE_TEST_ADMIN_TOKEN || "";
+const TEST_BLOCKED_TOKEN: string = import.meta.env.VITE_TEST_BLOCKED_TOKEN || "";
 
 /**
  * Tworzy nagłówki HTTP dla zapytań wymagających uwierzytelnienia użytkownika.
@@ -99,21 +102,27 @@ export class TargetNotFoundError extends RequestError{
  */
 export function authHeaders(): { "Content-Type": string, Authorization: string } {
     if(MOCK_AUTH == 'user'){
+        if(TEST_USER_TOKEN == '')
+            throw new Error("Brak tokenu użytkownika do testów")
         return {
             "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzE5NDYzOTh9.gdFGSUQGwJaxc2X0Ty5xLUHwjqQfUN0lbFmLPgzxHo8`
+            Authorization: `Bearer ${TEST_USER_TOKEN}`
         }
     }
     if(MOCK_AUTH == 'blocked'){
+        if(TEST_BLOCKED_TOKEN == '')
+            throw new Error("Brak tokenu zablokowane użytkownika do testów")
         return {
             "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Mywicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzE5NDY1ODl9.zrRnKFqHNGy9jElZYJSjyels1fcQmSIa2Xf-Wo5rwY8`
+            Authorization: `Bearer ${TEST_BLOCKED_TOKEN}`
         }
     }
     if (MOCK_AUTH === 'admin'){
+        if(TEST_ADMIN_TOKEN == '')
+            throw new Error("Brak tokenu administratora do testów")
         return {
             "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6IldPUktFUiIsImlhdCI6MTc3MTk0NjM5OH0.J8xSE_b2OpMFfCWoPmc3asjTtmDpesGd6MxcUH7xwSk`
+            Authorization: `Bearer ${TEST_ADMIN_TOKEN}`
         }
     }
     if(MOCK_AUTH == 'noauth' || !localStorage){

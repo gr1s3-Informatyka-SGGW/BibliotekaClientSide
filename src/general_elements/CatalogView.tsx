@@ -61,7 +61,8 @@ const fetchCatalogRequest = (isLibrarian: boolean, search_bar: string, sort?: Se
         } else {
             return fetchUserCatalogRequest(search_bar, sort, filter, page);
         }
-    } catch {
+    } catch(e: any) {
+        console.error(e);
         return Promise.resolve(
             { result: [], totalPages: 0, totalResults: 0 }
         )
@@ -93,26 +94,39 @@ function CatalogView(): JSX.Element {
     const auth = useContext(AuthContext);
     const isLibrarian = auth?.session?.access === 'admin';
 
-    const [searchParams, setSearchParams] = useSearchParams();
+    /** Zawiera wszystkie filtry możliwe do wybrania */
+    const [allFilters, setAllFilters] = useState<BookSearchFilter>({
+        author: [],
+        genre: [],
+        publisher: [],
+        tags: [],
+        language: []
+    });
 
-    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
-        const from = params.get("date_from");
-        const to = params.get("date_to");
-        return {
-            author: params.getAll("author"),
-            genre: params.getAll("genre"),
-            publisher: params.getAll("publisher"),
-            tags: params.getAll("tags"),
-            language: params.getAll("language"),
-            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
+    /** Pobieranie wszystkich dostępnych opcji filtrów na starcie, wypełnia `allFilters` danymi */
+    useEffect(() => {
+        const loadOptions = async () => {
+            try {
+                const filters = await fetchFiltersRequest();
+                setAllFilters(filters);
+            } catch (error: any) {
+                console.error(error);
+                setPopupData({error: error.message})
+                setShownPopup("CatalogError")
+            }
         };
-    };
+        void loadOptions();
+    }, []);
+
+    /** Pobiera parametry z URL*/
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [search, setSearch] = useState<SearchPanelReturn | undefined>(() => {
         const q = searchParams.get("q");
         return q ? { search: q } : undefined;
     });
 
+    /** Lista książek zwróconych przez stronę */
     const [books, setBooks] = useState<Book[]>([]);
 
     const [currentPage, setCurrentPage] = useState(() => {
@@ -126,13 +140,7 @@ function CatalogView(): JSX.Element {
     // Inkrementowany przy naciśnięciu "Wyczyść filtry"
     const [resetToken, setResetToken] = useState(0);
 
-    const [allFilters, setAllFilters] = useState<BookSearchFilter>({
-        author: [] as string[],
-        genre: [] as string[],
-        publisher: [] as string[],
-        tags: [] as string[],
-        language: [] as string[]
-    });
+
 
     const [activeFilters, setActiveFilters] = useState<BookSearchFilter>(() => getFiltersFromUrl(searchParams));
 
@@ -143,9 +151,10 @@ function CatalogView(): JSX.Element {
         direction: (searchParams.get("sort_dir") as 'ASC' | 'DESC') || "ASC"
     }));
 
-    // Ref to track if we triggered the URL update (prevents infinite loop with Back button logic)
+    /** Ref to track if we triggered the URL update (prevents infinite loop with Back button logic) */
     const isUpdatingUrlRef = useRef(false);
 
+    /** Obsługuje wyświetlanie wszystkich Poupuów na stronie*/
     const [shownPopup, setShownPopup] = useState<undefined
         | "rentConfirm" | "rentSuccess" | "rentError"
         | "reserveConfirm" | "reserveSuccess" | "reserveError"
@@ -155,7 +164,7 @@ function CatalogView(): JSX.Element {
         | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
         | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
         | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError"
-        | "instanceDisplayQRCode"| "ScanError">(undefined);
+        | "instanceDisplayQRCode"| "ScanError" | "CatalogError">(undefined);
 
     interface PopupData {
         book?: Book,
@@ -166,7 +175,21 @@ function CatalogView(): JSX.Element {
 
     const [popupData, setPopupData] = useState<PopupData>({});
 
-    // 1. Sync State -> URL
+    /** Pobiera dane o filtrach z URL */
+    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
+        const from = params.get("date_from");
+        const to = params.get("date_to");
+        return {
+            author: params.getAll("author"),
+            genre: params.getAll("genre"),
+            publisher: params.getAll("publisher"),
+            tags: params.getAll("tags"),
+            language: params.getAll("language"),
+            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
+        };
+    };
+
+    /** Synchronizuje filtry i wyszukiwanie z URL */
     useEffect(() => {
         const params = new URLSearchParams();
 
@@ -197,7 +220,7 @@ function CatalogView(): JSX.Element {
 
     }, [activeFilters, sorting, search, currentPage, searchParams]);
 
-    // 2. Sync URL -> State (Handle Back Button / External Navigation)
+    /** Obsługuje wczytywanie filtrów z URL. Umożliwia zewnętrzną, nawigacje i cofanie w przeglądarce */
     useEffect(() => {
         if (isUpdatingUrlRef.current) {
             isUpdatingUrlRef.current = false;
@@ -219,22 +242,9 @@ function CatalogView(): JSX.Element {
     }, [searchParams]);
 
 
-    // Pobieranie wszystkich dostępnych opcji filtrów na starcie
-    useEffect(() => {
-        const loadOptions = async () => {
-            try {
-                const filters = await fetchFiltersRequest();
-                setAllFilters(filters);
-            } catch (error: any) {
-                setPopupData({error: error.message})
-                setShownPopup("ScanError")
-            }
-        };
-        void loadOptions();
-    }, []);
 
 
-    // Aktualizowanie ilości aktywnych filtrów
+    /** Aktualizowanie ilości aktywnych filtrów */
     useEffect(() => {
         setActiveFilterCount((
             Math.min(activeFilters.author?.length || 0, 1)
@@ -246,27 +256,40 @@ function CatalogView(): JSX.Element {
         ));
     }, [activeFilters]);
 
-    // Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
+    /**
+     * Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
+    */
     const fetchBooksAndScrollToTop = useCallback(async () => {
         const searchString = search?.search || "";
-        const result = await fetchCatalogRequest(
-            isLibrarian,
-            searchString,
-            sorting,
-            activeFilters,
-            currentPage,
-        );
+        try{
+            const result = await fetchCatalogRequest(
+                isLibrarian,
+                searchString,
+                sorting,
+                activeFilters,
+                currentPage,
+            );
+            setBooks(result.result);
+            setTotalPages(result.totalPages);
+            setTotalBookCount(result.totalResults);
 
-        setBooks(result.result);
-        setTotalPages(result.totalPages);
-        setTotalBookCount(result.totalResults);
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        catch(e: any){
+            console.error(e);
+            setPopupData({error: e.message})
+            setShownPopup("CatalogError")
 
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        }
     }, [activeFilters, currentPage, isLibrarian, search?.search, sorting]);
 
+    /**
+     * @event refreshBook odświeża dane po książkach, wywołane po kążdym wydarzeniu wpływającym na dane książki
+     * @param {number} book_id
+     * */
     const refreshBook = async (book_id: number) => {
         const updatedBook = await fetchBookRequest(isLibrarian, book_id);
         if (updatedBook) {
@@ -276,9 +299,16 @@ function CatalogView(): JSX.Element {
         }
     }
 
+    /** Pobiera informacje o książkach */
     useEffect(() => {
         (async () => {
-            await fetchBooksAndScrollToTop();
+            try {
+                await fetchBooksAndScrollToTop();
+            }
+            catch (e: any) {
+                setPopupData({error: e.message})
+                setShownPopup("CatalogError")
+            }
         })()
     }, [activeFilters, sorting, search, currentPage]);
 
@@ -316,6 +346,24 @@ function CatalogView(): JSX.Element {
         return "Katalog jest obecnie pusty.";
     })();
 
+    /**
+     * @event hidePopups chowa pupup'y praktywnie to samo co handleClosePopup, ale sygnatura jest inna
+     * */
+    const hidePopups = () => {
+        setShownPopup(undefined);
+        setPopupData({});
+    }
+
+    /**
+     * @event handleClosePopup używany w obu wersjach strony, obsługuje zamykanie obecnie otwartego popup'u niezależnej ego typu
+     * @param prev
+     * */
+    const handleClosePopup = (prev: unknown) => {
+        setPopupData({})
+        if (prev == false) {
+            hidePopups();
+        }
+    }
     const onRentBookScanned = async (scanned_str: string) => {
         let parsed_data: {instance: number, book: number};
         let book_info: Book;
@@ -405,7 +453,9 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book, instanceId: instance_id });
         setShownPopup("instanceDisplayQRCode");
     }
-
+    /**
+     *
+     * */
     const onInstanceMarkDamagedPressed = async (book: BookAdmin, instance_id: number) => {
         hidePopups();
         try {
@@ -419,7 +469,9 @@ function CatalogView(): JSX.Element {
             setShownPopup("instanceMarkDamagedError");
         }
     }
-
+    /**
+     * @event onInstaceMarkMendedPressed wywołuje popup który wywołuje funkcję `handle
+     * */
     const onInstanceMarkMendedPressed = async (book: BookAdmin, instance_id: number) => {
         hidePopups();
         try {
@@ -433,12 +485,21 @@ function CatalogView(): JSX.Element {
             setShownPopup("instanceMarkMendedError");
         }
     }
-
+    
+    /**
+     * @event onInstanceRemovePressed wywołuje popup, który wywołuje `handleInstanceRemove`
+     * @param {BookAdmin} book
+     * @param {number} instance_id
+     * */
     const onInstanceRemovePressed = (book: BookAdmin, instance_id: number) => {
         setShownPopup("removeInstanceConfirm");
         setPopupData({ book: book, instanceId: instance_id });
     }
 
+    /**
+     * @event handleInstanceRemove używany w wersji administratora obsługuje usuwanie kopii książki
+     * @prop {PopupData} data
+     * */
     const handleInstanceRemove = async (data: PopupData) => {
         hidePopups();
 
@@ -458,18 +519,11 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    const hidePopups = () => {
-        setShownPopup(undefined);
-        setPopupData({});
-    }
 
-    const handleClosePopup = (prev: unknown) => {
-        setPopupData({})
-        if (prev == false) {
-            hidePopups();
-        }
-    }
-
+    /**
+     * @event handleBookReserve używany w wersji użytkownika obsługuję rezerwacje książki
+     * @param {PopupData} data
+     * */
     const handleBookReserve = async (data: PopupData) => {
         hidePopups();
         const book = data.book;
@@ -497,6 +551,9 @@ function CatalogView(): JSX.Element {
         }
     }
 
+    /**
+     * @event handleBookRent używany w wersji użytkownika obsługuję wypożyczenia książki
+     * @param {PopupData} data*/
     const handleBookRent = async (data: PopupData) => {
         hidePopups();
         const book = data.book;
@@ -520,9 +577,14 @@ function CatalogView(): JSX.Element {
             const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("rentError");
+            console.error(e);
         }
     }
 
+    /**
+     * @event handleBookRemove używany w wersji administratora obsługuje usuwanie książek
+     * @param {PopupData} data
+     * */
     const handleBookRemove = async (data: PopupData) => {
         hidePopups();
         const book = data.book;
@@ -546,11 +608,14 @@ function CatalogView(): JSX.Element {
             const msg = e instanceof Error ? e.message : String(e ?? "");
             setPopupData({ book: book, error: msg });
             setShownPopup("removeBookError");
+            console.error(e);
             return;
         }
     }
 
     return <>
+        <Alert title="Błąd przy wczytaniu katalogu" message={popupData?.error ?? ""} isOpen={shownPopup === 'CatalogError'} setIsOpen={handleClosePopup}/>
+
         <Popup isOpen={shownPopup === "rentConfirm"} setIsOpen={handleClosePopup} title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
             <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?</p>
             <div className="flex flex-row *:flex-1 mt-6">

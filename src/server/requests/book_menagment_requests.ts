@@ -26,15 +26,22 @@ export async function addBookRequest(
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
-            ...book,
-            ilosc_egzemplarzy: instance_number,
+            tytul: book.title,
+            isbn: book.isbn_number,
+            autor: book.authors,
+            gatunek: book.genre,
+            tagi: book.keywords ?? [],
+            wydawnictwo: book.publisher,
+            rok_wydania: book.publish_year,
+            ile_egzemplarzy: instance_number,
+            dlugosc: book.length,
+            jezyk: book.language,
         }),
     };
-    console.log('Request to:', requestUrl, 'Options:', requestOptions);
-    const r = await fetch(requestUrl, requestOptions);
-    console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
+    const r = await fetch(requestUrl, requestOptions);
+
+    if (r.status >= 400 && r.status < 500) {
         throw new InvalidRequestDataError("Niepoprawne dane wejściowe", true);
     }
 
@@ -43,11 +50,10 @@ export async function addBookRequest(
     }
 
     const data = await r.json();
-    console.log('Response data:', data);
 
     return {
         book_id: data.Bookid,
-        instance_ids: data.Copyids,
+        instance_ids: data.id_egzemplarzy,
     };
 }
 
@@ -72,7 +78,7 @@ export async function removeBookRequest(book_id: number): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({id_ksiazki: book_id}),
+        body: JSON.stringify({Copyid: book_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
@@ -106,11 +112,20 @@ export async function editBookRequest(book: Book): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify(book),
+        body: JSON.stringify({
+            Bookid: Number(book.book_id),
+            dane_ksiazki: {
+                tytul: book.title,
+                isbn: book.isbn_number,
+                autor: book.authors,
+                gatunek: book.genre,
+                tagi: book.keywords ?? [],
+                rok_wydania: book.publish_year
+            },
+        }),
     };
-    console.log('Request to:', requestUrl, 'Options:', requestOptions);
+
     const r = await fetch(requestUrl, requestOptions);
-    console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (r.status === 400) {
         throw new InvalidRequestDataError("Nie można edytować książki", true);
@@ -124,6 +139,7 @@ export async function editBookRequest(book: Book): Promise<void> {
  * Dodaje nowy egzemplarz książki.
  *
  * @param {number} book_id Id książki
+ * @param {number} [amount = 1] ilość egzemplarzy do dodania
  *
  * @returns {Promise<void>}
  *
@@ -131,7 +147,7 @@ export async function editBookRequest(book: Book): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
-export async function addBookInstanceRequest(book_id: number): Promise<void> {
+export async function addBookInstanceRequest(book_id: number, amount: number = 1): Promise<void> {
     if (book_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID książki", false);
     }
@@ -140,7 +156,10 @@ export async function addBookInstanceRequest(book_id: number): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({book_id}),
+        body: JSON.stringify({
+            Bookid: book_id,
+            ilosc_egzemplarzy: amount,
+        }),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
@@ -171,7 +190,9 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({id_egzemplarza: instance_id}),
+        body: JSON.stringify({
+            Copyid: instance_id
+        })
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
@@ -208,7 +229,7 @@ export async function markMendedBookInstanceRequest(
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({id_egzemplarza: instance_id}),
+        body: JSON.stringify({Copyid: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
@@ -243,7 +264,7 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({id_egzemplarza: instance_id}),
+        body: JSON.stringify({Copyid: instance_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
