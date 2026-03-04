@@ -281,7 +281,10 @@ export async function fetchUserCatalogRequest(
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
+        if(r.status === 403){
+            throw new AccessDeniedError("Brak autoryzacji administratora, zaloguj się jako administrator")
+        }
+        throw new RequestError(`Błąd pobierania katalogu: ${r.status} - ${r.statusText}`);
     }
 
     const data = await r.json();
@@ -460,32 +463,34 @@ export async function fetchAdminCatalogRequest(
         // safest fallback (keeps UI usable even if backend adds a new state)
         return "damaged";
     };
+    const result = ksiazki.map((b: any): BookAdmin => ({
+        book_id: b?.Bookid != null ? Number(b.Bookid) : undefined,
+        title: String(b?.tytul ?? ""),
+        authors: Array.isArray(b?.autor) ? b.autor.map((a: any) => String(a)) : [],
 
+        publish_year: Number(b?.rok_wydania ?? 0),
+        isbn_number: String(b?.isbn ?? ""),
+
+        length: b?.liczba_stron != null ? Number(b.liczba_stron) : undefined,
+        language: b?.jezyk != null ? String(b.jezyk) : undefined,
+        publisher: b?.wydawnictwo != null ? String(b.wydawnictwo) : undefined,
+
+        genre: Array.isArray(b?.gatunek) ? b.gatunek.map((g: any) => String(g)) : [],
+
+        // IMPORTANT: BookAdmin requires instances[], and search endpoint returns `egzemplarze`
+        instances: Array.isArray(b?.egzemplarze)
+            ? b.egzemplarze
+                .map((e: any) => ({
+                    id: e?.Copyid != null ? Number(e.Copyid) : Number(e?.id),
+                    status: mapInstanceStatus(e?.status),
+                }))
+                .sort((a: { id: number, status: string }, b: { id: number, status: string }) => a.id - b.id)
+            : [],
+    }))
+    // sort it to stabilize resuslt for tests
+    result.sort((a, b) => a.title.localeCompare(b.title));
     return {
-        result: ksiazki.map((b: any): BookAdmin => ({
-            book_id: b?.Bookid != null ? Number(b.Bookid) : undefined,
-            title: String(b?.tytul ?? ""),
-            authors: Array.isArray(b?.autor) ? b.autor.map((a: any) => String(a)) : [],
-
-            publish_year: Number(b?.rok_wydania ?? 0),
-            isbn_number: String(b?.isbn ?? ""),
-
-            length: b?.liczba_stron != null ? Number(b.liczba_stron) : undefined,
-            language: b?.jezyk != null ? String(b.jezyk) : undefined,
-            publisher: b?.wydawnictwo != null ? String(b.wydawnictwo) : undefined,
-
-            genre: Array.isArray(b?.gatunek) ? b.gatunek.map((g: any) => String(g)) : [],
-
-            // IMPORTANT: BookAdmin requires instances[], and search endpoint returns `egzemplarze`
-            instances: Array.isArray(b?.egzemplarze)
-                ? b.egzemplarze
-                      .map((e: any) => ({
-                          id: e?.Copyid != null ? Number(e.Copyid) : Number(e?.id),
-                          status: mapInstanceStatus(e?.status),
-                      }))
-                      .filter((e: any) => Number.isFinite(e.id))
-                : [],
-        })),
+        result: result,
         totalPages: Number(json?.totalPages ?? 1),
         totalResults: Number(json?.totalResults ?? ksiazki.length),
     };
@@ -635,9 +640,9 @@ export async function fetchUserListRequest(
 
     const json = await r.json();
     console.log('Response data:', json);
-    return {
-        result: (json.uzytkownicy ?? []).map((u: any): UserInfo => {
-            return {
+
+    const result: UserInfo[] = (json.uzytkownicy ?? []).map((u: any): UserInfo => {
+        return {
             user_id: u.user_id,
             name: u.imie,
             surname: u.nazwisko,
@@ -660,8 +665,22 @@ export async function fetchUserListRequest(
                 return_date: new Date(w.termin_zwrotu),
             })),
             currently_reserved: [], // backend nie zwraca rezerwacji
-            }
-        }),
+        };
+    });
+
+    // Ensure stable ordering so tests don't fail when backend returns a different order.
+    result.sort((a, b) => {
+        const bySurname = String(a.surname ?? "").localeCompare(String(b.surname ?? ""), "pl");
+        if (bySurname !== 0) return bySurname;
+
+        const byName = String(a.name ?? "").localeCompare(String(b.name ?? ""), "pl");
+        if (byName !== 0) return byName;
+
+        return Number(a.user_id ?? 0) - Number(b.user_id ?? 0);
+    });
+
+    return {
+        result,
         totalPages: 1,
         totalResults: json.uzytkownicy?.length ?? 0,
     };

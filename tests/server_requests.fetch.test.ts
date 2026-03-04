@@ -317,8 +317,8 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "genre": [],
                 "instances": [
                     {"id": 3, "status": "rented"},
-                    {"id": 5, "status": "available"},
                     {"id": 4, "status": "damaged"},
+                    {"id": 5, "status": "available"},
                 ]
             }, {
                 "book_id": 1,
@@ -331,8 +331,8 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "publisher": "Wydawnictwo Testowe",
                 "genre": ['Fantasy'],
                 "instances": [
-                    {"id": 2, "status": "reserved"},
                     {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"},
                 ]
             }], "totalPages": 1, "totalResults": 2
         })
@@ -349,7 +349,10 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
                 "language": "PL",
                 "publisher": "Wydawnictwo Testowe",
                 "genre": ['Fantasy'],
-                "instances": [{"id": 2, "status": "reserved"}, {"id": 1, "status": "available"}]
+                "instances": [
+                    {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"}
+                ]
             }], "totalPages": 1, "totalResults": 1
         })
 

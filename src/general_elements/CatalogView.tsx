@@ -94,6 +94,12 @@ function CatalogView(): JSX.Element {
     const auth = useContext(AuthContext);
     const isLibrarian = auth?.session?.access === 'admin';
 
+    /** Pobiera parametry z URL*/
+    const [searchParams, setSearchParams] = useSearchParams();
+    /** Ref to track if we triggered the URL update (prevents infinite loop with Back button logic) */
+    const isUpdatingUrlRef = useRef(false);
+
+
     /** Zawiera wszystkie filtry możliwe do wybrania */
     const [allFilters, setAllFilters] = useState<BookSearchFilter>({
         author: [],
@@ -118,8 +124,24 @@ function CatalogView(): JSX.Element {
         void loadOptions();
     }, []);
 
-    /** Pobiera parametry z URL*/
-    const [searchParams, setSearchParams] = useSearchParams();
+    /** Obecnie wybrane filtry*/
+    const [activeFilters, setActiveFilters] = useState<BookSearchFilter>({});
+    /** Ilość obecnie wybranych filtrów*/
+    const [activeFilterCount, setActiveFilterCount] = useState<number>(0);
+
+    /** Aktualizowanie ilości aktywnych filtrów */
+    useEffect(() => {
+        setActiveFilterCount((
+            Math.min(activeFilters.author?.length || 0, 1)
+            + Math.min(activeFilters.genre?.length || 0, 1)
+            + Math.min(activeFilters.publisher?.length || 0, 1)
+            + Math.min(activeFilters.tags?.length || 0, 1)
+            + Math.min(activeFilters.language?.length || 0, 1)
+            + (activeFilters.release_date ? 1 : 0)
+        ));
+    }, [activeFilters]);
+
+
 
     const [search, setSearch] = useState<SearchPanelReturn | undefined>(() => {
         const q = searchParams.get("q");
@@ -129,53 +151,27 @@ function CatalogView(): JSX.Element {
     /** Lista książek zwróconych przez stronę */
     const [books, setBooks] = useState<Book[]>([]);
 
+    /** Ilość stron wyników spełniających filtry */
+    const [totalPages, setTotalPages] = useState(1);
+    /** Obecna strona */
     const [currentPage, setCurrentPage] = useState(() => {
         const p = searchParams.get("page");
         return p ? parseInt(p) : 1;
     });
 
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalBookCount, setTotalBookCount] = useState(0);
-
-    // Inkrementowany przy naciśnięciu "Wyczyść filtry"
+    /** Inkrementowany przy naciśnięciu "Wyczyść filtry"*/
     const [resetToken, setResetToken] = useState(0);
 
-
-
-    const [activeFilters, setActiveFilters] = useState<BookSearchFilter>(() => getFiltersFromUrl(searchParams));
-
-    const [activeFilterCount, setActiveFilterCount] = useState<number>(0);
-
+    /** Przechowuje informacje o sortowaniu */
     const [sorting, setSorting] = useState<SearchSort>(() => ({
         key: searchParams.get("sort_key") || "title",
         direction: (searchParams.get("sort_dir") as 'ASC' | 'DESC') || "ASC"
     }));
 
-    /** Ref to track if we triggered the URL update (prevents infinite loop with Back button logic) */
-    const isUpdatingUrlRef = useRef(false);
 
-    /** Obsługuje wyświetlanie wszystkich Poupuów na stronie*/
-    const [shownPopup, setShownPopup] = useState<undefined
-        | "rentConfirm" | "rentSuccess" | "rentError"
-        | "reserveConfirm" | "reserveSuccess" | "reserveError"
-        | "removeBookConfirm" | "removeBookSuccess" | "removeBookError"
-        | "addInstanceSuccess" | "addInstanceError"
-        | "editBook" | "editBookError" | "editBookSuccess"
-        | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
-        | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
-        | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError"
-        | "instanceDisplayQRCode"| "ScanError" | "CatalogError">(undefined);
 
-    interface PopupData {
-        book?: Book,
-        error?: string,
-        instanceId?: number,
-        bookId?: number
-    }
 
-    const [popupData, setPopupData] = useState<PopupData>({});
-
-    /** Pobiera dane o filtrach z URL */
+    /** @function getFiltersFromUrl Pobiera dane o filtrach z URL */
     const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
         const from = params.get("date_from");
         const to = params.get("date_to");
@@ -241,53 +237,39 @@ function CatalogView(): JSX.Element {
         setActiveFilters(newFilters);
     }, [searchParams]);
 
-
-
-
-    /** Aktualizowanie ilości aktywnych filtrów */
-    useEffect(() => {
-        setActiveFilterCount((
-            Math.min(activeFilters.author?.length || 0, 1)
-            + Math.min(activeFilters.genre?.length || 0, 1)
-            + Math.min(activeFilters.publisher?.length || 0, 1)
-            + Math.min(activeFilters.tags?.length || 0, 1)
-            + Math.min(activeFilters.language?.length || 0, 1)
-            + (activeFilters.release_date ? 1 : 0)
-        ));
-    }, [activeFilters]);
-
     /**
-     * Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
-    */
+     * @function fetchBooksAndScrollToTop Pobieranie nowych wyników wyszukiwania i przewinięcie strony na samą górę
+     * @async
+     */
     const fetchBooksAndScrollToTop = useCallback(async () => {
-        const searchString = search?.search || "";
-        try{
-            const result = await fetchCatalogRequest(
-                isLibrarian,
-                searchString,
-                sorting,
-                activeFilters,
-                currentPage,
-            );
-            setBooks(result.result);
-            setTotalPages(result.totalPages);
-            setTotalBookCount(result.totalResults);
+            const searchString = search?.search || "";
+            try{
+                const result = await fetchCatalogRequest(
+                    isLibrarian,
+                    searchString,
+                    sorting,
+                    activeFilters,
+                    currentPage,
+                );
+                setBooks(result.result);
+                setTotalPages(result.totalPages);
 
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
-        catch(e: any){
-            console.error(e);
-            setPopupData({error: e.message})
-            setShownPopup("CatalogError")
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+            catch(e: any){
+                console.error(e);
+                setPopupData({error: e.message})
+                setShownPopup("CatalogError")
 
-        }
-    }, [activeFilters, currentPage, isLibrarian, search?.search, sorting]);
+            }
+        },
+        [activeFilters, currentPage, isLibrarian, search?.search, sorting]);
 
     /**
-     * @event refreshBook odświeża dane po książkach, wywołane po kążdym wydarzeniu wpływającym na dane książki
+     * @event refreshBook odświeża dane o danej książce, wywołane po każdym wydarzeniu wpływającym na dane książki
      * @param {number} book_id
      * */
     const refreshBook = async (book_id: number) => {
@@ -299,7 +281,7 @@ function CatalogView(): JSX.Element {
         }
     }
 
-    /** Pobiera informacje o książkach */
+    /** Pobiera informacje o książkach, po wczytaniu strony */
     useEffect(() => {
         (async () => {
             try {
@@ -310,9 +292,38 @@ function CatalogView(): JSX.Element {
                 setShownPopup("CatalogError")
             }
         })()
-    }, [activeFilters, sorting, search, currentPage]);
+    },
+        [activeFilters, sorting, search, currentPage]);
 
+    /** Obsługuje wyświetlanie wszystkich Poupuów na stronie*/
+    const [shownPopup, setShownPopup] = useState<undefined
+        | "rentConfirm" | "rentSuccess" | "rentError"
+        | "reserveConfirm" | "reserveSuccess" | "reserveError"
+        | "removeBookConfirm" | "removeBookSuccess" | "removeBookError"
+        | "addInstanceSuccess" | "addInstanceError"
+        | "editBook" | "editBookError" | "editBookSuccess"
+        | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
+        | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
+        | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError"
+        | "instanceDisplayQRCode"| "ScanError" | "CatalogError">(undefined);
 
+    /** Dodatkowe dane przekazywane Popupom przy wywołaniu, przeznaczenie ich różny się od Popupu
+     * @prop {Book} [book]
+     * @prop {string} [error]
+     * @prop {number} [instanceId]
+     * @prop {number} [bookId]
+     * */
+    interface PopupData {
+        book?: Book,
+        error?: string,
+        instanceId?: number,
+        bookId?: number
+    }
+
+    /** Zawiera dodatkowe informacje dla popupu*/
+    const [popupData, setPopupData] = useState<PopupData>({});
+
+    /** @event Usuwa wszystkie filtry z wyszukiwania */
     const handleResetFilters = () => {
         setSearch({ search: "" });
         setResetToken(prev => prev + 1);
@@ -327,22 +338,14 @@ function CatalogView(): JSX.Element {
         setCurrentPage(1);
     };
 
+    /** Zwraca komunikaty dla różnych przypadków, gdy zapytanie nie zwróciło odpowiedzi*/
     const notFoundText = ((): string => {
         const hasSearch = search?.search && search.search.trim().length > 0;
         const hasFilters = activeFilterCount > 0;
 
-        if (hasSearch && hasFilters) {
-            return `Nie znaleziono książek dla frazy „${search?.search}” przy wybranych filtrach.`;
-        }
-
-        if (hasSearch) {
-            return `Brak wyników pasujących do frazy „${search?.search}”.`;
-        }
-
-        if (hasFilters) {
-            return "Żadna książka nie spełnia wybranych kryteriów filtrowania.";
-        }
-
+        if (hasSearch && hasFilters) return `Nie znaleziono książek dla frazy „${search?.search}” przy wybranych filtrach.`;
+        if (hasSearch) return `Brak wyników pasujących do frazy „${search?.search}”.`;
+        if (hasFilters) return "Żadna książka nie spełnia wybranych kryteriów filtrowania.";
         return "Katalog jest obecnie pusty.";
     })();
 
