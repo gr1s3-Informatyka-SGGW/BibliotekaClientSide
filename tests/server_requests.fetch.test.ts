@@ -359,6 +359,133 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
         data = await fetchAdminCatalogRequest('', undefined, undefined, 2)
         expect(data, "Gdy użyje błędnej strony").to.deep.equal({result: [], totalPages: 1, totalResults: 0})
 
+        data = await fetchAdminCatalogRequest("", undefined, {publisher: ['Wydawnictwo Testowe']})
+        expect(data, "Przy filtrowaniu po wydawcy").to.deep.equal({
+            "result": [{
+                "book_id": 2,
+                "title": "Testowanie Softu",
+                "authors": ["Janusz Tester"],
+                "publish_year": 2024,
+                "isbn_number": "222",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": [],
+                "language": "PL",
+                "length": 150,
+                "instances": [
+                    {"id": 3, "status": "rented"},
+                    {"id": 4, "status": "damaged"},
+                    {"id": 5, "status": "available"},
+                ]
+            }, {
+                "book_id": 1,
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ['Fantasy'],
+                "language": "PL",
+                "length": 300,
+                "instances": [
+                    {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"},
+                ]
+            }], "totalPages": 1, "totalResults": 2
+        })
+
+        data = await fetchAdminCatalogRequest("", undefined, {language: ['PL']})
+        expect(data, "Przy filtrowaniu po języku").to.deep.equal({
+            "result": [{
+                "book_id": 2,
+                "title": "Testowanie Softu",
+                "authors": ["Janusz Tester"],
+                "publish_year": 2024,
+                "isbn_number": "222",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": [],
+                "language": "PL",
+                "length": 150,
+                "instances": [
+                    {"id": 3, "status": "rented"},
+                    {"id": 4, "status": "damaged"},
+                    {"id": 5, "status": "available"},
+                ]
+            }, {
+                "book_id": 1,
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ['Fantasy'],
+                "language": "PL",
+                "length": 300,
+                "instances": [
+                    {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"},
+                ]
+            }], "totalPages": 1, "totalResults": 2
+        })
+
+        data = await fetchAdminCatalogRequest("", undefined, {genre: ['Fantasy']})
+        expect(data, "Przy filtrowaniu po gatunku").to.deep.equal({
+            "result": [{
+                "book_id": 1,
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ["Fantasy"],
+                "language": "PL",
+                "length": 300,
+                "instances": [
+                    {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"},
+                ]
+            }], "totalPages": 1, "totalResults": 1
+        })
+
+        data = await fetchAdminCatalogRequest("", undefined, {author: ['Sapkowski']})
+        expect(data, "Przy filtrowaniu po autorze").to.deep.equal({
+            "result": [{
+                "book_id": 1,
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ['Fantasy'],
+                "language": "PL",
+                "length": 300,
+                "instances": [
+                    {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"},
+                ]
+            }], "totalPages": 1, "totalResults": 1
+        })
+
+        // todo: wyszukiwanie po tagach powoduje błąd po stronie serwera
+        /*data = await fetchAdminCatalogRequest("", undefined, {tags: ['cool']})
+         expect(data, "Przy filtrowaniu po tagach").to.deep.equal({
+            "result": [{
+                "book_id": 1,
+                "title": "Wiedźmin",
+                "authors": ["Andrzej Sapkowski"],
+                "publish_year": 1990,
+                "isbn_number": "111",
+                "publisher": "Wydawnictwo Testowe",
+                "genre": ["Fantasy"],
+                "language": "PL",
+                "length": 300,
+                "instances": [
+                    {"id": 1, "status": "available"},
+                    {"id": 2, "status": "reserved"},
+                ]
+            }], "totalPages": 1, "totalResults": 1
+        })*/
+
+
         setMockAuth('noauth')
         await expect(fetchAdminCatalogRequest(), "Gdy użytkownik niezalogowany").rejects.toThrow('Błąd pobierania katalogu: 401')
 
@@ -411,6 +538,7 @@ describe('Test funkcji z pliku fetch_requests.ts z uprawnieniami administratora'
 
         setMockAuth(false)
     })
+
     test('Test funckji `fetchUserListRequest`', async () => {
         setMockAuth('admin')
         let data = await fetchUserListRequest();

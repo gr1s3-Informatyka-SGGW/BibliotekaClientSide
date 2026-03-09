@@ -262,8 +262,8 @@ export class AddBookForm
                     />
                 </div>
 
-                {/* RZĄD 4: Tagi */}
-                <div className="form-group">
+               {/* RZĄD 4: Tagi */}
+               {/* <div className="form-group">
                     <DynamicSelect
                         ref={this.tagsRef}
                         id="tags"
@@ -272,7 +272,7 @@ export class AddBookForm
                         children={this.availableTags}
                         default_value={b?.keywords}
                     />
-                </div>
+                </div>*/}
 
                 {/* RZĄD 5: Rok wydania + ilośc egzemplarzy + ilość stron */}
                 <div className="form-row">
@@ -281,7 +281,7 @@ export class AddBookForm
                         <input
                             id="publish_year"
                             type="number"
-                            min={1000}
+                            min={0}
                             max={2100}
                             defaultValue={b?.publish_year}
                         />

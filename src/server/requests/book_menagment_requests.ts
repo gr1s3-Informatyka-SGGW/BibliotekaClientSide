@@ -78,17 +78,17 @@ export async function removeBookRequest(book_id: number): Promise<void> {
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({Copyid: book_id}),
+        body: JSON.stringify({Bookid: book_id}),
     };
     console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
-        throw new TargetNotFoundError("Nie znaleziono książki");
-    }
     if (!r.ok) {
-        throw new RequestError("Błąd usuwania książki");
+        if (r.status === 404) {
+            throw new TargetNotFoundError("Nie znaleziono książki");
+        }
+        throw new RequestError("Błąd usuwania książki: ("+ r.status + ") " + r.statusText);
     }
 }
 
@@ -103,6 +103,9 @@ export async function removeBookRequest(book_id: number): Promise<void> {
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
+// todo: big problem Błąd edycji książki: ReferenceError: id_ksiazki is not defined
+//     at exports.editBook (C:\Users\szymo\source\repos\BibliotekaServerSide\controllers\bookController.js:1278:31)
+//     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
 export async function editBookRequest(book: Book): Promise<void> {
     if (!book?.book_id) {
         throw new InvalidRequestDataError("Brak id książki", false);
@@ -113,14 +116,16 @@ export async function editBookRequest(book: Book): Promise<void> {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
-            Bookid: Number(book.book_id),
+            Bookid: book.book_id,
             dane_ksiazki: {
                 tytul: book.title,
                 isbn: book.isbn_number,
                 autor: book.authors,
                 gatunek: book.genre,
                 tagi: book.keywords ?? [],
-                rok_wydania: book.publish_year
+                rok_wydania: book.publish_year,
+                // todo: wtf is this?
+                // ilosc_egzemplarzy: instance_amount
             },
         }),
     };
@@ -147,6 +152,9 @@ export async function editBookRequest(book: Book): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
+// todo: big problem: błąd w addCopy: ReferenceError: bookId is not defined
+//     at exports.addCopy (C:\Users\szymo\source\repos\BibliotekaServerSide\controllers\bookController.js:1046:26)
+//     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
 export async function addBookInstanceRequest(book_id: number, amount: number = 1): Promise<void> {
     if (book_id <= 0) {
         throw new InvalidRequestDataError("Niepoprawne ID książki", false);
@@ -166,6 +174,9 @@ export async function addBookInstanceRequest(book_id: number, amount: number = 1
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
+        if (r.status >= 400 && r.status < 500) {
+            throw new RequestError("Nie znaleziono książki o takim Id")
+        }
         throw new RequestError("Błąd dodawania egzemplarza");
     }
 }
@@ -186,7 +197,7 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
         throw new InvalidRequestDataError("Brak id egzemplarza", false);
     }
 
-    const requestUrl = `${API_URL}/api/copies/delete`;
+    const requestUrl = `${API_URL}/api/books/copies/delete`;
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
@@ -198,10 +209,12 @@ export async function removeBookInstanceRequest(instance_id: number): Promise<vo
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
-        throw new TargetNotFoundError("Nie znaleziono egzemplarza");
-    }
+
     if (!r.ok) {
+
+        if (r.status >= 400 && r.status < 500) {
+            throw new TargetNotFoundError("Nie znaleziono egzemplarza, czy ten egzemplarz na pewno nie jest wyporzyczony?");
+        }
         throw new RequestError("Błąd usuwania egzemplarza");
     }
 }
@@ -225,7 +238,7 @@ export async function markMendedBookInstanceRequest(
         throw new InvalidRequestDataError("Brak id egzemplarza", false);
     }
 
-    const requestUrl = `${API_URL}/api/copies/markUndestroyed`;
+    const requestUrl = `${API_URL}/api/books/copies/markUndestroyed`;
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
@@ -235,10 +248,11 @@ export async function markMendedBookInstanceRequest(
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
-        throw new TargetNotFoundError("Nie znaleziono egzemplarza");
-    }
+
     if (!r.ok) {
+        if (r.status >= 400 && r.status < 500) {
+            throw new TargetNotFoundError("Nie znaleziono egzemplarza, czy ten egzemplarz na pewno jest zniszczony?");
+        }
         throw new RequestError("Błąd oznaczania egzemplarza jako niezniszczony");
     }
 }
@@ -270,10 +284,11 @@ export async function markDamagedBookInstanceRequest(instance_id: number): Promi
     const r = await fetch(requestUrl, requestOptions);
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
-    if (r.status === 400) {
-        throw new TargetNotFoundError("Nie znaleziono egzemplarza");
-    }
+
     if (!r.ok) {
+        if (r.status >= 400 && r.status < 500) {
+            throw new TargetNotFoundError("Nie znaleziono egzemplarza");
+        }
         throw new RequestError("Błąd oznaczania egzemplarza jako zniszczony");
     }
 }

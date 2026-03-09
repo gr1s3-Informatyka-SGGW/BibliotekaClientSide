@@ -158,8 +158,8 @@ function InstanceComponent(props: InstanceComponentProps) {
             <span><b>Egzemplarz #{props.index + 1}</b> - <span className={statusClass}>{statusText}</span></span>
             <div className="actions">
                 <button onClick={() => { displayQRCode(props.id) }}><img src={scannerIcon} alt=''/></button>
-                <button onClick={() => { remove(props.id) }} className="borrow button" >Usuń</button>
-                {buttonMarkDamagedVisible && <button onClick={() => { markDamaged(props.id) }} className="reserve button w-46" >Ozn. jako zniszczony</button>}
+                <button onClick={() => { remove(props.id) }} className="borrow button" disabled={status === 'rented'}>Usuń</button>
+                {buttonMarkDamagedVisible && <button onClick={() => { markDamaged(props.id) }} className="reserve button w-46" disabled={status !== 'available'}>Ozn. jako zniszczony</button>}
                 {buttonMarkMendedVisible && <button onClick={() => { markMended(props.id) }} className="reserve button w-46" >Anuluj zniszczenie</button>}
             </div>
         </div>

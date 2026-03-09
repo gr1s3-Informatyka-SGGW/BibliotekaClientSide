@@ -124,8 +124,22 @@ function CatalogView(): JSX.Element {
         void loadOptions();
     }, []);
 
+    /** @function getFiltersFromUrl Pobiera dane o filtrach z URL */
+    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
+        const from = params.get("date_from");
+        const to = params.get("date_to");
+        return {
+            author: params.getAll("author"),
+            genre: params.getAll("genre"),
+            publisher: params.getAll("publisher"),
+            tags: params.getAll("tags"),
+            language: params.getAll("language"),
+            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
+        };
+    };
+
     /** Obecnie wybrane filtry*/
-    const [activeFilters, setActiveFilters] = useState<BookSearchFilter>({});
+    const [activeFilters, setActiveFilters] = useState<BookSearchFilter>(getFiltersFromUrl(searchParams));
     /** Ilość obecnie wybranych filtrów*/
     const [activeFilterCount, setActiveFilterCount] = useState<number>(0);
 
@@ -167,30 +181,14 @@ function CatalogView(): JSX.Element {
         key: searchParams.get("sort_key") || "title",
         direction: (searchParams.get("sort_dir") as 'ASC' | 'DESC') || "ASC"
     }));
-
-
-
-
-    /** @function getFiltersFromUrl Pobiera dane o filtrach z URL */
-    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
-        const from = params.get("date_from");
-        const to = params.get("date_to");
-        return {
-            author: params.getAll("author"),
-            genre: params.getAll("genre"),
-            publisher: params.getAll("publisher"),
-            tags: params.getAll("tags"),
-            language: params.getAll("language"),
-            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
-        };
-    };
-
-    /** Synchronizuje filtry i wyszukiwanie z URL */
+    /** Aktualizuje URL, jeśli doszło do zmian w filtrach i sortowaniu*/
     useEffect(() => {
         const params = new URLSearchParams();
 
-        if (search?.search) params.set("q", search.search);
-        if (currentPage > 1) params.set("page", currentPage.toString());
+        if (search?.search)
+            params.set("q", search.search);
+        if (currentPage > 1)
+            params.set("page", currentPage.toString());
 
         if (sorting.key !== "title" || sorting.direction !== "ASC") {
             params.set("sort_key", sorting.key);
@@ -207,17 +205,22 @@ function CatalogView(): JSX.Element {
             params.set("date_from", activeFilters.release_date.from.getFullYear().toString());
             params.set("date_to", activeFilters.release_date.to.getFullYear().toString());
         }
+    }, [activeFilters, sorting, search, currentPage]);
 
+
+    /** Aktualizuje filtry i sortowanie przy zmianie URL*/
+    useEffect(()=> {
+        console.log("URL Update: ", {activeFilters, sorting, search, currentPage})
+        const params = new URLSearchParams();
         // Only update if actually different to avoid redundant history entries
         if (params.toString() !== searchParams.toString()) {
             isUpdatingUrlRef.current = true;
             setSearchParams(params, { replace: true });
         }
-
-    }, [activeFilters, sorting, search, currentPage, searchParams]);
-
+    }, [searchParams])
     /** Obsługuje wczytywanie filtrów z URL. Umożliwia zewnętrzną, nawigacje i cofanie w przeglądarce */
     useEffect(() => {
+        console.log("Filter Update: ", {searchParams})
         if (isUpdatingUrlRef.current) {
             isUpdatingUrlRef.current = false;
             return;
@@ -285,6 +288,7 @@ function CatalogView(): JSX.Element {
     useEffect(() => {
         (async () => {
             try {
+                console.log("a", {activeFilters, sorting, search, currentPage})
                 await fetchBooksAndScrollToTop();
             }
             catch (e: any) {
@@ -323,7 +327,7 @@ function CatalogView(): JSX.Element {
     /** Zawiera dodatkowe informacje dla popupu*/
     const [popupData, setPopupData] = useState<PopupData>({});
 
-    /** @event Usuwa wszystkie filtry z wyszukiwania */
+    /** @event handleResetFilters Usuwa wszystkie filtry z wyszukiwania */
     const handleResetFilters = () => {
         setSearch({ search: "" });
         setResetToken(prev => prev + 1);
@@ -864,6 +868,7 @@ function CatalogView(): JSX.Element {
             <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); setCurrentPage(1); }} defaultValue={search?.search ?? ""}
                 scanButtonFunction={onRentBookScanned}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
+
                 <CustomSelect filterKey="" label="Sortuj" initialValues={(() => {
                     if (!sorting) return ["Tytuł (A-Z)"];
                     const isYear = sorting.key === 'publish_year';
@@ -895,7 +900,8 @@ function CatalogView(): JSX.Element {
                                 throw Error(`Nieznany tryb sortowania ${v[0]}`);
                             }
                         }
-                    }}>
+                    }}
+                >
                     <CustomOption value="Tytuł (A-Z)">Tytuł (A-Z)</CustomOption>
                     <CustomOption value="Tytuł (Z-A)">Tytuł (Z-A)</CustomOption>
                     <CustomOption value="Rok wydania (rosnąco)">Rok wydania (rosnąco)</CustomOption>
@@ -909,12 +915,12 @@ function CatalogView(): JSX.Element {
                     {allFilters.author?.map(a => <CustomOption key={a} value={a}>{a}</CustomOption>)}
                 </CustomSelect>
 
-                <CustomSelect filterKey="" label="Tagi" searchable allow_multiple
-                    key={`tags-${resetToken}`}
-                    initialValues={activeFilters.tags}
-                    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>
-                    {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}
-                </CustomSelect>
+                {/*<CustomSelect filterKey="" label="Tagi" searchable allow_multiple*/}
+                {/*    key={`tags-${resetToken}`}*/}
+                {/*    initialValues={activeFilters.tags}*/}
+                {/*    onChange={(v: string[]) => { setActiveFilters({ ...activeFilters, tags: v }) }}>*/}
+                {/*    {allFilters.tags?.map(t => <CustomOption key={t} value={t}>{t}</CustomOption>)}*/}
+                {/*</CustomSelect>*/}
 
                 <CustomSelect filterKey="" label="Gatunek" searchable allow_multiple
                     key={`genre-${resetToken}`}
