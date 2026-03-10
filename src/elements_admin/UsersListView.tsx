@@ -317,28 +317,26 @@ export default function UsersListView(): JSX.Element {
                             return ["Nazwisko (A-Z)"];
                         })()}
                         onChange={(v: string[]) => {
-                            const val = v[0];
-                            if (val.includes("Nazwisko (A-Z)")) setSorting({ key: "surname", direction: "ASC" });
-                            else if (val.includes("Nazwisko (Z-A)")) setSorting({ key: "surname", direction: "DESC" });
-                            else if (val.includes("Liczba wypożyczeń (rosnąco)")) setSorting({ key: "rent_count", direction: "ASC" });
-                            else if (val.includes("Liczba wypożyczeń (malejąco)")) setSorting({ key: "rent_count", direction: "DESC" });
-                            else if (val.includes("Liczba zaległości (rosnąco)")) setSorting({ key: "overdue_count", direction: "ASC" });
-                            else if (val.includes("Liczba zaległości (malejąco)")) setSorting({ key: "overdue_count", direction: "DESC" });
+                            // value w CustomSelect ma format [index]_[ASC|DESC]
+                            const val = v[0].split('_');
+                            setSorting({ key: val[0], direction: val[1] == "ASC" ? "ASC" : "DESC" });
                         }}
                     >
-                        <CustomOption value="Nazwisko (A-Z)">Nazwisko (A-Z)</CustomOption>
-                        <CustomOption value="Nazwisko (Z-A)">Nazwisko (Z-A)</CustomOption>
-                        <CustomOption value="Liczba wypożyczeń (rosnąco)">Liczba wypożyczeń (rosnąco)</CustomOption>
-                        <CustomOption value="Liczba wypożyczeń (malejąco)">Liczba wypożyczeń (malejąco)</CustomOption>
-                        <CustomOption value="Liczba zaległości (rosnąco)">Liczba zaległości (rosnąco)</CustomOption>
-                        <CustomOption value="Liczba zaległości (malejąco)">Liczba zaległości (malejąco)</CustomOption>
+                        <CustomOption value="name_ASC">Imie (A-Z)</CustomOption>
+                        <CustomOption value="name_DESC">Imie (Z-A)</CustomOption>
+                        <CustomOption value="surname_ASC">Nazwisko (A-Z)</CustomOption>
+                        <CustomOption value="surname_DESC">Nazwisko (Z-A)</CustomOption>
+                        <CustomOption value='email_ASC'>E-mail (A-Z)</CustomOption>
+                        <CustomOption value='email_DESC'>E-mail (Z-A)</CustomOption>
+                    {/* <CustomOption value="Liczba wypożyczeń (malejąco)">Liczba wypożyczeń (malejąco)</CustomOption>*/}
+                    {/* <CustomOption value="Liczba zaległości (rosnąco)">Liczba zaległości (rosnąco)</CustomOption>*/}
+                    {/* <CustomOption value="Liczba zaległości (malejąco)">Liczba zaległości (malejąco)</CustomOption>*/}
                     </CustomSelect>
 
                     {/* Status Filter */}
                     <CustomSelect
                         filterKey="status"
                         label="Status"
-                        allow_multiple
                         key={`status-${resetToken}`}
                         initialValues={statusFilter}
                         onChange={(v: string[]) => setStatusFilter(v as ('user' | 'admin' | 'blocked')[])}

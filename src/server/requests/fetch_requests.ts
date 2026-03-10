@@ -595,7 +595,15 @@ export async function fetchUserListRequest(
         throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
     }
 
-    const body: any = { page };
+    const body: any = {
+        fragment: search_bar,
+        sortuj_po: sort ? {
+            czym: sort.key,
+            rosnaco: sort.direction === "ASC", // convert to backend bool
+        } : undefined,
+        status: filter?.status ?? undefined,
+        strona: page,
+    };
 
     if (search_bar && search_bar.trim().length > 0) {
         body.fragment = search_bar;

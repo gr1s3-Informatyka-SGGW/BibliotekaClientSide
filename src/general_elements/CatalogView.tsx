@@ -140,6 +140,19 @@ function CatalogView(): JSX.Element {
     // Inkrementowany przy naciśnięciu "Wyczyść filtry"
     const [resetToken, setResetToken] = useState(0);
 
+    /** Pobiera dane o filtrach z URL */
+    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
+        const from = params.get("date_from");
+        const to = params.get("date_to");
+        return {
+            author: params.getAll("author"),
+            genre: params.getAll("genre"),
+            publisher: params.getAll("publisher"),
+            tags: params.getAll("tags"),
+            language: params.getAll("language"),
+            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
+        };
+    };
 
 
     const [activeFilters, setActiveFilters] = useState<BookSearchFilter>(() => getFiltersFromUrl(searchParams));
@@ -175,19 +188,6 @@ function CatalogView(): JSX.Element {
 
     const [popupData, setPopupData] = useState<PopupData>({});
 
-    /** Pobiera dane o filtrach z URL */
-    const getFiltersFromUrl = (params: URLSearchParams): BookSearchFilter => {
-        const from = params.get("date_from");
-        const to = params.get("date_to");
-        return {
-            author: params.getAll("author"),
-            genre: params.getAll("genre"),
-            publisher: params.getAll("publisher"),
-            tags: params.getAll("tags"),
-            language: params.getAll("language"),
-            release_date: (from && to) ? { from: new Date(from), to: new Date(to) } : undefined
-        };
-    };
 
     /** Synchronizuje filtry i wyszukiwanie z URL */
     useEffect(() => {
