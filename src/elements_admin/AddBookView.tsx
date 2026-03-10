@@ -30,7 +30,7 @@ export default function AddBookView(){
     const [success, setSuccess] = useState<string|null>(null)
     const [isQRopen, setIsQRopen] = useState(false);
     const [instanceIds, setInstanceIds] = useState<number[] | null>(null);
-    const [bookId, setBookId] = useState<number | null>(null);
+    const [bookTitle, setBookTitle] = useState<string>("[Nie znaleziono tytułu książki]");
 
 
 
@@ -45,7 +45,7 @@ export default function AddBookView(){
             const ids: number[] = response.instance_ids;
 
             setInstanceIds(ids);
-            setBookId(response.book_id)
+            setBookTitle(book.title)
             setIsQRopen(true);
         } catch (e: any) {
             setError(e.message);
@@ -76,7 +76,7 @@ export default function AddBookView(){
             {success && <div className="success-box">{success}</div>}
             <InstanceQR
                 instance_id={instanceIds ?? []}
-                book_id={bookId ?? 0}
+                book_title={bookTitle}
                 isOpen={isQRopen}
                 setIsOpen={setIsQRopen}
                 onClose={() => setInstanceIds(null)}
@@ -131,7 +131,7 @@ export class AddBookForm
         this.info = props.info;
         this.mode = props.mode;
 
-        //chipy na podstawie info
+        // chipy na podstawie info
         this.authorsRef = React.createRef<DynamicSelect>();
         this.genresRef = React.createRef<DynamicSelect>();
         this.tagsRef = React.createRef<DynamicSelect>();
@@ -143,7 +143,7 @@ export class AddBookForm
     }
 
     async componentDidMount() {
-        let filters = await fetchFiltersRequest();
+        const filters = await fetchFiltersRequest();
         this.availableAuthors = filters.author ?? []
         this.availableGenres = filters.genre ?? []
         this.availableTags = filters.tags ?? []
@@ -281,7 +281,7 @@ export class AddBookForm
                         <input
                             id="publish_year"
                             type="number"
-                            min={1000}
+                            min={0}
                             max={2100}
                             defaultValue={b?.publish_year}
                         />

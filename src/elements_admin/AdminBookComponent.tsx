@@ -155,7 +155,7 @@ function InstanceComponent(props: InstanceComponentProps) {
 
     return <>
         <div className="copy">
-            <span><b>Egzemplarz #{props.index + 1}</b> - <span className={statusClass}>{statusText}</span></span>
+            <span><b>Egzemplarz #{props.id}</b> - <span className={statusClass}>{statusText}</span></span>
             <div className="actions">
                 <button onClick={() => { displayQRCode(props.id) }}><img src={scannerIcon} alt=''/></button>
                 <button onClick={() => { remove(props.id) }} className="borrow button" >Usuń</button>

@@ -281,7 +281,7 @@ export async function fetchUserCatalogRequest(
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
-        throw new RequestError(`Błąd pobierania katalogu: ${r.status}`);
+        throw new RequestError(`Błąd pobierania katalogu: ${r.status} - ${r.statusText}`);
     }
 
     const data = await r.json();
@@ -387,6 +387,7 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
  */
 // todo: podobnie jak u użytkownika prawdopodobnie jest problem ze stronicowaniem
 // todo: nie zwraca informacji na temat egzemplarzy, słów kluczowych
+// todo: nie zwraca id, poważny błąd przy funkcji wypożyczania
 export async function fetchAdminCatalogRequest(
     search?: string,
     sort?: SearchSort,
@@ -578,8 +579,6 @@ export async function fetchAdminBookRequest(
  * @throws {InvalidRequestDataError} Gdy podano niepoprawny numer strony lub błędne dane wyszukiwania
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania użytkowników
  */
-// todo: search_bar i sort is never used check
-// todo: status nie może być filtrowany po paru elementach
 // todo: backend nie zwraca informacji o tym czy użytkownik jest adminem
 // todo: informacje na temat książki są niekompletne
 // todo: backend nie zwraca informacji o rezerwacjach

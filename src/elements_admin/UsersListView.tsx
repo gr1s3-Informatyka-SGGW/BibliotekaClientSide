@@ -285,7 +285,7 @@ export default function UsersListView(): JSX.Element {
 
             <NavSidebar />
             {/* === GŁÓWNY LAYOUT === */}
-            <main>
+            <main id='UserListView'>
             <h1 style={{ textAlign: "center", marginBottom: "1em" }}>
                 <img src={iconGroup} alt="" style={{ verticalAlign: 'middle', marginRight: '0.5em' }} />
                 Lista użytkowników

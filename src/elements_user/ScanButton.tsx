@@ -56,7 +56,8 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
   constructor(props: ScanButtonProps) {
     super(props);
     this.state = {
-      isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+      // todo: change that in production
+      isMobile: true, // /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
       error: '',
       open: false
     };
@@ -65,7 +66,7 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
 
   componentDidMount() {
     this.setState({
-      isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+      isMobile: true // /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
     });
   }
 

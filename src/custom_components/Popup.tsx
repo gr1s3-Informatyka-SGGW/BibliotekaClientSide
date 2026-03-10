@@ -131,7 +131,7 @@ export function Alert({ title, message, isOpen, setIsOpen, icon, onAccept, onCan
                         {finalAcceptText}
                     </button>
                 )}
-                <button onClick={()=>handleCancelClick()} className="cancel-button">
+                <button onClick={handleCancelClick} className="cancel-button">
                     {finalCancelText}
                 </button>
             </div>

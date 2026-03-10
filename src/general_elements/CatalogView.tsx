@@ -364,12 +364,15 @@ function CatalogView(): JSX.Element {
             hidePopups();
         }
     }
+
+    /** @event onRentBookScanned wywoływany przy kliknięciu, w guzik skanowania w panelu wyszukiwania.
+     * Obsługuje proces wyporzyczania */
     const onRentBookScanned = async (scanned_str: string) => {
         let parsed_data: {instance: number, book: number};
         let book_info: Book;
         try{
             parsed_data = JSON.parse(scanned_str);
-            book_info = await fetchBookRequest(false, parsed_data.book);
+            // book_info = await fetchBookRequest(false, parsed_data.book);
         }
         catch(e: any){
             setShownPopup('ScanError')
@@ -378,9 +381,7 @@ function CatalogView(): JSX.Element {
         }
 
         setShownPopup("rentConfirm")
-        setPopupData({instanceId: parsed_data.instance, book: book_info});
-
-
+        setPopupData({instanceId: parsed_data.instance/*, book: book_info*/});
     }
 
     const onReserveBookPressed = (book: BookUser) => {
@@ -453,9 +454,7 @@ function CatalogView(): JSX.Element {
         setPopupData({ book: book, instanceId: instance_id });
         setShownPopup("instanceDisplayQRCode");
     }
-    /**
-     *
-     * */
+
     const onInstanceMarkDamagedPressed = async (book: BookAdmin, instance_id: number) => {
         hidePopups();
         try {
@@ -555,27 +554,20 @@ function CatalogView(): JSX.Element {
      * @event handleBookRent używany w wersji użytkownika obsługuję wypożyczenia książki
      * @param {PopupData} data*/
     const handleBookRent = async (data: PopupData) => {
-        hidePopups();
-        const book = data.book;
-
-        if (!book || !data.instanceId) {
-            return;
-        }
-
-        if (!book.book_id) {
-            setPopupData({ book: book, error: "Pole book_id jest undefined" });
+        if (!data.instanceId) {
+            setPopupData({ error: "Nie znaleziono kluczowych informacji przy wypożyczaniu książki" });
             setShownPopup("rentError");
             return;
         }
 
         try {
             await rentBookRequest(data.instanceId);
-            await refreshBook(book.book_id);
-            setPopupData({ book: book });
+            // await refreshBook(book.book_id);
+            // setPopupData({ book: book });
             setShownPopup("rentSuccess");
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e ?? "");
-            setPopupData({ book: book, error: msg });
+            setPopupData({ error: msg });
             setShownPopup("rentError");
             console.error(e);
         }
@@ -614,17 +606,27 @@ function CatalogView(): JSX.Element {
     }
 
     return <>
-        <Alert title="Błąd przy wczytaniu katalogu" message={popupData?.error ?? ""} isOpen={shownPopup === 'CatalogError'} setIsOpen={handleClosePopup}/>
+        <Alert title="Błąd przy wczytaniu katalogu"
+               message={popupData?.error ?? ""}
+               isOpen={shownPopup === 'CatalogError'}
+               setIsOpen={handleClosePopup}/>
 
-        <Popup isOpen={shownPopup === "rentConfirm"} setIsOpen={handleClosePopup} title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
+        {/*<Popup isOpen={shownPopup === "rentConfirm"} setIsOpen={handleClosePopup} title="Potwierdzenie wypożyczenia" onClose={hidePopups}>
             <p className="text-justify">Czy na pewno chcesz wypożyczyć książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>?</p>
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Nie</button>
                 <button onClick={() =>  handleBookRent(popupData)}>Tak, wypożycz</button>
             </div>
-        </Popup>
+        </Popup>*/}
 
-        <Popup isOpen={shownPopup === "rentError"} setIsOpen={handleClosePopup} title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
+        <Alert isOpen={shownPopup === "rentConfirm"}
+               setIsOpen={handleClosePopup}
+               title="Potwierdź wyporzyczenie książki"
+               message='Czy na pewno chcesz wyporzyczyć tą książkę?'
+               onAccept={() => handleBookRent(popupData)}/>
+
+
+        {/*<Popup isOpen={shownPopup === "rentError"} setIsOpen={handleClosePopup} title="Błąd wypożyczenia" icon={iconError} onClose={hidePopups}>
             <p className="text-justify">
                 Nie udało się wypożyczyć książki <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
             </p>
@@ -635,11 +637,17 @@ function CatalogView(): JSX.Element {
             <div className="flex flex-row *:flex-1 mt-6">
                 <button onClick={hidePopups} className="boring">Zamknij</button>
             </div>
-        </Popup>
+        </Popup>*/}
+        <Alert isOpen={shownPopup === "rentError"}
+               setIsOpen={handleClosePopup}
+               title="Błąd Wyporzyczenia"
+               icon={iconError}
+               message={`Nie udało się wypożyczyć książki: ${popupData?.error}`}
+        />
 
         <Popup isOpen={shownPopup === "rentSuccess"} setIsOpen={handleClosePopup} title="Książka wypożyczona" onClose={hidePopups}>
             <p className="text-justify">
-                Pomyślnie wypożyczono książkę <strong className="whitespace-nowrap">„{popupData?.book?.title}”</strong> autorstwa <strong className="whitespace-nowrap">{popupData?.book?.authors?.join(", ")}</strong>.
+                Pomyślnie wypożyczono książkę.
             </p>
 
             <div className="flex flex-row *:flex-1 mt-6">
@@ -851,14 +859,18 @@ function CatalogView(): JSX.Element {
             </div>
         </Popup>
 
-        <InstanceQR isOpen={shownPopup === "instanceDisplayQRCode"} setIsOpen={handleClosePopup} instance_id={popupData.instanceId ?? 0} book_id={popupData.bookId ?? 0}/>
+        <InstanceQR isOpen={shownPopup === "instanceDisplayQRCode"}
+                    setIsOpen={handleClosePopup}
+                    instance_id={popupData.instanceId ?? 0}
+                    book_title={popupData.book?.title ?? "[Nie znaleziono tytułu]"}/>
 
         <Alert message={"Błąd przy skanowaniu kodu"} title={popupData.error ?? "Błąd skanowania książki"} setIsOpen={handleClosePopup} isOpen={shownPopup === "ScanError"}/>
         <NavSidebar/>
         <main>
         <h1><img src={catalogIcon} alt="" /> Katalog</h1>
         <div>
-            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); setCurrentPage(1); }} defaultValue={search?.search ?? ""}
+            <SearchPanel onSearch={(data: SearchPanelReturn) => { setSearch(data); setCurrentPage(1); }}
+                         defaultValue={search?.search ?? ""}
                 scanButtonFunction={onRentBookScanned}>
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
                 <CustomSelect filterKey="" label="Sortuj" initialValues={(() => {
