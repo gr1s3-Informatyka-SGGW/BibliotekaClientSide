@@ -306,28 +306,19 @@ export default function UsersListView(): JSX.Element {
                     <CustomSelect
                         filterKey="sort"
                         label="Sortuj"
-                        initialValues={(() => {
-                            const { key, direction } = sorting;
-                            if (key === "surname" && direction === "ASC") return ["Nazwisko (A-Z)"];
-                            if (key === "surname" && direction === "DESC") return ["Nazwisko (Z-A)"];
-                            if (key === "rent_count" && direction === "ASC") return ["Liczba wypożyczeń (rosnąco)"];
-                            if (key === "rent_count" && direction === "DESC") return ["Liczba wypożyczeń (malejąco)"];
-                            if (key === "overdue_count" && direction === "ASC") return ["Liczba zaległości (rosnąco)"];
-                            if (key === "overdue_count" && direction === "DESC") return ["Liczba zaległości (malejąco)"];
-                            return ["Nazwisko (A-Z)"];
-                        })()}
+                        initialValues={(() => sorting ? [`${sorting.key}-${sorting.direction}`] : ['name_ASC'])()}
                         onChange={(v: string[]) => {
                             // value w CustomSelect ma format [index]_[ASC|DESC]
-                            const val = v[0].split('_');
+                            const val = v[0].split('-');
                             setSorting({ key: val[0], direction: val[1] == "ASC" ? "ASC" : "DESC" });
                         }}
                     >
-                        <CustomOption value="name_ASC">Imie (A-Z)</CustomOption>
-                        <CustomOption value="name_DESC">Imie (Z-A)</CustomOption>
-                        <CustomOption value="surname_ASC">Nazwisko (A-Z)</CustomOption>
-                        <CustomOption value="surname_DESC">Nazwisko (Z-A)</CustomOption>
-                        <CustomOption value='email_ASC'>E-mail (A-Z)</CustomOption>
-                        <CustomOption value='email_DESC'>E-mail (Z-A)</CustomOption>
+                        <CustomOption value="name-ASC">Imie (A-Z)</CustomOption>
+                        <CustomOption value="name-DESC">Imie (Z-A)</CustomOption>
+                        <CustomOption value="surname-ASC">Nazwisko (A-Z)</CustomOption>
+                        <CustomOption value="surname-DESC">Nazwisko (Z-A)</CustomOption>
+                        <CustomOption value='email-ASC'>E-mail (A-Z)</CustomOption>
+                        <CustomOption value='email-DESC'>E-mail (Z-A)</CustomOption>
                     {/* <CustomOption value="Liczba wypożyczeń (malejąco)">Liczba wypożyczeń (malejąco)</CustomOption>*/}
                     {/* <CustomOption value="Liczba zaległości (rosnąco)">Liczba zaległości (rosnąco)</CustomOption>*/}
                     {/* <CustomOption value="Liczba zaległości (malejąco)">Liczba zaległości (malejąco)</CustomOption>*/}

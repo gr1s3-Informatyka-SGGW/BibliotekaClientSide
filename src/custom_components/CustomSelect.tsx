@@ -71,35 +71,6 @@ interface SelectContextType {
 
 const SelectContext = React.createContext<SelectContextType | undefined>(undefined);
 
-
-/**
- * Typ właściwości dla pojedynczej opcji wyboru
- * @property value - Unikalna wartość opcji
- * @property children - Wyświetlana etykieta lub element
- * @property className - Dodatkowa klasa CSS
- * @property index - Indeks elementu
- * @property onClick - opcjonalna funkcja wywołania po kliknięciu opcji.
- */
-
-export interface CustomOptionProps {
-    value: string;
-    children: string | React.ReactNode;
-    className?: string;
-    index?: number;
-    onClick?:(e: React.MouseEvent) => void;
-    /** Czy opcja jest aktualnie wybrana? (dla styli CSS) */
-    isSelected?: boolean;
-
-    /** Czy opcja jest podświetlona strzałkami klawiatury? (dla styli CSS) */
-    isFocused?: boolean;
-
-    /**
-     * Funkcja zwrotna do rodzica (CustomSelect).
-     * Wywoływana, gdy opcja zostanie kliknięta, aby poinformować rodzica o zmianie.
-     */
-    onSelect?: (value: string, label: string) => void;
-}
-
 /**
  * Typ właściwości dla głównego komponentu Select
  * @property [children] - Opcje do wyboru komponentu typu CustomOption
@@ -144,106 +115,6 @@ interface CustomSelectState {
     focusedIndex: number;
     position: { top: number; left: number; arrowLeft: number } | null;
 }
-
-/**
- * Komponent reprezentujący pojedynczą opcję na liście rozwijanej.
- *
- * Odpowiada za wyświetlanie elementu, obsługę zdarzeń myszy (kliknięcie, najechanie)
- * oraz rejestrację swojej wartości i etykiety w kontekście rodzica (CustomSelect).
- */
-export class CustomOption extends Component<CustomOptionProps> {
-    private elementRef = createRef<HTMLButtonElement>();
-
-    /**
-     * Przypisanie kontekstu React do komponentu klasowego.
-     */
-    static contextType = SelectContext;
-
-    /**
-     * Deklaracja typu dla właściwości.
-     */
-    declare context: React.ContextType<typeof SelectContext>;
-
-    /**
-     * Metoda wywoływana natychmiast po zamontowaniu komponentu w drzewie DOM.
-     * Służy do rejestracji opcji u rodzica.
-     */
-    componentDidMount() {
-        const textContent = typeof this.props.children === 'string'
-            ? this.props.children
-            : String(this.props.value);
-
-        this.context?.registerOption(this.props.value, textContent);
-    }
-
-    /**
-     * Obsługuje zdarzenie najechania kursorem myszy na element opcji.
-     * Aktualizuje 'focusedIndex' w stanie komponentu nadrzędnego
-     */
-    handleMouseEnter = () => {
-        if (typeof this.props.index === 'number') {
-            this.context?.setFocusedIndex(this.props.index);
-        }
-    };
-
-    /**
-     * Obsługuje zdarzenie kliknięcia myszą na element opcji.
-     *
-     * Logika działania:
-     * 1. Jeśli przekazano prop `onClick`, jest on wywoływany w pierwszej kolejności.
-     * 2. Sprawdza `e.defaultPrevented` - jeśli customowy handler zablokował zdarzenie,
-     * standardowy wybór (onSelect) jest pomijany.
-     * 3. W przeciwnym razie wykonuje standardową logikę wyboru i zatrzymuje propagację.
-     *
-     * @param e - Obiekt zdarzenia myszy.
-     */
-    handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-
-        if (this.props.onClick) {
-            this.props.onClick(e);
-        }
-
-        if (e.defaultPrevented) {
-            return;
-        }
-
-        e.stopPropagation();
-
-        const textContent = typeof this.props.children === 'string'
-            ? this.props.children
-            : String(this.props.value);
-
-        this.context?.onSelect(this.props.value, textContent);
-    };
-
-
-    render() {
-        if (!this.context) return null;
-
-        const { selectedValues, focusedIndex } = this.context;
-        const { value, children, className, index } = this.props;
-
-        const isSelected = selectedValues.has(value);
-        const isFocused = focusedIndex === index;
-
-
-        return (
-                <button
-                    ref={this.elementRef}
-                    type="button"
-                    tabIndex={-1}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={this.handleClick}
-                    onMouseEnter={this.handleMouseEnter}
-                    className={`option-item ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''} ${className || ''}`}
-                >
-                    <span className="truncate">{children}</span>
-                </button>
-        );
-    }
-}
-
 /**
  * Komponent główny listy rozwijanej.
  * Obsługuje logikę otwierania/zamykania, pozycjonowania, filtrowania opcji i zarządzania stanem wyboru.
@@ -257,6 +128,15 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
 
     constructor(props: CustomSelectProps) {
         super(props);
+        const labelMap = new Map<string, string>();
+        React.Children.forEach(props.children, (child) => {
+            console.log(child);
+            if(child.type != typeof(CustomOption)) return;
+
+            const option = child as CustomOption;
+            labelMap.set(option.props.value, option.props.children as string);
+        })
+
         this.state = {
             isOpen: false,
             selectedValues: new Set(props.initialValues || []),
@@ -368,24 +248,24 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         if (!this.state.isOpen || !this.triggerRef.current) return;
 
         const rect = this.triggerRef.current.getBoundingClientRect();
-            const minWidth = CustomSelect.DROPDOWN_MIN_WIDTH;
-            const dropdownHeight = this.dropdownRef.current?.offsetHeight || 300; // Estimated height if not yet measured
-            const padding = 20;
+        const minWidth = CustomSelect.DROPDOWN_MIN_WIDTH;
+        const dropdownHeight = this.dropdownRef.current?.offsetHeight || 300; // Estimated height if not yet measured
+        const padding = 20;
 
-            let left = rect.left;
-            let top = rect.bottom + padding;
+        let left = rect.left;
+        let top = rect.bottom + padding;
 
-            // Horizontal collision detection
-            if (left + minWidth > window.innerWidth - padding) {
-                left = Math.max(padding, window.innerWidth - minWidth - padding);
-            } else if (left < padding) {
-                left = padding;
-            }
+        // Horizontal collision detection
+        if (left + minWidth > window.innerWidth - padding) {
+            left = Math.max(padding, window.innerWidth - minWidth - padding);
+        } else if (left < padding) {
+            left = padding;
+        }
 
-            // Vertical collision detection (Flip to top if no space at bottom)
-            if (top + dropdownHeight > window.innerHeight - padding && rect.top > dropdownHeight + padding) {
-                top = rect.top - dropdownHeight - padding;
-            }
+        // Vertical collision detection (Flip to top if no space at bottom)
+        if (top + dropdownHeight > window.innerHeight - padding && rect.top > dropdownHeight + padding) {
+            top = rect.top - dropdownHeight - padding;
+        }
 
         this.setState({
             position: {
@@ -396,7 +276,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         });
     };
 
-        /**
+    /**
      * Obsługuje kliknięcia poza obszarem komponentu (mechanizm "Click Outside").
      *
      * Metoda sprawdza, czy element, w który kliknął użytkownik (`event.target`),
@@ -514,6 +394,7 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
      */
 
     private handleSelect = (value: string, label: string) => {
+
         this.registerOption(value, label);
 
         let newSelected: Set<string>;
@@ -663,18 +544,18 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         const displayCount = selectedValues.size > 1 ? ` +${selectedValues.size - 1}` : '';
 
         return (
-                <div
-                    ref={this.triggerRef}
-                    onClick={() => this.setState({ isOpen: !isOpen, focusedIndex: -1})}
-                    onKeyDown={this.handleKeyDown}
-                    className={`custom-select-trigger ${isActive ? 'filtered' : ''} ${className || ''}`}
-                    role="button"
-                    tabIndex={0}
-                >
-                    {label}
-                    {isActive && !menu_mode && (
-                        <div>{displayLabel}{allow_multiple && displayCount}</div>
-                    )}
+            <div
+                ref={this.triggerRef}
+                onClick={() => this.setState({ isOpen: !isOpen, focusedIndex: -1})}
+                onKeyDown={this.handleKeyDown}
+                className={`custom-select-trigger ${isActive ? 'filtered' : ''} ${className || ''}`}
+                role="button"
+                tabIndex={0}
+            >
+                {label}
+                {isActive && !menu_mode && (
+                    <div>{displayLabel}{allow_multiple && displayCount}</div>
+                )}
 
                 {isOpen && position && createPortal(
                     <div
@@ -706,6 +587,138 @@ export class CustomSelect extends Component<CustomSelectProps, CustomSelectState
         );
     }
 }
+
+/**
+ * Typ właściwości dla pojedynczej opcji wyboru
+ * @property value - Unikalna wartość opcji
+ * @property children - Wyświetlana etykieta lub element
+ * @property className - Dodatkowa klasa CSS
+ * @property index - Indeks elementu
+ * @property onClick - opcjonalna funkcja wywołania po kliknięciu opcji.
+ */
+
+export interface CustomOptionProps {
+    value: string;
+    children: string | React.ReactNode;
+    className?: string;
+    index?: number;
+    onClick?:(e: React.MouseEvent) => void;
+    /** Czy opcja jest aktualnie wybrana? (dla styli CSS) */
+    isSelected?: boolean;
+
+    /** Czy opcja jest podświetlona strzałkami klawiatury? (dla styli CSS) */
+    isFocused?: boolean;
+
+    /**
+     * Funkcja zwrotna do rodzica (CustomSelect).
+     * Wywoływana, gdy opcja zostanie kliknięta, aby poinformować rodzica o zmianie.
+     */
+    onSelect?: (value: string, label: string) => void;
+}
+
+/**
+ * Komponent reprezentujący pojedynczą opcję na liście rozwijanej.
+ *
+ * Odpowiada za wyświetlanie elementu, obsługę zdarzeń myszy (kliknięcie, najechanie)
+ * oraz rejestrację swojej wartości i etykiety w kontekście rodzica (CustomSelect).
+ */
+export class CustomOption extends Component<CustomOptionProps> {
+    static readonly displayName = 'CustomOption';
+    static readonly type = 'option';
+
+    private elementRef = createRef<HTMLButtonElement>();
+
+    /**
+     * Przypisanie kontekstu React do komponentu klasowego.
+     */
+    static contextType = SelectContext;
+
+    /**
+     * Deklaracja typu dla właściwości.
+     */
+    declare context: React.ContextType<typeof SelectContext>;
+
+    /**
+     * Metoda wywoływana natychmiast po zamontowaniu komponentu w drzewie DOM.
+     * Służy do rejestracji opcji u rodzica.
+     */
+    componentDidMount() {
+        const textContent = typeof this.props.children === 'string'
+            ? this.props.children
+            : String(this.props.value);
+
+        this.context?.registerOption(this.props.value, textContent);
+    }
+
+    /**
+     * Obsługuje zdarzenie najechania kursorem myszy na element opcji.
+     * Aktualizuje 'focusedIndex' w stanie komponentu nadrzędnego
+     */
+    handleMouseEnter = () => {
+        if (typeof this.props.index === 'number') {
+            this.context?.setFocusedIndex(this.props.index);
+        }
+    };
+
+    /**
+     * Obsługuje zdarzenie kliknięcia myszą na element opcji.
+     *
+     * Logika działania:
+     * 1. Jeśli przekazano prop `onClick`, jest on wywoływany w pierwszej kolejności.
+     * 2. Sprawdza `e.defaultPrevented` - jeśli customowy handler zablokował zdarzenie,
+     * standardowy wybór (onSelect) jest pomijany.
+     * 3. W przeciwnym razie wykonuje standardową logikę wyboru i zatrzymuje propagację.
+     *
+     * @param e - Obiekt zdarzenia myszy.
+     */
+    handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+
+        if (this.props.onClick) {
+            this.props.onClick(e);
+        }
+
+        if (e.defaultPrevented) {
+            return;
+        }
+
+        e.stopPropagation();
+
+        const textContent = typeof this.props.children === 'string'
+            ? this.props.children
+            : String(this.props.value);
+
+        this.context?.onSelect(this.props.value, textContent);
+    };
+
+
+    render() {
+        if (!this.context) return null;
+
+        const { selectedValues, focusedIndex } = this.context;
+        const { value, children, className, index } = this.props;
+
+        const isSelected = selectedValues.has(value);
+        const isFocused = focusedIndex === index;
+
+
+        return (
+                <button
+                    ref={this.elementRef}
+                    type="button"
+                    tabIndex={-1}
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={this.handleClick}
+                    onMouseEnter={this.handleMouseEnter}
+                    className={`option-item ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''} ${className || ''}`}
+                >
+                    <span className="truncate">{children}</span>
+                </button>
+        );
+    }
+}
+
+
 
 /**
  * Definicja właściwości (props) dla komponentu `DateRangePanel`.

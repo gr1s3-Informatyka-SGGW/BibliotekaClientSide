@@ -61,14 +61,18 @@ function Login() {
 
         <input
           type="email"
+          name='login'
           placeholder="E-mail"
+          autoComplete='on'
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
+          name='password'
           placeholder="Hasło"
+          autoComplete='on'
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
