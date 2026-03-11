@@ -35,8 +35,7 @@ export const FilterResetButton = ({ activeCount = 0, onReset, label = "Wyczyść
  * @property {string} searchQuery - Aktualna fraza wpisana przez użytkownika w pole wyszukiwania.
  * @property {number} focusedIndex - Indeks numeryczny elementu, który jest aktualnie podświetlony (nawigacja klawiaturą/myszą).
  * @property {(index: number) => void} setFocusedIndex - Funkcja służąca do ręcznego ustawienia indeksu podświetlonego elementu.
- * @property {(value: string, label: string) => void} registerOption - Metoda pozwalająca opcjom potomnym (CustomOption) zarejestrować swoją etykietę w mapie rodzica.
- */
+  */
 
 interface SelectContextType {
     selectedValues: Set<string>;
