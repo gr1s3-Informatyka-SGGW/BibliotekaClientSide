@@ -618,7 +618,7 @@ function CatalogView(): JSX.Element {
                 <FilterResetButton activeCount={activeFilterCount} onReset={handleResetFilters} />
                 <CustomSelect filterKey=""
                               label="Sortuj"
-                              initialValues={(() => sorting ? [`${sorting.key}-${sorting.direction})`] : ["title-ASC"])()}
+                              initialValues={(() => sorting ? [`${sorting.key}-${sorting.direction}`] : ["title-ASC"])()}
                         onChange={(v: string[]) => {
                             // value w CustomSelect ma format [index]_[ASC|DESC]
                             const val = v[0].split('-');
