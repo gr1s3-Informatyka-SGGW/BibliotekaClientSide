@@ -135,7 +135,6 @@ function CatalogView(): JSX.Element {
     });
 
     const [totalPages, setTotalPages] = useState(1);
-    const [totalBookCount, setTotalBookCount] = useState(0);
 
     // Inkrementowany przy naciśnięciu "Wyczyść filtry"
     const [resetToken, setResetToken] = useState(0);
@@ -188,7 +187,6 @@ function CatalogView(): JSX.Element {
 
     const [popupData, setPopupData] = useState<PopupData>({});
 
-
     /** Synchronizuje filtry i wyszukiwanie z URL */
     useEffect(() => {
         const params = new URLSearchParams();
@@ -218,7 +216,7 @@ function CatalogView(): JSX.Element {
             setSearchParams(params, { replace: true });
         }
 
-    }, [activeFilters, sorting, search, currentPage, searchParams]);
+    }, [activeFilters, sorting, search, currentPage, searchParams, setSearchParams]);
 
     /** Obsługuje wczytywanie filtrów z URL. Umożliwia zewnętrzną, nawigacje i cofanie w przeglądarce */
     useEffect(() => {
@@ -271,7 +269,6 @@ function CatalogView(): JSX.Element {
             );
             setBooks(result.result);
             setTotalPages(result.totalPages);
-            setTotalBookCount(result.totalResults);
 
             window.scrollTo({
                 top: 0,
@@ -281,6 +278,10 @@ function CatalogView(): JSX.Element {
         catch(e: any){
             console.error(e);
             setPopupData({error: e.message})
+            if(e.cause === 'Odmowa dostępu'){
+                setShownPopup('AccessDeniedError')
+                return
+            }
             setShownPopup("CatalogError")
 
         }
@@ -310,7 +311,7 @@ function CatalogView(): JSX.Element {
                 setShownPopup("CatalogError")
             }
         })()
-    }, [activeFilters, sorting, search, currentPage]);
+    }, [activeFilters, sorting, search, currentPage, fetchBooksAndScrollToTop]);
 
 
     const handleResetFilters = () => {
@@ -369,7 +370,7 @@ function CatalogView(): JSX.Element {
      * Obsługuje proces wyporzyczania */
     const onRentBookScanned = async (scanned_str: string) => {
         let parsed_data: {instance: number, book: number};
-        let book_info: Book;
+        // let book_info: Book;
         try{
             parsed_data = JSON.parse(scanned_str);
             // book_info = await fetchBookRequest(false, parsed_data.book);

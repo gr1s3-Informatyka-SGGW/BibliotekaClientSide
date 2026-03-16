@@ -74,11 +74,13 @@ export interface BookUser extends Book{
 /**
  * @type Rent zawiera dane na temat wypożyczenia książki
  * @prop {Book} book - informacje o wypożyczonej książce
+ * @prop {number} instance_id - numer wyporzyczonego egzemplarza
  * @prop {Date} borrow_date
  * @prop {Date} return_date
  * */
 export interface Rent{
     book: Book;
+    instance_id?: number;
     borrow_date: Date;
     return_date: Date;
 }

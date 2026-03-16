@@ -364,7 +364,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             >
                 <div style={{ minWidth: '300px' }}>
                     <form onSubmit={this.handleCardSubmit} className="flex-column" style={{ gap: '1em' }}>
-
                         <div className="flex-column">
                             <label htmlFor='cardNumber'>Numer karty:</label>
                             <CustomTooltip title={formErrors.cardNumber}>
@@ -499,89 +498,89 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             borderRadius: '12px',
             border: '1px solid #ccc',
             minWidth: '180px'
-        };
+        }
 
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         return (
-            <div className="profile-info-component panel" style={{ borderRadius: '12px', maxWidth: '20em', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
+<div className="profile-info-component panel" style={{ borderRadius: '12px', maxWidth: '20em', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
 
-                <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
-                    <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
-                    <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
+    <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
+        <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
+        <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
+    </div>
+    <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
+
+    <table className="profile-data-container">
+        <tbody>
+        {(['name', 'surname', 'email'] as const).map(field => (
+            <tr key={field} className="profile-row">
+                <td>
+                    <label className="profile-label">
+                        {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
+                    </label>
+                </td>
+
+                {editMode && field !== 'email' ? (
+                    <td style={{ flex: '0 1 300px', width: '100%'}}>
+                        <CustomTooltip title={formErrors[field] || ""}>
+                            <input
+                                name={field}
+                                type='text'
+                                value={formData[field]}
+                                style={{ ...inputStyle, width: '100%' }}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    this.setState(p => ({
+                                        formData: { ...p.formData, [field]: val },
+                                        formErrors: { ...p.formErrors, [field]: this.validateField(field, val) || undefined }
+                                    }));
+                                }}
+                            />
+                        </CustomTooltip>
+                    </td>
+                ) : (
+                    <td className="profile-value" style={valueStyle}>{user[field]}</td>
+                )}
+            </tr>
+        ))}
+
+        {isClient && user.credit_card_number && (
+            <tr className="profile-row">
+                <td>
+                    <label className="profile-label">Numer karty:</label>
+                </td>
+                <td className="profile-value" style={valueStyle}>
+                    **** **** **** {user.credit_card_number.slice(-4)}
+                </td>
+            </tr>
+        )}
+        </tbody>
+    </table>
+
+    <div className="flex-column" style={{ gap: '1em' }}>
+        {editMode ? (
+            <>
+                {this.state.showGeneralError && <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginTop: '-1.5em', marginBottom: '-0.5em', display: 'block' }}>Nie można zapisać: popraw błędy w polach.</span>}
+                <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
+                    <button type="button" className="boring" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, padding: '0.9em', borderRadius: '8px' }}>Odrzuć zmiany</button>
+                    <button onClick={this.handleGeneralSubmit} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zapisz zmiany</button>
                 </div>
-                <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
-
-                <table className="profile-data-container">
-                    <tbody>
-                    {(['name', 'surname', 'email'] as const).map(field => (
-                        <tr key={field} className="profile-row">
-                            <td>
-                                <label className="profile-label">
-                                    {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
-                                </label>
-                            </td>
-
-                            {editMode && field !== 'email' ? (
-                                <td style={{ flex: '0 1 300px', width: '100%'}}>
-                                    <CustomTooltip title={formErrors[field] || ""}>
-                                        <input
-                                            name={field}
-                                            type='text'
-                                            value={formData[field]}
-                                            style={{ ...inputStyle, width: '100%' }}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                this.setState(p => ({
-                                                    formData: { ...p.formData, [field]: val },
-                                                    formErrors: { ...p.formErrors, [field]: this.validateField(field, val) || undefined }
-                                                }));
-                                            }}
-                                        />
-                                    </CustomTooltip>
-                                </td>
-                            ) : (
-                                <td className="profile-value" style={valueStyle}>{user[field]}</td>
-                            )}
-                        </tr>
-                    ))}
-
-                    {isClient && user.credit_card_number && (
-                        <tr className="profile-row">
-                            <td>
-                                <label className="profile-label">Numer karty:</label>
-                            </td>
-                            <td className="profile-value" style={valueStyle}>
-                                **** **** **** {user.credit_card_number.slice(-4)}
-                            </td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
-
-                <div className="flex-column" style={{ gap: '1em' }}>
-                    {editMode ? (
-                        <>
-                            {this.state.showGeneralError && <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginTop: '-1.5em', marginBottom: '-0.5em', display: 'block' }}>Nie można zapisać: popraw błędy w polach.</span>}
-                            <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
-                                <button type="button" className="boring" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, padding: '0.9em', borderRadius: '8px' }}>Odrzuć zmiany</button>
-                                <button onClick={this.handleGeneralSubmit} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zapisz zmiany</button>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
-                                <button type="button" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Edytuj profil</button>
-                                <button type="button" onClick={() => this.setState({ isPasswordOpen: true })} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zmień hasło</button>
-                            </div>
-                            {isClient && user.credit_card_number && (
-                                <button type="button" className="full-width-mobile" onClick={() => this.setState({ isCardOpen: true })} style={{ width: '100%', backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '0.2em' }}>Zmień dane karty</button>
-                            )}
-                        </>
-                    )}
+            </>
+        ) : (
+            <>
+                <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
+                    <button type="button" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Edytuj profil</button>
+                    <button type="button" onClick={() => this.setState({ isPasswordOpen: true })} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zmień hasło</button>
                 </div>
-                {this.changePassword()}
-                {this.changeCardInfo()}
-            </div>
+                {isClient && user.credit_card_number && (
+                    <button type="button" className="full-width-mobile" onClick={() => this.setState({ isCardOpen: true })} style={{ width: '100%', backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '0.2em' }}>Zmień dane karty</button>
+                )}
+            </>
+        )}
+    </div>
+    {this.changePassword()}
+    {this.changeCardInfo()}
+</div>
         );
     }
 }

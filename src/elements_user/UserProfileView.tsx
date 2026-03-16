@@ -47,85 +47,80 @@ export default function UserProfileView() {
 
 
     return (
-        <>
-            {/* Sidebar nawigacyjny */}
-            <NavSidebar />
+<>
+    {/* Sidebar nawigacyjny */}
+    <NavSidebar />
 
-            <main className="user-profile-view">
-                {/* 1. Nagłówek: Ikona i Tytuł */}
-                <div style={{
-                    textAlign: 'center',
-                    textDecoration: 'none',
-                    color: '#631433',
-                    transition: 'color 0.3s',
-                    alignItems: 'center',
-                    gap: '0.5em'
-                }}>
-                    <h1 style={{
-                        fontSize: '2em',
-                        marginTop: '0',
-                        marginBottom: '0.5em',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5em'
-                    }}>
-                        <img
-                            src={accountCircleIcon}
-                            alt="Profile"
-                        />
-                        Twój profil
-                    </h1>
-                </div>
+    <main className="user-profile-view">
+        {/* 1. Nagłówek: Ikona i Tytuł */}
+        <div style={{
+            textAlign: 'center',
+            textDecoration: 'none',
+            color: '#631433',
+            transition: 'color 0.3s',
+            alignItems: 'center',
+            gap: '0.5em'
+        }}>
+            <h1 style={{
+                fontSize: '2em',
+                marginTop: '0',
+                marginBottom: '0.5em',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5em'
+            }}>
+                <img
+                    src={accountCircleIcon}
+                    alt="Profile"
+                />
+                Twój profil
+            </h1>
+        </div>
 
-                {/* 2. Główny kontener dla układu Lewo-Prawo */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    width: '100%',
-                    gap: '1em',
-                    alignItems: 'flex-start'
-                }}>
+        {/* 2. Główny kontener dla układu Lewo-Prawo */}
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            width: '100%',
+            gap: '1em',
+            alignItems: 'flex-start'
+        }}>
 
-                    {/* LEWA KOLUMNA: Panel profilu */}
-                    <div style={{ width: '22em'}}>
-                        {userInfo ? <ProfileInfoPanel info={userInfo} access={'user'} /> : <></>}
-                    </div>
+            {/* LEWA KOLUMNA: Panel profilu */}
+            <div style={{ width: '22em'}}>
+                {userInfo ? <ProfileInfoPanel info={userInfo} access={'user'} /> : <></>}
+            </div>
 
-                    {/* PRAWA KOLUMNA: Listy książek */}
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}>
-                    {userReservations &&
-                        <ProfileBookList
-                            header="Zarezerwowane książki"
-                            icon={ribbonIcon}
-                        >
-                            {userReservations.map(res => (
-                                <ReservationComponent key={res.book.book_id} info={res} />
-                            ))}
-                        </ProfileBookList>
-                    }
-                    {userRents &&
-                        <ProfileBookList
-                            header="Wypożyczone książki"
-                            icon={bookIcon}
-                        >
-                            {userRents.map(rent => (
-                                <RentComponent key={rent.book.book_id} info={rent} />
-                            ))}
-                        </ProfileBookList>
-                    }
-
-                    </div>
-                </div>
-            </main>
-            <Alert message={errorMessage} title="Błąd API" isOpen={isAPIError} setIsOpen={setIsAPIError}/>
-        </>
+            {/* PRAWA KOLUMNA: Listy książek */}
+            <div style={{display: 'flex', flexDirection: 'column'}}>
+            {userReservations &&
+                <ProfileBookList
+                    header="Zarezerwowane książki"
+                    icon={ribbonIcon}
+                >
+                    {userReservations.map(((res: Reservation, index: number) => (
+                        <ReservationComponent key={index} info={res} />
+                    )))}
+                </ProfileBookList>
+            }
+            {userRents &&
+                <ProfileBookList
+                    header="Wypożyczone książki"
+                    icon={bookIcon}>
+                        {userRents.map((rent: Rent, index: number) => (
+                            <RentComponent key={index} info={rent}/>
+                        ))}
+                </ProfileBookList>
+            }
+            </div>
+        </div>
+    </main>
+    <Alert message={errorMessage} title="Błąd API" isOpen={isAPIError} setIsOpen={setIsAPIError}/>
+</>
     );
 }
 

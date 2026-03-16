@@ -107,9 +107,6 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
         const {book} = this.info;
         this.info.book = await fetchUserBookRequest(book.book_id!);
     }
-    forceRefresh() {
-        window.location.reload();
-    }
     /** Wywołuje popup anulowania rezerwacji. */
     cancelReservation() {
         const {book, instance_id} = this.props.info;
@@ -296,26 +293,22 @@ export class RentComponent extends Component<{ info: Rent }> {
     constructor(props: { info: Rent }) {
         super(props);
         this.info = props.info;
-        this.state = {isDetailsOpen: false};
     }
-    async componentDidMount() {
+    /*async componentDidMount() {
         const {book} = this.info;
         this.info.book = await fetchUserBookRequest(book.book_id!);
-    }
-    forceRefresh() {
-        window.location.reload();
-    }
+    }*/
 
     /** Wywołuje popup przedłużenia terminu zwrotu. */
     prolongRental() {
-        const {book} = this.info;
+        const {book, instance_id} = this.info;
         const {showAlert} = this.props as any;
         showAlert(
             "Przedłużenie wypożyczenia",
             `Czy chcesz przedłużyć termin zwrotu książki „${book.title}” o 30 dni?`,
             async () => {
                 try {
-                    await extendRentRequest(book.book_id!);
+                    await extendRentRequest(instance_id!);
                     window.location.reload();
                 } catch (e: any) {
                     showAlert("Błąd", e.message);
@@ -326,14 +319,14 @@ export class RentComponent extends Component<{ info: Rent }> {
 
     /** Wywołuje popup oddania książki. */
     returnBook() {
-        const {book} = this.info;
+        const {book, instance_id} = this.info;
         const {showAlert} = this.props as (any);
         showAlert(
             "Zwrot książki",
             `Czy chcesz potwierdzić zwrot książki „${book.title}”?`,
             async () => {
                 try {
-                    await returnBookRequest(book.book_id!);
+                    await returnBookRequest(instance_id!);
                     window.location.reload();
                 } catch (e: any) {
                     showAlert("Błąd", e.message);
@@ -349,9 +342,9 @@ export class RentComponent extends Component<{ info: Rent }> {
     onScanReturn(code: string) {
         const {book} = this.info;
         const {showAlert} = this.props as any;
-
-        // Prosta weryfikacja: czy kod QR zawiera ID książki
-        if (code === book.book_id?.toString()) {
+        const scanned_data: {instance: number, book: string} = JSON.parse(code);
+        // Prosta weryfikacja: czy kod QR zawiera tytuł książki
+        if (scanned_data.book === book.title) {
             this.returnBook();
         } else {
             showAlert("Błąd skanowania", "Zeskanowany kod nie odpowiada tej książce.");
@@ -366,23 +359,15 @@ export class RentComponent extends Component<{ info: Rent }> {
         const now = new Date();
         const dueDate = return_date ? new Date(return_date) : new Date();
         const isOverdue = dueDate < now;
-        const {isDetailsOpen} = this.state as any;
-
-        const labelStyle = {color: '#8b2346', fontWeight: 'bold', width: '150px', display: 'inline-block'};
-        const rowStyle = {marginBottom: '8px', display: 'flex'};
 
         return (
 
             <div className="book-item" style={{paddingBottom: '0.5em', display: 'block'}}>
                 <div style={{marginBottom: '1em'}}>
                     <div
-                        onClick={() => this.setState({isDetailsOpen: true})}
                         style={{
-                            color: '#8b2346',
                             fontWeight: '500',
                             fontSize: '1.1em',
-                            textDecoration: 'underline',
-                            cursor: 'pointer'
                         }}
                     >
                         „{book.title}” - {authors}
@@ -419,60 +404,6 @@ export class RentComponent extends Component<{ info: Rent }> {
                         <ScanButton onScan={(val: string) => this.onScanReturn(val)} text='Zwróć'/>
                     }
                 </div>
-                <Popup
-                    title="Szczegóły książki"
-                    isOpen={isDetailsOpen}
-                    setIsOpen={(val: boolean) => this.setState({isDetailsOpen: val})}
-                >
-                    <div style={{fontSize: '1em', color: '#333', textAlign: 'left'}}>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>Tytuł:</span>
-                            <span>{book.title}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>Autor:</span>
-                            <span>{book.authors?.join(", ") || "Nieznany"}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>Rok wydania:</span>
-                            <span>{book.publish_year}</span>
-                        </div>
-                        {/*<div style={rowStyle}>
-                            <span style={labelStyle}>Wydawnictwo:</span>
-                            <span>{book_info.publisher}</span>
-                        </div>*/}
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>ISBN:</span>
-                            <span>{book.isbn_number}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>Gatunek:</span>
-                            <span>{book.genre?.join(", ") || "Brak"}</span>
-                        </div>
-                        {/*<div style={rowStyle}><span style={labelStyle}>Język:</span> <span>{book_info.language}</span></div>*/}
-                        {/*<div style={rowStyle}><span style={labelStyle}>Liczba stron:</span> <span>{book_info.length}</span></div>*/}
-                        <div style={{marginTop: '15px', fontStyle: 'italic', color: '#666'}}>
-                            Tagi: {book.keywords?.join(", ") || "Brak"}
-                        </div>
-                    </div>
-                    <div style={{
-                        marginTop: '20px', display: 'flex', justifyContent: 'center'
-                    }}>
-                        <button
-                            onClick={() => this.setState({isDetailsOpen: false})}
-                            style={{
-                                backgroundColor: '#8b2346',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 20px',
-                                borderRadius: '0.75em',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Zamknij
-                        </button>
-                    </div>
-                </Popup>
             </div>
         );
     }

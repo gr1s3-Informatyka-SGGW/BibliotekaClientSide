@@ -15,6 +15,7 @@ export default defineConfig([
         'react-refresh/only-export-components': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-unused-expressions': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off'
     },
     extends: [
       js.configs.recommended,

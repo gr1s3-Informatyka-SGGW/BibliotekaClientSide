@@ -3,26 +3,26 @@
  */
 
 import {
+    AccessDeniedError,
     API_URL,
+    authHeaders,
     InvalidRequestDataError,
     RequestError,
-    AccessDeniedError,
-    TargetNotFoundError,
-    authHeaders
+    TargetNotFoundError
 } from "./connection.ts";
 import type {
-    User,
-    Rent,
-    BookUser,
-    Reservation,
-    BookSearchFilter,
-    PagedResponse,
-    SearchSort,
     BookAdmin,
-    UserInfo,
-    UserListSearchFilter,
+    BookSearchFilter,
+    BookUser,
+    PagedResponse,
+    Rent,
+    RentFullInfo,
     RentLogSearchFilter,
-    RentFullInfo
+    Reservation,
+    SearchSort,
+    User,
+    UserInfo,
+    UserListSearchFilter
 } from "../server_types.ts";
 
 /**
@@ -95,17 +95,13 @@ export async function fetchUserInfoRequest(): Promise<User>{
         console.log('Response data:', data);
 
         // Map backend fields -> frontend User type
-        const user: User = {
+        return {
             name: String(data?.name ?? ""),
             surname: String(data?.surname ?? ""),
             email: String(data?.email ?? ""),
             credit_card_number:
                 data?.ostatnie4CyfryKarty != null && data?.ostatnie4CyfryKarty != "BRAK" ? String(data.ostatnie4CyfryKarty) : undefined,
         };
-
-
-
-        return user;
     }
 
     if (response.status >= 400 && response.status < 500) {
@@ -162,14 +158,16 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
             book: {
                 title: String(item?.tytul ?? ""),
                 authors: item?.autor != null ? [String(item.autor)] : [],
-                publish_year: 0,
-                isbn_number: "",
-                length: 0,
-                language: "",
-                publisher: "",
-                keywords: [],
-                genre: [],
+
+                publish_year: undefined,
+                isbn_number: undefined,
+                length: undefined,
+                language: undefined,
+                publisher: undefined,
+                keywords: undefined,
+                genre: undefined,
             },
+            instance_id: item?.Copyid,
             borrow_date: borrowDate,
             return_date: returnDate,
         };
@@ -537,7 +535,7 @@ export async function fetchAdminBookRequest(
 
 
 
-    const book: BookAdmin = {
+    return {
         book_id: json?.Bookid != null ? Number(json.Bookid) : undefined,
         title: String(json?.tytul ?? ""),
         authors: Array.isArray(json?.autorzy) ? json.autorzy.map((a: any) => String(a)) : [],
@@ -556,14 +554,11 @@ export async function fetchAdminBookRequest(
 
         instances: Array.isArray(json?.egzemplarze)
             ? json.egzemplarze.map((e: any) => ({
-                    id: Number(e?.Copyid),
-                    status: e?.status == 'destroyed' ? 'damaged' : e?.status as BookAdmin["instances"][number]["status"],
-                }))
+                id: Number(e?.Copyid),
+                status: e?.status == 'destroyed' ? 'damaged' : e?.status as BookAdmin["instances"][number]["status"],
+            }))
             : [],
     };
-
-
-    return book;
 }
 /**
  * Pobiera listę użytkowników dla panelu administratora z możliwością filtrowania i sortowania.
