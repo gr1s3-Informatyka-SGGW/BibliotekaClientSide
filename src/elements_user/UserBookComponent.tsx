@@ -36,8 +36,8 @@ class UserBookComponent extends Component<Props, State> {
     render(): JSX.Element {
         const b = this.props.book_info;
         const reserve = this.props.onReserveBookPressed;
-        const authors = b.authors.join(", ");
-        const genres = b.genre ? b.genre.join(", ") : undefined;
+        const authors = b.authors && b.authors.length != 0 ? b.authors.join(", ") : "brak";
+        const genres = b.genre && b.genre.length != 0 ? b.genre?.join(", ") : "brak";
         const instances = (() => {
             let ins = b.instances.available + " / " + b.instances.total + " dostępn";
             if (b.instances.total == 0) { ins += "ych"; }
@@ -47,7 +47,6 @@ class UserBookComponent extends Component<Props, State> {
             return ins;
         })();
 
-        const disableRentButton = (b.instances.available === 0);
         const disableReserveButton = (b.instances.available === 0);
         return <div className="book">
             <div className="header-actions">
@@ -55,7 +54,6 @@ class UserBookComponent extends Component<Props, State> {
                     <img src={bookIcon} alt=""/> „{b.title}” — {authors}
                 </h3>
                 <div className="flex-row reader-actions">
-                    {/*<button onClick={() => {rent && rent(b)}} disabled={disableRentButton}>Wypożycz</button>*/}
                     <button onClick={() => {reserve && reserve(b)}} disabled={disableReserveButton}>Zarezerwuj</button>
                 </div>
             </div>

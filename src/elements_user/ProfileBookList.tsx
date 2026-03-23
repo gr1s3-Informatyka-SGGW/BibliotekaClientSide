@@ -217,7 +217,7 @@ export class ReservationComponent extends Component<{ info: Reservation }> {
                         Anuluj rezerwację
                     </button>
                     {isReady && (
-                        <ScanButton onScan={(val: string) => this.onScanWithdraw(val)}/>
+                        <ScanButton onScan={(val: string) => this.onScanWithdraw(val)} text='Odbierz rezerwacje'/>
                     )}
                 </div>
                 <Popup

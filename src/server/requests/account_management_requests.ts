@@ -314,6 +314,7 @@ export async function removeUserRequest(email: string): Promise<void> {
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
+// todo: nie ma wyznacznika wskazującego na to, że jesteś zablokowany.
 export async function toggleUserBlockRequest(
     userId: number,
     status: boolean

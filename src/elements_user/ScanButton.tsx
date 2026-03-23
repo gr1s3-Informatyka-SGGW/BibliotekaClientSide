@@ -56,8 +56,9 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
   constructor(props: ScanButtonProps) {
     super(props);
     this.state = {
-      // isMobile: true,
-      isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+      // todo: !MOCK scan
+      isMobile: true,
+      // isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
       error: '',
       open: false
     };
@@ -154,9 +155,9 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
     const imageData = ctx.getImageData(sx, sy, sw, sh, {});
 
 
-
-    // const code = { data: '{"instance": 5, "book": "Testowanie Softu"}'}
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    // todo: !MOCK scan
+    const code = { data: '{"instance": 5, "book": "Testowanie Softu"}'}
+    // const code = jsQR(imageData.data, imageData.width, imageData.height);
 
     if (code) {
       this.scanningRef = false;

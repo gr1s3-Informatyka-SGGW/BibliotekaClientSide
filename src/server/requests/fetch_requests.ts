@@ -80,7 +80,7 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
  * @throws {InvalidRequestDataError} When user is not found for the provided token (status 400)
  * @throws {RequestError} When server returns an unexpected error status
  */
-export async function fetchUserInfoRequest(): Promise<User>{
+export async function fetchUserInfoRequest(): Promise<User> {
     const requestUrl = `${API_URL}/api/users/loginInfo`;
     const requestOptions = {
         method: "GET",
@@ -183,6 +183,7 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
  * @throws {TargetNotFoundError} Gdy nie znaleziono użytkownika dla tokenu
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
+
 /* todo: nie zwracane przez request: publish_year, isbn_number, length, language, publisher, keywords, genre
         autor nie jest tablicą tylko pojedyńczą wartością
 * */
@@ -279,6 +280,8 @@ export async function fetchUserCatalogRequest(
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (!r.ok) {
+        if(r.status === 403)
+            throw new AccessDeniedError("Błąd przy pobieraniu katalogu - odmowa dostepu")
         throw new RequestError(`Błąd pobierania katalogu: ${r.status} - ${r.statusText}`);
     }
 
@@ -396,7 +399,7 @@ export async function fetchAdminCatalogRequest(
         throw new InvalidRequestDataError("Niepoprawne dane paginacji", false);
     }
 
-    const body: any = { page };
+    const body: any = {page};
 
     if (search && search.trim().length > 0) {
         body.fragment_tytulu = search;
@@ -478,11 +481,11 @@ export async function fetchAdminCatalogRequest(
             // IMPORTANT: BookAdmin requires instances[], and search endpoint returns `egzemplarze`
             instances: Array.isArray(b?.egzemplarze)
                 ? b.egzemplarze
-                      .map((e: any) => ({
-                          id: e?.Copyid != null ? Number(e.Copyid) : Number(e?.id),
-                          status: mapInstanceStatus(e?.status),
-                      }))
-                      .filter((e: any) => Number.isFinite(e.id))
+                    .map((e: any) => ({
+                        id: e?.Copyid != null ? Number(e.Copyid) : Number(e?.id),
+                        status: mapInstanceStatus(e?.status),
+                    }))
+                    .filter((e: any) => Number.isFinite(e.id))
                 : [],
         })),
         totalPages: Number(json?.totalPages ?? 1),
@@ -534,7 +537,6 @@ export async function fetchAdminBookRequest(
     console.log("Response data:", json);
 
 
-
     return {
         book_id: json?.Bookid != null ? Number(json.Bookid) : undefined,
         title: String(json?.tytul ?? ""),
@@ -560,6 +562,9 @@ export async function fetchAdminBookRequest(
             : [],
     };
 }
+
+
+
 /**
  * Pobiera listę użytkowników dla panelu administratora z możliwością filtrowania i sortowania.
  *
@@ -574,10 +579,8 @@ export async function fetchAdminBookRequest(
  * @throws {InvalidRequestDataError} Gdy podano niepoprawny numer strony lub błędne dane wyszukiwania
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania użytkowników
  */
-// todo: backend nie zwraca informacji o tym czy użytkownik jest adminem
-// todo: informacje na temat książki są niekompletne
-// todo: backend nie zwraca informacji o rezerwacjach
-// todo: paginacja również wydaje się nie działać
+// todo priority: backend nie odróżnia wypożyczeń od rezerwacji. Wszystko zwraca jako wyporzyczenia
+// todo test: paginacja również wydaje się nie działać
 export async function fetchUserListRequest(
     search_bar?: string,
     sort?: SearchSort,
@@ -589,31 +592,22 @@ export async function fetchUserListRequest(
         throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
     }
 
+    // przetłumacz status na backendowy format
+    const status_converter = {
+        "blocked": "zablokowany",
+        "user": 'dostepny',
+        "admin": undefined
+    }
+
     const body: any = {
-        fragment: search_bar,
+        fragment: search_bar?.trim(),
         sortuj_po: sort ? {
             czym: sort.key,
             rosnaco: sort.direction === "ASC", // convert to backend bool
         } : undefined,
-        status: filter?.status ?? undefined,
+        status: filter && filter.status && filter.status.length > 0 ? status_converter[filter.status[0]] : undefined,
         strona: page,
     };
-
-    if (search_bar && search_bar.trim().length > 0) {
-        body.fragment = search_bar;
-    }
-
-    if (sort) {
-        body.sortuj_po = {
-            czym: sort.key,
-            rosnaco: sort.direction === 'ASC',
-        };
-    }
-
-    if (filter?.status && filter.status.length > 0) {
-        // tylko pierwszy element, bo backend oczekuje stringa
-        body.status = filter.status[0];
-    }
 
     const requestUrl = `${API_URL}/api/users/listUsers`;
     const requestOptions = {
@@ -626,7 +620,7 @@ export async function fetchUserListRequest(
     console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (r.status >= 400 && r.status < 500) {
-        if(r.status == 401 || r.status == 403)
+        if (r.status == 401 || r.status == 403)
             throw new AccessDeniedError("Odmowa dostępu, wymagany dostęp pracownika");
         throw new InvalidRequestDataError("Niepoprawne dane wyszukiwania", false);
     }
@@ -635,33 +629,57 @@ export async function fetchUserListRequest(
         throw new RequestError("Błąd pobierania użytkowników");
     }
 
-    const json = await r.json();
-    console.log('Response data:', json);
-    return {
-        result: (json.uzytkownicy ?? []).map((u: any): UserInfo => {
-            return {
-            user_id: u.user_id,
-            name: u.imie,
-            surname: u.nazwisko,
-            email: u.email,
-            status: u.is_blocked ? 'blocked' : 'user', // nie mam rozróżnienia między niezablokowanym a user'em
-            currently_rented: (u.wypozyczenia ?? []).map((w: any): Rent => ({
-                book: {
-                    title: w.nazwa,
-                    authors: w.autor,
+    /**
+     * typ odpowiedzi serwera na request
+     * */
+    interface BackendResponse {
+        uzytkownicy: {
+            user_id: number
+            imie: string,
+            nazwisko: string,
+            email: string,
+            is_blocked: boolean,
+            wypozyczone_ksiazki : {
+                nazwa: string,
+                autor: string[],
+                data_wypozyczenia: string,
+                termin_zwrotu: string,
+                naliczone_oplaty: number,
+            }[]
+        }[]
+    }
 
-                    publish_year: 0,
-                    isbn_number: "",
-                    length: 0,
-                    language: "",
-                    publisher: "",
-                    keywords: [],
-                    genre: [],
-                },
-                borrow_date: new Date(w.data_wypozyczenia),
-                return_date: new Date(w.termin_zwrotu),
-            })),
-            currently_reserved: [], // backend nie zwraca rezerwacji
+    const json: Partial<BackendResponse> = await r.json();
+    console.log('Response data:', json);
+    
+    return {
+        result: (json.uzytkownicy ?? []).map((u): UserInfo => {
+            const now = new Date();
+            const hasOverdueRent = (u.wypozyczone_ksiazki  ?? []).some((w) => new Date(w.termin_zwrotu) < now);
+
+            return {
+                user_id: u.user_id,
+                name: u.imie,
+                surname: u.nazwisko,
+                email: u.email,
+                status: u.is_blocked ? 'blocked' : 'user', // admin nie odrużnialny od uzytkownika
+                currently_rented: (u.wypozyczone_ksiazki  ?? []).map((w): Rent => ({
+                    book: {
+                        title: w.nazwa,
+                        authors: w.autor,
+
+                        publish_year: undefined,
+                        isbn_number: undefined,
+                        length: undefined,
+                        language: undefined,
+                        publisher: undefined,
+                        keywords: undefined,
+                        genre: undefined,
+                    },
+                    borrow_date: new Date(w.data_wypozyczenia),
+                    return_date: new Date(w.termin_zwrotu),
+                })),
+                currently_reserved: [], // backend nie zwraca rezerwacji
             }
         }),
         totalPages: 1,
@@ -710,15 +728,15 @@ export async function fetchRentLog(
     const body: any = {
         sortowanie: undefined as
             | {
-                  po_czym: string;
-                  rosnaco: boolean;
-              }
+            po_czym: string;
+            rosnaco: boolean;
+        }
             | undefined,
         filtry: undefined as
             | {
-                  status?: "all" | "aktywne" | "zwrocone";
-                  po_terminie?: boolean;
-              }
+            status?: "all" | "aktywne" | "zwrocone";
+            po_terminie?: boolean;
+        }
             | undefined,
     };
 

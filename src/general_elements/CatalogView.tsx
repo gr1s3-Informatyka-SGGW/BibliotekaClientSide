@@ -176,7 +176,7 @@ function CatalogView(): JSX.Element {
         | "instanceMarkDamagedSuccess" | "instanceMarkDamagedError"
         | "instanceMarkMendedSuccess" | "instanceMarkMendedError"
         | "removeInstanceConfirm" | "removeInstanceSuccess" | "removeInstanceError"
-        | "instanceDisplayQRCode"| "ScanError" | "CatalogError" | "AccessDeniedError">(undefined);
+        | "instanceDisplayQRCode"| "ScanError" | "CatalogError">(undefined);
 
     interface PopupData {
         book?: Book,
@@ -279,7 +279,7 @@ function CatalogView(): JSX.Element {
             console.error(e);
             setPopupData({error: e.message})
             if(e.cause === 'Odmowa dostępu'){
-                setShownPopup('AccessDeniedError')
+                window.location.href = "/access-denied";
                 return
             }
             setShownPopup("CatalogError")
@@ -736,17 +736,6 @@ function CatalogView(): JSX.Element {
                title="Błąd przy wczytaniu katalogu"
                isOpen={shownPopup === 'CatalogError'}
                setIsOpen={handleClosePopup}/>
-        <Alert message="Katalog nie był możliwy do wczytania przez poziom dostępu użytkownika, spróbuj zalogować się ponownie lub spróbuj ponownie później."
-               title="Odmowa dostępu"
-               isOpen={shownPopup === 'AccessDeniedError'}
-               setIsOpen={handleClosePopup}
-
-               onAccept={ () => {
-                   auth?.logout();
-                   window.location.reload();
-               }}
-               acceptText="Wyloguj"
-               cancelText="Pozostań na stronie"/>
 
         <Alert message='Czy na pewno chcesz wyporzyczyć tą książkę?'
                title="Potwierdź wyporzyczenie książki"

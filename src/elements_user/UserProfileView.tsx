@@ -38,6 +38,10 @@ export default function UserProfileView() {
                 setUserReservations(await fetchReservedBooksRequest());
             }
             catch (error: any) {
+                if(error.couse === 'Odmowa dostępu'){
+                    window.location.href = '/access-denied';
+                    return;
+                }
                 setIsAPIError(true);
                 setErrorMessage(error.message);
             }

@@ -11,8 +11,8 @@
  */
 
 import React, {type JSX } from 'react';
-import type { UserInfo, Book, Rent, Reservation } from "../server/server_types.ts";
-import CustomTooltip from "../custom_components/CustomTooltip.tsx";
+import type { UserInfo, Book, Rent, Reservation } from "../../server/server_types.ts";
+import CustomTooltip from "../../custom_components/CustomTooltip.tsx";
 import iconAccount from "/assets/account_circle.svg";
 import iconAccountFilled from "/assets/account_circle_filled.svg";
 import iconMail from "/assets/mail.svg";
@@ -22,7 +22,7 @@ import iconCalendar from "/assets/calendar.svg";
 import iconCheck from "/assets/check.svg";
 import iconError from "/assets/error.svg";
 import iconBookmark from "/assets/bookmark.svg";
-import Collapsible from '../custom_components/Collapsible.tsx';
+import Collapsible from '../../custom_components/Collapsible.tsx';
 
 /**
  * Interfejs właściwości komponentu UserComponent
@@ -31,14 +31,12 @@ import Collapsible from '../custom_components/Collapsible.tsx';
  * @property onBlockUser - Funkcja wywoływana przy próbie zablokowania użytkownika
  * @property onUnblockUser - Funkcja wywoływana przy próbie odblokowania użytkownika
  * @property onRemoveUser - Funkcja wywoływana przy próbie usunięcia użytkownika/bibliotekarza
- * @property onBookClick - Funkcja wywoływana po kliknięciu tytuł książki w celu pokazania szczegółów
  */
 interface UserComponentProps {
   userInfo: UserInfo;
   onBlockUser: (user: UserInfo) => void;
   onUnblockUser: (user: UserInfo) => void;
   onRemoveUser: (user: UserInfo) => void;
-  onBookClick: (book: Book) => void;
 }
 
 /**
@@ -48,7 +46,7 @@ interface UserComponentProps {
  * @param {UserComponentProps} props - Właściwości komponentu.
  * @returns {JSX.Element} Wyrenderowany panel użytkownika.
  */
-export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, onRemoveUser, onBookClick }: UserComponentProps): JSX.Element {
+export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, onRemoveUser }: UserComponentProps): JSX.Element {
   // Helper: Ustalanie klasy CSS panelu
   const getPanelClass = () => {
     if (userInfo.status === 'admin') return 'panel librarian';
@@ -110,11 +108,7 @@ export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, on
 
       {userInfo.status !== 'admin' && (
         <>
-          {(!hasRents && !hasReservations)
-            ?
-            <h4 className="italic text-neutral-600">Brak aktywnych wypożyczeń i rezerwacji</h4>
-            :
-            <Collapsible header={`Wypożyczenia i rezerwacje (${rentAndReservationsCount})`}>
+            <Collapsible header={`Wypożyczenia (${rentAndReservationsCount})`}>
               <div className="loan-reservation-wrapper">
 
                 {/* TABELA WYPOŻYCZEŃ */}
@@ -136,14 +130,14 @@ export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, on
                     </thead>
                     <tbody>
                       {userInfo.currently_rented.map((rent, idx) => (
-                        <RentRow key={idx} rent={rent} onBookClick={onBookClick} />
+                        <RentRow key={idx} rent={rent}/>
                       ))}
                     </tbody>
                   </table>
                 )}
 
                 {/* TABELA REZERWACJI */}
-                <h4>Rezerwacje</h4>
+                {/* <h4>Rezerwacje</h4>
                 {(!hasReservations) ? (
                   <p className="empty-table-placeholder" style={{ marginTop: '1em', color: '#555', fontStyle: 'italic' }}>
                     Brak aktywnych rezerwacji.
@@ -153,19 +147,19 @@ export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, on
                     <thead>
                       <tr>
                         <th>Tytuł</th>
-                        {/* <th>Data rezerwacji</th> */}
+                         <th>Data rezerwacji</th>
                         <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {userInfo.currently_reserved.map((res, idx) => (
-                        <ReservationRow key={idx} reservation={res} onBookClick={onBookClick} />
+                        <ReservationRow key={idx} reservation={res} />
                       ))}
                     </tbody>
                   </table>
-                )}
+                )}*/}
               </div>
-            </Collapsible>}
+            </Collapsible>
         </>
       )}
     </div>
@@ -178,10 +172,9 @@ export default function UserComponent({ userInfo, onBlockUser, onUnblockUser, on
  * @component
  * @param {Object} props
  * @param {Rent} props.rent - Obiekt reprezentujący pojedyncze wypożyczenie.
- * @param {function(Book): void} props.onBookClick - Callback do wyświetlenia szczegółów książki.
  * @returns {JSX.Element} Wiersz tabeli (tr).
  */
-function RentRow({ rent, onBookClick }: { rent: Rent, onBookClick: (b: Book) => void }): JSX.Element {
+function RentRow({ rent }: { rent: Rent}): JSX.Element {
   const today = new Date();
   const isOverdue = today > new Date(rent.return_date);
   const daysOverdue = isOverdue ? Math.floor((today.getTime() - new Date(rent.return_date).getTime()) / (1000 * 3600 * 24)) : 0;
@@ -191,11 +184,7 @@ function RentRow({ rent, onBookClick }: { rent: Rent, onBookClick: (b: Book) => 
   return (
     <tr className={isOverdue ? 'bg-rose-200' : ''}>
       <td>
-        <CustomTooltip title="Zobacz szczegóły">
-          <a href="#" onClick={(e) => { e.preventDefault(); onBookClick(rent.book); }}>
-            „{rent.book.title}”
-          </a>
-        </CustomTooltip>
+        „{rent.book.title}”
       </td>
       <td>
         <div className="date-cell">
@@ -239,25 +228,12 @@ function RentRow({ rent, onBookClick }: { rent: Rent, onBookClick: (b: Book) => 
  * @component
  * @param {Object} props
  * @param {Reservation} props.reservation - Obiekt reprezentujący rezerwację.
- * @param {function(Book): void} props.onBookClick - Callback do wyświetlenia szczegółów książki.
  * @returns {JSX.Element} Wiersz tabeli (tr).
  */
-function ReservationRow({ reservation, onBookClick }: { reservation: Reservation, onBookClick: (b: Book) => void }): JSX.Element {
+function ReservationRow({ reservation}: { reservation: Reservation}): JSX.Element {
   return (
     <tr>
-      <td>
-        <CustomTooltip title="Zobacz szczegóły">
-          <a href="#" onClick={(e) => { e.preventDefault(); onBookClick(reservation.book); }}>
-            „{reservation.book.title}”
-          </a>
-        </CustomTooltip>
-      </td>
-      {/* <td>
-        <div className="date-cell">
-          <img src={iconCalendar} className="date-icon-small" alt="" />
-          <span>{new Date().toLocaleDateString()}</span>
-        </div>
-      </td> */}
+      <td>„{reservation.book.title}”</td>
       <td>
         <span className="status-badge status-reserved">
           <img src={iconBookmark} className="status-icon-small" style={{ filter: "invert(100%)", marginRight: "0.1em" }} alt="" />
