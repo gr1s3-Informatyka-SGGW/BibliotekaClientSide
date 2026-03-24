@@ -40,7 +40,7 @@ import { CustomSelect, CustomOption, FilterResetButton } from "../custom_compone
 import { Pagination } from "./Pagination.tsx";
 import Popup, {Alert} from "../custom_components/Popup.tsx";
 import iconError from "/assets/error.svg"
-import { AddBookForm } from "../elements_admin/AddBookView.tsx";
+import { AddBookForm } from "../elements_admin/AddBookView/AddBookView.tsx";
 import { useSearchParams } from "react-router-dom";
 import InstanceQR from "../elements_admin/InstanceQR.tsx";
 

@@ -49,7 +49,7 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
     }
 
     const resp = await r.json();
-    console.log('Response data:', resp);
+    // console.log('Response data:', resp);
 
     if (resp.code !== undefined && resp.code !== 200) {
         throw new RequestError(resp.error || "Nieznany błąd serwera");

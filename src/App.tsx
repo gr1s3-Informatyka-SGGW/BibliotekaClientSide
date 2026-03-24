@@ -25,7 +25,7 @@ const UserProfileView = lazy(() => import("./elements_user/UserProfileView"));
 // admin only
 const AdminProfileView = lazy(() => import("./elements_admin/AdminProfileView"));
 const UsersListView = lazy(() => import("./elements_admin/UserListView/UsersListView.tsx"));
-const AddBookView = lazy(() => import("./elements_admin/AddBookView"));
+const AddBookView = lazy(() => import("./elements_admin/AddBookView/AddBookView.tsx"));
 const RentLogView = lazy(() => import("./elements_admin/UserListView/UsersListView.tsx"));
 
 export default function App() {

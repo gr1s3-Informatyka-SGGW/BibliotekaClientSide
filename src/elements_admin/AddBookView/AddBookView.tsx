@@ -5,14 +5,14 @@
  * @author Szymon Doba
  */
 import React, {useState, Component, type FormEvent} from "react";
-import {fetchFiltersRequest, addBookRequest} from "../server/server_requests.ts";
-import {type Book} from "../server/server_types.ts";
-import {validators} from "../server/validators.ts";
+import {fetchFiltersRequest, addBookRequest} from "../../server/server_requests.ts";
+import {type Book} from "../../server/server_types.ts";
+import {validators} from "../../server/validators.ts";
 
-import type IFormComponent from "../custom_components/IFormComponent.tsx";
-import DynamicSelect from "../custom_components/DynamicSelect.tsx";
-import InstanceQR from "./InstanceQR.tsx";
-import NavSidebar from "../general_elements/NavSidebar.tsx";
+import type IFormComponent from "../../custom_components/IFormComponent.tsx";
+import DynamicSelect from "../../custom_components/DynamicSelect.tsx";
+import InstanceQR from "../InstanceQR.tsx";
+import NavSidebar from "../../general_elements/NavSidebar.tsx";
 
 import AddBoxIcon from "/assets/add_box.svg";
 import BookIcon from "/assets/book.svg";
@@ -33,7 +33,11 @@ export default function AddBookView(){
     const [bookTitle, setBookTitle] = useState<string>("[Nie znaleziono tytułu książki]");
 
 
-
+    /**
+     * @event sendForm obsługuje wysłanie formularza do API
+     * @prop {Book} book dane książki pobrane z formularza
+     * @prop {number} copies ilość kopii do stworzenia
+     * */
     async function sendForm(book: Book, copies: number) {
 
         setError(null);
@@ -114,13 +118,11 @@ export class AddBookForm
 
     availableAuthors: string[] = [];
     availableGenres: string[] = [];
-    availableTags: string[] = [];
     availablePublishers: string[] = [];
     availableLanguages: string[] = [];
 
     authorsRef = React.createRef<DynamicSelect>();
     genresRef = React.createRef<DynamicSelect>();
-    tagsRef = React.createRef<DynamicSelect>();
     publisherRef = React.createRef<DynamicSelect>();
     languageRef = React.createRef<DynamicSelect>();
 
@@ -134,8 +136,6 @@ export class AddBookForm
         // chipy na podstawie info
         this.authorsRef = React.createRef<DynamicSelect>();
         this.genresRef = React.createRef<DynamicSelect>();
-        this.tagsRef = React.createRef<DynamicSelect>();
-
     }
 
     getCopiesCount(): number {  
@@ -146,7 +146,6 @@ export class AddBookForm
         const filters = await fetchFiltersRequest();
         this.availableAuthors = filters.author ?? []
         this.availableGenres = filters.genre ?? []
-        this.availableTags = filters.tags ?? []
         this.availablePublishers = filters.publisher ?? []
         this.availableLanguages = filters.language ?? []
         this.forceUpdate();
@@ -171,7 +170,6 @@ export class AddBookForm
             publish_year: Number(this.getVal("publish_year")),
             length: Number(this.getVal("length")),
             authors: this.authorsRef.current?.getValue() as string[],
-            keywords: this.tagsRef.current?.getValue() as string[],
             genre: this.genresRef.current?.getValue() as string[]
         }
     }
@@ -259,18 +257,6 @@ export class AddBookForm
                         allow_multiple
                         children={this.availableGenres}
                         default_value={b?.genre}
-                    />
-                </div>
-
-                {/* RZĄD 4: Tagi */}
-                <div className="form-group">
-                    <DynamicSelect
-                        ref={this.tagsRef}
-                        id="tags"
-                        label="Tagi"
-                        allow_multiple
-                        children={this.availableTags}
-                        default_value={b?.keywords}
                     />
                 </div>
 

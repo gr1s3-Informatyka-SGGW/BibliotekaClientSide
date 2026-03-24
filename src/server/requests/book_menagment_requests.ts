@@ -16,41 +16,44 @@ import type {Book} from "../server_types.ts";
  * @throws {InvalidRequestDataError} Niepoprawne dane wejściowe (400)
  * @throws {RequestError} Błąd serwera (500), serwer odmówił odpowiedzi
  */
-// todo: zmieniłem sygnaturę i zawartość tej funkcji, upewnić się czym działa i uwzględnić w testach itp.
+// todo priority: API nie zwraca numerów egzemplarzy: nie da się wygenerować kodu QR, nie tworzy egzemplarzy (mógłbym naprawić to na chama, ale skoro i tak musisz poprawić tą funkcję :))
+
+// todo priority: nie zapisują się informacje o książce: długość, gatunek, wydawnictwo, autor. Język gdy próba zapisania nowego.
 export async function addBookRequest(
     book: Book,
     instance_number: number
 ): Promise<{ book_id: number; instance_ids: number[] }> {
     const requestUrl = `${API_URL}/api/books/addBook`;
+    const body = {
+        tytul: book.title,
+        isbn: book.isbn_number,
+        autor: book.authors,
+        gatunek: book.genre,
+        wydawnictwo: book.publisher,
+        rok_wydania: book.publish_year,
+        ile_egzemplarzy: instance_number,
+        dlugosc: book.length,
+        jezyk: book.language,
+    }
     const requestOptions = {
         method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({
-            tytul: book.title,
-            isbn: book.isbn_number,
-            autor: book.authors,
-            gatunek: book.genre,
-            tagi: book.keywords ?? [],
-            wydawnictwo: book.publisher,
-            rok_wydania: book.publish_year,
-            ile_egzemplarzy: instance_number,
-            dlugosc: book.length,
-            jezyk: book.language,
-        }),
+        body: JSON.stringify(body),
     };
-
+    console.log('Request to:', requestUrl, 'Options:', requestOptions);
     const r = await fetch(requestUrl, requestOptions);
+    console.log('Response from:', requestUrl, 'Status:', r.status);
 
     if (r.status >= 400 && r.status < 500) {
         throw new InvalidRequestDataError("Niepoprawne dane wejściowe", true);
     }
 
     if (!r.ok) {
-        throw new RequestError("Błąd serwera", "Serwer odmówił odpowiedzi", 500);
+        throw new RequestError("Błąd serwera ", "Serwer odmówił odpowiedzi", 500);
     }
 
     const data = await r.json();
-
+    console.log('Response data from ', requestUrl, ':', data)
     return {
         book_id: data.Bookid,
         instance_ids: data.id_egzemplarzy,
