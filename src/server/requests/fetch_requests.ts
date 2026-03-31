@@ -386,7 +386,7 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
  * @throws {AccessDeniedError} Gdy brak tokenu administratora
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania katalogu
  */
-// todo: podobnie jak u użytkownika prawdopodobnie jest problem ze stronicowaniem
+// todo?: podobnie jak u użytkownika prawdopodobnie jest problem ze stronicowaniem
 // todo: nie zwraca informacji na temat egzemplarzy, słów kluczowych
 // todo: nie zwraca id, poważny błąd przy funkcji wypożyczania
 export async function fetchAdminCatalogRequest(
@@ -580,7 +580,7 @@ export async function fetchAdminBookRequest(
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania użytkowników
  */
 // todo priority: backend nie odróżnia wypożyczeń od rezerwacji. Wszystko zwraca jako wyporzyczenia
-// todo test: paginacja również wydaje się nie działać
+// todo?: paginacja również wydaje się nie działać
 export async function fetchUserListRequest(
     search_bar?: string,
     sort?: SearchSort,
@@ -654,15 +654,12 @@ export async function fetchUserListRequest(
     
     return {
         result: (json.uzytkownicy ?? []).map((u): UserInfo => {
-            const now = new Date();
-            const hasOverdueRent = (u.wypozyczone_ksiazki  ?? []).some((w) => new Date(w.termin_zwrotu) < now);
-
             return {
                 user_id: u.user_id,
                 name: u.imie,
                 surname: u.nazwisko,
                 email: u.email,
-                status: u.is_blocked ? 'blocked' : 'user', // admin nie odrużnialny od uzytkownika
+                status: u.is_blocked ? 'blocked' : 'user',
                 currently_rented: (u.wypozyczone_ksiazki  ?? []).map((w): Rent => ({
                     book: {
                         title: w.nazwa,
@@ -690,6 +687,7 @@ export async function fetchUserListRequest(
 /**
  * Pobiera log wypożyczeń.
  * @param search
+ * @param sort
  * @param {RentLogSearchFilter} [filter] Filtry logu
  * @param {number} [page=1] Numer strony
  *
@@ -699,13 +697,13 @@ export async function fetchUserListRequest(
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
-// todo: nie ma paginacji
-// todo: nie ma opcji filtrowania searcha
-// todo: nie ma statusu 'un-payed' gdy nieopłacono jeszcze długu
-// todo: nie wiadomo czy ksiązka została zwrócona czy wciąż na to oczekuje (return_date nie podane)
-// todo: informacje o użytkowniku nie kompletne
+// todo?: nie ma paginacji
+// todo priority: nie ma opcji filtrowania searcha, przydałoby się móc jednak jakoś wyszukać użytkownika lub wypożyczenia
+// todo priority: nie wiadomo czy książka została zwrócona czy wciąż na to oczekuje (return_date nie podane)
+// todo priority: czy mogę filtrować po tym czy ksiązka jest po terminie niezwrócona?
 export async function fetchRentLog(
     search?: string,
+    sort?: SearchSort,
     filter?: RentLogSearchFilter,
     page: number = 1
 ): Promise<PagedResponse<RentFullInfo>> {
@@ -713,36 +711,30 @@ export async function fetchRentLog(
     if (page < 1) {
         throw new InvalidRequestDataError("Numer strony musi być >= 1", false);
     }
-
+    interface BackendRequestBody{
+        sortowanie?: {
+            po_czym: "data_wypozyczenia"| "data_zwrotu" | string;
+            rosnaco: boolean;
+        },
+        filtry?: {
+            status: "all" | "aktywne" | "zwrocone";
+            po_terminie: boolean;
+        }
+    }
 
     const toServerStatus = (
         states?: RentLogSearchFilter["states"]
-    ): "all" | "aktywne" | "zwrocone" | undefined => {
-        if (!states) return undefined;
+    ): "all" | "aktywne" | "zwrocone" => {
         if (states === "active") return "aktywne";
-        if (states === "returned") return "zwrocone";
-        // "un-payed" is not supported by this endpoint spec -> safest fallback is to not apply status filter
-        return undefined;
+        if (states === "archive") return "zwrocone";
+        return "all";
     };
 
-    const body: any = {
-        sortowanie: undefined as
-            | {
-            po_czym: string;
-            rosnaco: boolean;
-        }
-            | undefined,
-        filtry: undefined as
-            | {
-            status?: "all" | "aktywne" | "zwrocone";
-            po_terminie?: boolean;
-        }
-            | undefined,
-    };
+    const body: BackendRequestBody = {}
 
     if (filter) {
         const status = toServerStatus(filter.states);
-        const po_terminie = filter.isOverdue;
+        const po_terminie = filter.isOverdue || false;
 
         if (status !== undefined || po_terminie !== undefined) {
             body.filtry = {
@@ -751,19 +743,47 @@ export async function fetchRentLog(
             };
         }
     }
+    if(sort){
+        body.sortowanie = {
+            po_czym: sort.key in ['data_wypozyczenia', 'data_zwrotu'] ? sort?.key : "data_wypozyczenia" ,
+            rosnaco: sort.direction === "ASC",
+        };
+    }
 
     const requestUrl = `${API_URL}/api/books/listBorrowedBooks`;
     const requestOptions = {
         method: "POST",
-        headers: authHeaders(), // WORKER token required
+        headers: authHeaders(),
         body: JSON.stringify(body),
     };
     console.log("Request to:", requestUrl, "Options:", requestOptions);
     const r = await fetch(requestUrl, requestOptions);
     console.log("Response from:", requestUrl, "Status:", r.status);
 
-    if (r.status === 400) {
-        throw new InvalidRequestDataError("Niepoprawne dane.", false);
+    interface BackendResponse {
+        wypozyczenia: {
+           uzytkownik: {
+                id: number,
+                imie: string,
+                nazwisko: string,
+                email: string,
+            },
+            ksiazka: {
+                Copyid: number,
+                tytul: string,
+                autor: string[]
+            }
+            data_wypozyczenia: string,
+            data_zwrotu: string,
+            naliczona_oplata: number,
+            dni_po_terminie: number,
+        }[]
+    }
+    if(r.status === 403)
+        throw new AccessDeniedError("Token użytkownika jest nieprawidłowy lub wygasł.");
+    if (r.status >= 400 && r.status < 500) {
+        const text = await r.json();
+        throw new RequestError("Niepoprawne dane. "+text?.message);
     }
 
     if (r.status === 500) {
@@ -774,39 +794,33 @@ export async function fetchRentLog(
         throw new RequestError(`Błąd pobierania logu wypożyczeń: ${r.status}`);
     }
 
-    const json: any = await r.json();
+    const json: BackendResponse = await r.json();
     console.log("Response data:", json);
 
-    const wypozyczenia: any[] = Array.isArray(json?.wypozyczenia) ? json.wypozyczenia : [];
+    const wypozyczenia: BackendResponse['wypozyczenia'] = Array.isArray(json?.wypozyczenia) ? json.wypozyczenia : [];
 
     return {
-        result: wypozyczenia.map((w: any): RentFullInfo => {
+        result: wypozyczenia.map((w: BackendResponse['wypozyczenia'][number]): RentFullInfo => {
             const borrowDate = new Date(String(w?.data_wypozyczenia ?? ""));
             const returnDate = w?.data_zwrotu != null ? new Date(String(w.data_zwrotu)) : null;
 
             return {
+                instance_id: w.ksiazka.Copyid,
                 user: {
                     name: String(w?.uzytkownik?.imie ?? ""),
                     surname: String(w?.uzytkownik?.nazwisko ?? ""),
                     email: String(w?.uzytkownik?.email ?? ""),
                 },
                 book: {
-                    // Endpoint provides Copyid (instance id), but `RentFullInfo.book` is `Book` (no place to store Copyid)
                     title: String(w?.ksiazka?.tytul ?? ""),
                     authors: w?.ksiazka?.autor != null ? [String(w.ksiazka.autor)] : [],
-                    publish_year: 0,
-                    isbn_number: "",
-                    length: undefined,
-                    language: undefined,
-                    publisher: undefined,
-                    keywords: [],
-                    genre: [],
                 },
+                fine: w?.naliczona_oplata ?? 0,
                 borrow_date: borrowDate,
                 // Spec doesn't provide a separate "return_to_date" vs "return_date".
                 // Best-effort: keep them consistent so UI doesn't crash.
                 return_to_date: returnDate ?? borrowDate,
-                return_date: returnDate,
+                return_date: null
             };
         }),
         totalPages: 1,

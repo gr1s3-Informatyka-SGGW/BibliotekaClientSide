@@ -159,11 +159,11 @@ export interface BookSearchFilter extends IFilter{
 }
 /**
  * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
- * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {'active'|'returned'|undefined} states - status wypożyczenia
  * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
  * */
 export interface RentLogSearchFilter extends IFilter{
-    states?: 'active'|'returned'|'un-payed'
+    states?: 'active'| 'archive'
     isOverdue?: boolean
 }
 /**
@@ -188,11 +188,11 @@ export interface PagedResponse<T > {
 
 /**
  * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
- * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
- * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * @prop {'active'|'archive'} [states] - status wypożyczenia
+ * @prop {boolean} [isOverdue] - czy została naliczona kara w ramach tego wyporzyczenia
  * */
 export interface RentLogSearchFilter extends IFilter{
-    states?: 'active'|'returned'|'un-payed'
+    states?: 'active'|'archive'
     isOverdue?: boolean
 }
 
@@ -218,15 +218,19 @@ export interface UserInfo{
 
 /**
  * @interface RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
+ * @prop {number} instance_id - id wyporzyczonego egzemplarza
  * @prop {Book} book - wypożyczona książka
  * @prop {User} user - użytkownik, który wypożyczył książkę
+ * @prop {number} fine - naliczona opłata za nieterminowe zwrócenie ksiązki
  * @prop {Date} borrow_date - data wypożyczenia
  * @prop {Date|null} return_date - data w której użytkownik dokonał zwrotu. null, gdy jeszcze nie dokonano zwrotu.
  * @prop {Date} return_to_date - data, do której musi zostać dokonany zwrot, aby nie zostały naliczone opłaty
  * */
 export interface RentFullInfo{
+    instance_id: number;
     book: Book
     user:User
+    fine: number
     borrow_date: Date
     return_to_date: Date
     return_date: Date| null

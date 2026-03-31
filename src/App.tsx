@@ -26,7 +26,7 @@ const UserProfileView = lazy(() => import("./elements_user/UserProfileView"));
 const AdminProfileView = lazy(() => import("./elements_admin/AdminProfileView"));
 const UsersListView = lazy(() => import("./elements_admin/UserListView/UsersListView.tsx"));
 const AddBookView = lazy(() => import("./elements_admin/AddBookView/AddBookView.tsx"));
-const RentLogView = lazy(() => import("./elements_admin/UserListView/UsersListView.tsx"));
+const RentLogView = lazy(() => import("./elements_admin/RentLogView/RentLogView.tsx"));
 
 export default function App() {
   const auth = useContext(AuthContext);
