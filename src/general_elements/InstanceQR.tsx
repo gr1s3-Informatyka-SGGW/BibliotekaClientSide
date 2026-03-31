@@ -2,10 +2,11 @@
  * @file Implementuje komponent generujący i wyświetlający komunikat z kodem QR danego egzemplarza
  * @author Dawid Filipek
  * */
-import React, {type Dispatch, useEffect, useRef, useState} from "react";
+import React, {type Dispatch, useEffect, useRef} from "react";
 import QRCode from "qrcode";
 import Popup from "../custom_components/Popup.tsx";
 import "./InstanceQR.css";
+
 /**
  * Właściwości komponentu InstanceQR.
  * @interface InstanceQRProps
@@ -58,7 +59,7 @@ export default function InstanceQR({ instance_id, book_title, isOpen, setIsOpen,
                 QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_title}), {})
             }
         });
-    }, [ids, isSingle]);
+    }, [book_title, ids, isSingle]);
 
     /**
      * Generuje plik obrazu (PNG) zawierający kod QR oraz tekstową etykietę egzemplarza,
@@ -86,8 +87,7 @@ export default function InstanceQR({ instance_id, book_title, isOpen, setIsOpen,
         const textWidth = Math.max(textMetricsBook.width, textMetricsInstance.width) + 40;
 
         // Ustawienie wymiarów nowego płótna (QR + miejsce na tekst)
-        const finalWidth = Math.max(originalCanvas.width, textWidth);
-        tempCanvas.width = finalWidth;
+        tempCanvas.width = Math.max(originalCanvas.width, textWidth);
         tempCanvas.height = originalCanvas.height + padding;
 
         // Rysowanie tła
