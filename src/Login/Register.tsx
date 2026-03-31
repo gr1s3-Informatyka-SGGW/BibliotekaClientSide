@@ -92,7 +92,7 @@ function Register() {
                 
                 // Logika sukcesu musi być TUTAJ - po udanym zapytaniu
                 setSuccess("Konto zostało utworzone. Możesz się zalogować.");
-                setTimeout(() => navigate("/login"), 1500);
+                setTimeout(() => navigate("/Login"), 1500);
             }
             catch(er: any){
                 setError((er as Error).message ?? "Błąd rejestracji.");

@@ -2,16 +2,16 @@
  * Plik implementujący widok strony /rented-books dla administratora. Umożliwiająca zarządzanie i przeglądanie wypożyczeń, przy łądowaniu odczytuje dane z linku przesłane metodą "GET" i wczytuje z nich filtrowanie i sortowanie wyników
  * @author Karol Dziuba
  * */
-import type {RentFullInfo, RentLogSearchFilter, SearchSort} from "../../server/server_types.ts";
-import {extendRentRequest, fetchRentLog, returnBookRequest} from "../../server/server_requests.ts";
+import type {RentFullInfo, RentLogSearchFilter, SearchSort} from "../server/server_types.ts";
+import {extendRentRequest, fetchRentLog, returnBookRequest} from "../server/server_requests.ts";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {useSearchParams} from "react-router-dom";
-import NavSidebar from "../../general_elements/NavSidebar.tsx";
-import SearchPanel, {type SearchPanelReturn} from "../../general_elements/SearchPanel.tsx";
-import {Pagination} from "../../general_elements/Pagination.tsx";
-import {CustomOption, CustomSelect, FilterResetButton} from "../../custom_components/CustomSelect.tsx";
-import ToggleButton from "../../custom_components/ToggleButton.tsx";
-import {Alert} from "../../custom_components/Popup.tsx";
+import NavSidebar from "../general_elements/NavSidebar.tsx";
+import SearchPanel, {type SearchPanelReturn} from "../general_elements/SearchPanel.tsx";
+import {Pagination} from "../general_elements/Pagination.tsx";
+import {CustomOption, CustomSelect, FilterResetButton} from "../custom_components/CustomSelect.tsx";
+import ToggleButton from "../custom_components/ToggleButton.tsx";
+import {Alert} from "../custom_components/Popup.tsx";
 import './RentLogView.css';
 
 import bookIcon from '/assets/book.svg';
@@ -55,18 +55,6 @@ export interface ExtendedRentInfo extends Omit<RentFullInfo, 'borrow_date' | 're
     actualReturnDate?: Date;
 }
 
-/**
- * Props dla głównego komponentu widoku.
- *
- * @interface RentedBooksListViewProps
- */
-interface RentedBooksListViewProps {
-    /**
-     * Opcjonalne dane początkowe. Jeśli podane, komponent działa w trybie "offline" (lokalnym),
-     * filtrując i sortując tę tablicę, zamiast wysyłać zapytania do API.
-     */
-    initialData?: ExtendedRentInfo[];
-}
 
 /**
  * Komponent widoku /rented-books.
@@ -207,7 +195,6 @@ export default function RentLogView(): React.JSX.Element {
      * Resetuje paginację do pierwszej strony.
      */
     const handleSearch = (data: SearchPanelReturn) => {
-        // todo?
         setSearchQuery(data.search);
         if(data.filter)
             setFilters(data.filter as RentLogSearchFilter);

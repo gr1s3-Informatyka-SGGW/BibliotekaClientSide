@@ -4,7 +4,7 @@
  * */
 
 import React, { useContext, useState, useEffect } from 'react'; import { AuthContext } from "../server/UserAuth.tsx";
-import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
+import ProfileInfoPanel from './ProfileInfoPanel.tsx';
 import accountCircleIcon from '/assets/account_circle.svg';
 
 import { fetchUserInfoRequest } from '../server/server_requests.ts';
@@ -48,8 +48,8 @@ export default function AdminProfileView() {
                 }
             }
         };
-        getAdminData();
-    }, []);
+        void getAdminData();
+    }, [adminData]);
 
     if (!adminData) return <div>Ładowanie danych administratora...</div>;
     return (

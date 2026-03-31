@@ -11,26 +11,26 @@
  * @author Aleksander Grzegrzułka
  */
 import "./UsersListView.css"
-import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../../server/server_types.ts";
+import type { UserInfo, Book, SearchSort, UserListSearchFilter } from "../server/server_types.ts";
 import {
     removeUserRequest,
     blockUserRequest,
     unblockUserRequest,
     fetchUserListRequest,
     addAdminRequest
-} from '../../server/server_requests.ts'
-import NavSidebar from "../../general_elements/NavSidebar.tsx";
-import SearchPanel, { type SearchPanelReturn } from "../../general_elements/SearchPanel.tsx";
-import { CustomSelect, CustomOption, FilterResetButton } from "../../custom_components/CustomSelect.tsx";
-import Popup from "../../custom_components/Popup.tsx";
-import { Pagination } from '../../general_elements/Pagination.tsx';
+} from '../server/server_requests.ts'
+import NavSidebar from "../general_elements/NavSidebar.tsx";
+import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
+import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
+import Popup from "../custom_components/Popup.tsx";
+import { Pagination } from '../general_elements/Pagination.tsx';
 import React, { useState, useEffect, type JSX } from "react";
 import UserComponent from './UserComponent.tsx';
 import { useSearchParams } from "react-router-dom";
-import iconGroup from "../../../public/assets/group.svg";
-import iconAdd from "../../../public/assets/add.svg";
-import iconError from "../../../public/assets/error.svg";
-import { validators, type ValidationResult } from "../../server/validators.ts";
+import iconGroup from "../../public/assets/group.svg";
+import iconAdd from "../../public/assets/add.svg";
+import iconError from "../../public/assets/error.svg";
+import { validators, type ValidationResult } from "../server/validators.ts";
 /**
  * Główny komponent widoku listy użytkowników.
  * Zarządza stanem aplikacji w kontekście wyszukiwania, sortowania i filtrowania użytkowników,

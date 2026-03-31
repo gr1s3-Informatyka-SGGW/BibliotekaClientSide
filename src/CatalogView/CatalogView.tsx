@@ -15,11 +15,11 @@
  */
 import { useCallback, useContext, useEffect, useRef, useState, type JSX } from "react";
 import { type BookSearchFilter, type SearchSort, type PagedResponse, type Book, type BookUser, type BookAdmin } from "../server/server_types.ts";
-import AdminBookComponent from "../elements_admin/AdminBookComponent";
+import AdminBookComponent from "./AdminBookComponent.tsx";
 import "./CatalogView.css";
-import NavSidebar from "./NavSidebar";
-import SearchPanel, { type SearchPanelReturn } from "./SearchPanel";
-import UserBookComponent from "../elements_user/UserBookComponent";
+import NavSidebar from "../general_elements/NavSidebar.tsx";
+import SearchPanel, { type SearchPanelReturn } from "../general_elements/SearchPanel.tsx";
+import UserBookComponent from "./UserBookComponent.tsx";
 import {
     fetchAdminCatalogRequest,
     fetchUserCatalogRequest,
@@ -37,12 +37,12 @@ import {
 import catalogIcon from "/assets/newsstand.svg"
 import { AuthContext } from "../server/UserAuth.tsx";
 import { CustomSelect, CustomOption, FilterResetButton } from "../custom_components/CustomSelect.tsx";
-import { Pagination } from "./Pagination.tsx";
+import { Pagination } from "../general_elements/Pagination.tsx";
 import Popup, {Alert} from "../custom_components/Popup.tsx";
 import iconError from "/assets/error.svg"
-import { AddBookForm } from "../elements_admin/AddBookView/AddBookView.tsx";
+import { AddBookForm } from "../AddBookView/AddBookView.tsx";
 import { useSearchParams } from "react-router-dom";
-import InstanceQR from "../elements_admin/InstanceQR.tsx";
+import InstanceQR from "../general_elements/InstanceQR.tsx";
 
 /**
  * Wykonuje żądanie do API w celu pobrania listy książek na podstawie parametrów wyszukiwania.

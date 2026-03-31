@@ -11,8 +11,8 @@
  */
 
 import React, {type JSX } from 'react';
-import type { UserInfo, Book, Rent, Reservation } from "../../server/server_types.ts";
-import CustomTooltip from "../../custom_components/CustomTooltip.tsx";
+import type { UserInfo, Book, Rent, Reservation } from "../server/server_types.ts";
+import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 import iconAccount from "/assets/account_circle.svg";
 import iconAccountFilled from "/assets/account_circle_filled.svg";
 import iconMail from "/assets/mail.svg";
@@ -22,7 +22,7 @@ import iconCalendar from "/assets/calendar.svg";
 import iconCheck from "/assets/check.svg";
 import iconError from "/assets/error.svg";
 import iconBookmark from "/assets/bookmark.svg";
-import Collapsible from '../../custom_components/Collapsible.tsx';
+import Collapsible from '../custom_components/Collapsible.tsx';
 
 /**
  * Interfejs właściwości komponentu UserComponent

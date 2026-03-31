@@ -18,7 +18,7 @@ import {
     returnBookRequest
 } from "../server/server_requests.ts";
 import Popup, {Alert} from "../custom_components/Popup.tsx";
-import ScanButton from "./ScanButton.tsx";
+import ScanButton from "../general_elements/ScanButton.tsx";
 import CustomTooltip from "../custom_components/CustomTooltip.tsx";
 
 

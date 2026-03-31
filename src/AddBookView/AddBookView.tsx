@@ -5,14 +5,14 @@
  * @author Szymon Doba
  */
 import React, {useState, Component, type FormEvent} from "react";
-import {fetchFiltersRequest, addBookRequest} from "../../server/server_requests.ts";
-import {type Book} from "../../server/server_types.ts";
-import {validators} from "../../server/validators.ts";
+import {fetchFiltersRequest, addBookRequest} from "../server/server_requests.ts";
+import {type Book} from "../server/server_types.ts";
+import {validators} from "../server/validators.ts";
 
-import type IFormComponent from "../../custom_components/IFormComponent.tsx";
-import DynamicSelect from "../../custom_components/DynamicSelect.tsx";
-import InstanceQR from "../InstanceQR.tsx";
-import NavSidebar from "../../general_elements/NavSidebar.tsx";
+import type IFormComponent from "../custom_components/IFormComponent.tsx";
+import DynamicSelect from "../custom_components/DynamicSelect.tsx";
+import InstanceQR from "../general_elements/InstanceQR.tsx";
+import NavSidebar from "../general_elements/NavSidebar.tsx";
 
 import AddBoxIcon from "/assets/add_box.svg";
 import BookIcon from "/assets/book.svg";

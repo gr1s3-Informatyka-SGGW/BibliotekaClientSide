@@ -4,7 +4,7 @@
  * */
 import React, {useContext, useEffect, useState} from "react";
 import NavSidebar from "../general_elements/NavSidebar.tsx";
-import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
+import ProfileInfoPanel from './ProfileInfoPanel.tsx';
 import ProfileBookList, { RentComponent, ReservationComponent } from "./ProfileBookList.tsx";
 import { AuthContext } from "../server/UserAuth.tsx";
 

@@ -40,7 +40,7 @@ describe('registerRequest', () => {
 });
 
 describe('loginRequest', () => {
-    it('should successfully login with valid credentials', async () => {
+    it('should successfully Login with valid credentials', async () => {
         const email = 'szymon.credo@gmail.com';
         const password = 'i9vlSRPzRZi9vlSRPzRZ$';
 
