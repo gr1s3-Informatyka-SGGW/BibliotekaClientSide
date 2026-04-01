@@ -80,6 +80,7 @@ export async function fetchFiltersRequest(): Promise<BookSearchFilter> {
  * @throws {InvalidRequestDataError} When user is not found for the provided token (status 400)
  * @throws {RequestError} When server returns an unexpected error status
  */
+// todo priority: Admin user nie działa
 export async function fetchUserInfoRequest(): Promise<User> {
     const requestUrl = `${API_URL}/api/users/loginInfo`;
     const requestOptions = {
@@ -124,7 +125,6 @@ export async function fetchUserInfoRequest(): Promise<User> {
  * @throws {InvalidRequestDataError} Gdy nie znaleziono użytkownika dla podanego tokenu
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
-// todo: nie zwracane przez request: publish_year, isbn_number, length, language, publisher, keywords, genre
 export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
     const requestUrl = `${API_URL}/api/users/borrowedBooks`;
     const requestOptions = {
@@ -158,14 +158,6 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
             book: {
                 title: String(item?.tytul ?? ""),
                 authors: item?.autor != null ? [String(item.autor)] : [],
-
-                publish_year: undefined,
-                isbn_number: undefined,
-                length: undefined,
-                language: undefined,
-                publisher: undefined,
-                keywords: undefined,
-                genre: undefined,
             },
             instance_id: item?.Copyid,
             borrow_date: borrowDate,
@@ -184,8 +176,7 @@ export async function fetchBorrowedBooksRequest(): Promise<Rent[]> {
  * @throws {RequestError} Gdy wystąpi błąd serwera
  */
 
-/* todo: nie zwracane przez request: publish_year, isbn_number, length, language, publisher, keywords, genre
-        autor nie jest tablicą tylko pojedyńczą wartością
+/* todo: autor nie jest tablicą tylko pojedyńczą wartością
 * */
 export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
     const requestUrl = `${API_URL}/api/users/reservedBooks`;
@@ -213,14 +204,6 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
             book_id: item.BookId,
             title: item.tytul,
             authors: [item.autor],
-
-            publish_year: undefined,
-            isbn_number: undefined,
-            length: undefined,
-            language: undefined,
-            publisher: undefined,
-            keywords: undefined,
-            genre: undefined,
         },
         instance_id: item.Copyid,
         reserve_to: new Date(item.dataKoncaRezerwacji),
@@ -230,9 +213,8 @@ export async function fetchReservedBooksRequest(): Promise<Reservation[]> {
 /**
  * Pobiera katalog użytkownika zgodnie ze specyfikacją API.
  */
-// todo: stronicowanie coś nie teges bo server o nim nie informuje
-// todo: nie zwraca słów kluczowych (keywords)
-// todo: sortowanie po autorach odbywa się tylko po nazwiskach
+// todo?: stronicowanie coś nie teges bo server o nim nie informuje
+// todo resolved: sortowanie po autorach odbywa się tylko po nazwiskach
 export async function fetchUserCatalogRequest(
     search: string = '',
     sort?: SearchSort,
@@ -321,7 +303,6 @@ export async function fetchUserCatalogRequest(
  * @throws {TargetNotFoundError} Gdy książka nie istnieje
  * @throws {RequestError}
  */
-// todo: użyty request nie zwraca następujących informacji: length, language, publisher
 export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
     const requestUrl = `${API_URL}/api/books/${book_id}`;
     const requestOptions = {
@@ -350,12 +331,6 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
         publish_year: Number(data?.rok_wydania ?? 0),
         isbn_number: String(data?.isbn ?? ""),
 
-        // API doesn't send these in the shown response -> defaults required by `Book`
-        length: undefined,
-        language: undefined,
-        publisher: undefined,
-
-        keywords: Array.isArray(data?.slowa_kluczowe) ? data.slowa_kluczowe.map((k: any) => String(k)) : [],
         genre: Array.isArray(data?.gatunki) ? data.gatunki.map((g: any) => String(g)) : [],
 
         instances: {
@@ -387,8 +362,6 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania katalogu
  */
 // todo?: podobnie jak u użytkownika prawdopodobnie jest problem ze stronicowaniem
-// todo: nie zwraca informacji na temat egzemplarzy, słów kluczowych
-// todo: nie zwraca id, poważny błąd przy funkcji wypożyczania
 export async function fetchAdminCatalogRequest(
     search?: string,
     sort?: SearchSort,
@@ -480,8 +453,7 @@ export async function fetchAdminCatalogRequest(
 
             // IMPORTANT: BookAdmin requires instances[], and search endpoint returns `egzemplarze`
             instances: Array.isArray(b?.egzemplarze)
-                ? b.egzemplarze
-                    .map((e: any) => ({
+                ? b.egzemplarze.map((e: any) => ({
                         id: e?.Copyid != null ? Number(e.Copyid) : Number(e?.id),
                         status: mapInstanceStatus(e?.status),
                     }))

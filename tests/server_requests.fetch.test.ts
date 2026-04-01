@@ -48,8 +48,14 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
             "email": "anna.nowak@test.pl",
             "credit_card_number": undefined
         }, 'Correct data returned from fetchUserInfoRequest (blocked user)')
-        setMockAuth('noauth')
+        setMockAuth('admin')
+        expect(data).to.deep.equal({
+            name: "Admin",
+            surname: "Adminowicz",
+            'email': 'admin.adminowicz@test.com'
+        }, "Correct data returned from fetchUserInfoRequest (admin user)")
 
+        setMockAuth('noauth')
         await expect(fetchUserInfoRequest(), 'Test reakcji na brak sesji').rejects.toThrow('Błąd profilu')
 
 
@@ -224,26 +230,6 @@ describe('Test funkcji z pliku fetch_requests.ts wymagające uprawnień użytkow
                 "instances": {"available": 1, "total": 2}
             }], "totalPages": 1, "totalResults": 1
         })
-
-        // todo: wyszukiwanie po tagach powoduje błąd po stronie serwera
-        /* data = await fetchUserCatalogRequest("", undefined, {tags: ['cool']})
-         expect(data, "Przy filtrowaniu po tagach").to.deep.equal({
-            "result": [{
-                "book_id": "1",
-                "title": "Wiedźmin",
-                "authors": ["Andrzej Sapkowski"],
-                "publish_year": 1990,
-                "isbn_number": "111",
-                "publisher": "Wydawnictwo Testowe",
-                "genre": ["Fantasy"],
-                "language": "PL",
-                "length": 300,
-                "instances": {"available": 1, "total": 2}
-            }], "totalPages": 1, "totalResults": 1
-        })
-         */
-
-
 
         data = await fetchUserCatalogRequest('', undefined, undefined, 2)
         expect(data, "Gdy użyje błędnej strony").to.deep.equal({result: [], totalPages: 1, totalResults: 0})

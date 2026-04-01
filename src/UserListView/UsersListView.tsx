@@ -189,7 +189,7 @@ export default function UsersListView(): JSX.Element {
         try {
             await removeUserRequest(popupData.user.email);
             setPopupData({ title: "Usunięto użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został usunięty.` });
-            setShownPopup("success");
+            setShownPopup("success");``
             setResetToken(prev => prev + 1);
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e ?? "Wystąpił nieznany błąd");

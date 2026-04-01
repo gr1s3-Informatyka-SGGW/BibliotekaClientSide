@@ -3,7 +3,7 @@
  * @author Dawid Filipek
  * @author Szymon Doba
  */
-// todo: jeśli chasło nie spełnia wymagań to jakich?
+
 /**
  * @var regex
  * @property {RegExp} firstName - Walidacja imienia (2-60 znaków, obsługa Unicode).

@@ -13,11 +13,10 @@ import { fetchUserInfoRequest, changeClientCreditCardRequest, changeClientDataRe
 
 import './ProfileInfoPanel.css';
 
-// todo: prawidłowa obsługa błędu "Nie udało się wysłać zapytania"
 /**
  * Interfejs opisujący strukturę danych formularza edycji profilu.
  */
-interface UserFormState {
+interface UserFormState{
     name: string;
     surname: string;
     email: string;
@@ -26,7 +25,7 @@ interface UserFormState {
 /**
  * Interfejs opisujący strukturę danych formularza karty płatniczej.
  */
-interface CardFormState {
+interface CardFormState{
     cardNumber: string;
     expiryDate: string;
     cvv: string;
@@ -345,7 +344,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             </Popup>
         );
     }
-
 
     /**
      * Renderuje okno modalne (Popup) do edycji danych karty płatniczej.

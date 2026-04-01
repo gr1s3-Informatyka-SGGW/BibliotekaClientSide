@@ -282,12 +282,7 @@ export async function changeClientPasswordRequest(old_password: string, new_pass
  * @throws {InvalidRequestDataError}
  * @throws {RequestError}
  */
-// todo: brak danych do wykonania requesta, brakuje: userId, email nie potrzebny
 export async function removeUserRequest(email: string): Promise<void> {
-    if (!email) {
-        throw new InvalidRequestDataError("Email jest wymagany", false);
-    }
-
     const requestUrl = `${API_URL}/api/users/deleteUser`;
     const requestOptions = {
         method: "POST",
