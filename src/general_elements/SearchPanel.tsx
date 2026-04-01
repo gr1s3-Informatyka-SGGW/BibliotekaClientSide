@@ -9,7 +9,7 @@ import React, { Component } from 'react';
 import type { ReactNode} from 'react';
 import type IFormComponent from '../custom_components/IFormComponent.tsx'
 import type { IFilter, SearchSort } from "../server/server_types.ts";
-import ScanButton from "../elements_user/ScanButton.tsx";
+import ScanButton from "./ScanButton.tsx";
 import './SearchPanel.css';
 
 import searchIcon from '/assets/search.svg'

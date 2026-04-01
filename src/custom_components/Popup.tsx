@@ -131,43 +131,10 @@ export function Alert({ title, message, isOpen, setIsOpen, icon, onAccept, onCan
                         {finalAcceptText}
                     </button>
                 )}
-                <button onClick={()=>handleCancelClick()} className="cancel-button">
+                <button onClick={handleCancelClick} className="cancel-button">
                     {finalCancelText}
                 </button>
             </div>
         </Popup>
     )
-}
-/**
- * @function quick_alert szybka funkcja tworząca alert w portalu dzięki, czemu można ją wywołać bez użycia JSX. Umożliwia wyświetlenie informacji lub zaakceptowanie akcji.
- * @param {string} message - Treść komunikatu wyświetlanego wewnątrz alertu.
- * @param {string} title - Tekst wyświetlany w nagłówku okna.
- * @param {string} [icon] - Opcjonalna ścieżka do pliku ikony (SVG/PNG).
- *
- * @param {boolean} [isOpen] - wartość hook'a obsługującego zamykanie i otwieranie okna. Jeśli nie zostanie podany, zostanie on automatycznie ustawiony na true, oraz zostanie do niego przypisany setter, inny niż podany w drugim argumencie
- * @param {React.Dispatch<React.SetStateAction<boolean>>| ((isOpen: boolean) => void)} [setIsOpen] - setter isOpen, muzi zostać podany razem z isOpen, w przeciwnym razie zostanie on zignorowany
- *
- * @param {() => void} [onCancel] - Callback wywoływany przy rezygnacji/zamknięciu okna.
- * @param {() => void} [onAccept] - KLUCZOWY PARAMETR: Przesłanie tej funkcji powoduje
- * automatyczne wyrenderowanie drugiego przycisku (akceptacji). Jeśli parametr jest pominięty,
- * Alert wyświetla tylko jeden przycisk (informacyjny).
- *
- * @param {string} [acceptText] - Tekst przycisku akceptacji (domyślnie "Tak").
- * @param {string} [cancelText] - Tekst przycisku anulowania. Domyślnie "Anuluj", a jeśli onAccept nie został podany — "Ok".
- *
- *  @returns void
- * */
-export function quick_alert(title: string, message: string, isOpen: boolean, setIsOpen: React.Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void), icon: string, onAccept: () => void, onCancel: () => void, acceptText: string, cancelText: string){
-    if(!setIsOpen || isOpen === undefined)
-        [isOpen, setIsOpen] = useState(true) // generate your own hook
-    createPortal(<Alert message={message}
-                        title={title}
-                        icon={icon}
-                        isOpen={isOpen}
-                        setIsOpen={setIsOpen}
-                        onCancel={onCancel}
-                        onAccept={onAccept}
-                        acceptText={acceptText}
-                        cancelText={cancelText}/>,
-        document.body)
 }

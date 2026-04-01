@@ -9,15 +9,14 @@ import accountCircleIcon from '/assets/account_circle.svg';
 import Popup from "../custom_components/Popup.tsx";
 import { validators } from '../server/validators.ts';
 import CustomTooltip from '../custom_components/CustomTooltip.tsx';
-import { changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../server/server_requests.ts";
+import { fetchUserInfoRequest, changeClientCreditCardRequest, changeClientDataRequest, changeClientPasswordRequest } from "../server/server_requests.ts";
 
 import './ProfileInfoPanel.css';
 
-// todo: prawidłowa obsługa błędu "Nie udało się wysłać zapytania"
 /**
  * Interfejs opisujący strukturę danych formularza edycji profilu.
  */
-interface UserFormState {
+interface UserFormState{
     name: string;
     surname: string;
     email: string;
@@ -26,12 +25,12 @@ interface UserFormState {
 /**
  * Interfejs opisujący strukturę danych formularza karty płatniczej.
  */
-interface CardFormState {
+interface CardFormState{
     cardNumber: string;
     expiryDate: string;
     cvv: string;
 }
-type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword']?: string };
+type AllErrors = { [key in keyof UserFormState | keyof CardFormState | 'password' | 'confirmPassword' | 'oldPassword']?: string };
 
 /**
  * Komponent panelu profilu użytkownika.
@@ -146,9 +145,9 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             this.setState({
                 editMode: false,
                 formData: {
-                    name: this.state.user.name,
-                    surname: this.state.user.surname,
-                    email: this.state.user.email,
+                    name: this.props.info.name,
+                    surname: this.props.info.surname,
+                    email: this.props.info.email,
                 },
                 formErrors: {}
             });
@@ -186,7 +185,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                 }));
             } catch (err) {
                 console.error("Błąd zapisu danych:", err);
-                alert("Nie udało się zapisać zmian (Błąd serwera lub brak implementacji).");
                 this.setState({ showGeneralError: true });
             }
         } else {
@@ -201,7 +199,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
     changePassword(): React.ReactNode {
         const { formErrors, passwordData } = this.state;
         const mainColor = ProfileInfoPanel.mainColor;
-        const errorStyle: React.CSSProperties = { color: '#d32f2f', fontSize: '0.75rem', marginTop: '0.2em' };
         const isInvalid = !!formErrors.password || !!formErrors.confirmPassword || !passwordData.oldPass || !passwordData.newPass || !passwordData.confirmPass;
 
         return (
@@ -224,20 +221,18 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                         }
 
                         try {
-                            await changeClientPasswordRequest(
-                                passwordData.oldPass,
-                                passwordData.newPass
-                            );
-
-                            alert("Hasło zostało zmienione pomyślnie.");
+                            await changeClientPasswordRequest(passwordData.oldPass, passwordData.newPass);
                             this.setState({
                                 isPasswordOpen: false,
                                 formErrors: {},
-                                passwordData: { oldPass: '', newPass: '', confirmPass: '' }
+                                passwordData: { oldPass: '', newPass: '', confirmPass: ''}
                             });
                         } catch (err) {
                             console.error("Błąd zmiany hasła:", err);
-                            alert("Nie udało się zmienić hasła. Sprawdź poprawność starego hasła lub spróbuj później.");
+                            this.setState({
+                                isPasswordOpen: true,
+                                formErrors: {oldPassword: "Nie udało się zmienić hasła. Sprawdź poprawność starego hasła lub spróbuj później."},
+                            });
                         }
                     }}>
 
@@ -246,12 +241,15 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                             <input
                                 type="password"
                                 required
-                                placeholder=""
                                 value={passwordData.oldPass}
                                 onChange={(e) => this.setState({
                                     passwordData: { ...passwordData, oldPass: e.target.value }
                                 })}
-                                style={{ padding: '8px', borderRadius: '0.75em', border: '1px solid #ccc' }}
+                                style={{ padding: '8px', borderRadius: '0.75em',
+                                    border: formErrors.oldPassword ? '1px solid #d32f2f' : '1px solid #ccc',
+                                    backgroundColor: formErrors.oldPassword ? '#fff8f8' : 'white',
+                                    outline: 'none'
+                                }}
                             />
                         </div>
 
@@ -288,6 +286,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
 
                         <div className="flex-column">
                             <label htmlFor='password-input'>Powtórz nowe hasło:</label>
+                            <CustomTooltip title={formErrors.confirmPassword}>
                             <input
                                 id='password-input'
                                 type="password"
@@ -312,8 +311,14 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
                                     });
                                 }}
                             />
-                            {formErrors.confirmPassword && <span style={errorStyle}>{formErrors.confirmPassword}</span>}
+                            </CustomTooltip>
+
                         </div>
+                        <div className='flex-row'>
+                            {formErrors.oldPassword && <span className='errorStyle'>{formErrors.oldPassword}</span>}
+                        </div>
+
+
 
                         <div className="flex-row responsive-buttons" style={{ gap: '0.5em', marginTop: '1em' }}>
                             <button type="button" className="boring" style={{ flex: 1 }} onClick={() => this.setState({ isPasswordOpen: false, formErrors: {} })}>
@@ -340,7 +345,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
         );
     }
 
-
     /**
      * Renderuje okno modalne (Popup) do edycji danych karty płatniczej.
      * @returns {React.ReactNode} Komponent Popup edycji karty.
@@ -358,7 +362,6 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             >
                 <div style={{ minWidth: '300px' }}>
                     <form onSubmit={this.handleCardSubmit} className="flex-column" style={{ gap: '1em' }}>
-
                         <div className="flex-column">
                             <label htmlFor='cardNumber'>Numer karty:</label>
                             <CustomTooltip title={formErrors.cardNumber}>
@@ -484,7 +487,7 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
      * Renderuje interfejs użytkownika panelu profilu.
      */
     render() {
-        const { user, formData, formErrors, editMode } = this.state;
+        const {user, formData, formErrors, editMode } = this.state;
         const isClient = this.props.access !== 'admin';
         const mainColor = ProfileInfoPanel.mainColor;
         const inputStyle: React.CSSProperties = {
@@ -493,87 +496,89 @@ class ProfileInfoPanel extends Component<{ info: User, access?: string }, {
             borderRadius: '12px',
             border: '1px solid #ccc',
             minWidth: '180px'
-        };
+        }
 
         const valueStyle: React.CSSProperties = { fontSize: '1em', color: '#333' };
         return (
-            <div className="profile-info-component panel" style={{ borderRadius: '12px', maxWidth: '20em', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
+<div className="profile-info-component panel" style={{ borderRadius: '12px', maxWidth: '20em', boxShadow: '0 0 0.4em rgba(0, 0, 0, 0.1)' }}>
 
-                <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
-                    <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
-                    <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
+    <div className="flex-row" style={{ alignItems: 'center', gap: '0.8em', marginBottom: '0em', }}>
+        <img src={accountCircleIcon} alt="Profile" style={{ height: '1.8em', marginRight: '0em', filter: 'invert(18%) sepia(46%) saturate(3453%) hue-rotate(323deg) brightness(91%) contrast(90%)' }} />
+        <h2 style={{ margin: 0, justifyContent: 'left', fontWeight: 'bold', color: mainColor, fontSize: '1.17em' }}>Twój profil</h2>
+    </div>
+    <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
+
+    <table className="profile-data-container">
+        <tbody>
+        {(['name', 'surname', 'email'] as const).map(field => (
+            <tr key={field} className="profile-row">
+                <td>
+                    <label className="profile-label">
+                        {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
+                    </label>
+                </td>
+
+                {editMode && field !== 'email' ? (
+                    <td style={{ flex: '0 1 300px', width: '100%'}}>
+                        <CustomTooltip title={formErrors[field] || ""}>
+                            <input
+                                name={field}
+                                type='text'
+                                value={formData[field]}
+                                style={{ ...inputStyle, width: '100%' }}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    this.setState(p => ({
+                                        formData: { ...p.formData, [field]: val },
+                                        formErrors: { ...p.formErrors, [field]: this.validateField(field, val) || undefined }
+                                    }));
+                                }}
+                            />
+                        </CustomTooltip>
+                    </td>
+                ) : (
+                    <td className="profile-value" style={valueStyle}>{user[field]}</td>
+                )}
+            </tr>
+        ))}
+
+        {isClient && user.credit_card_number && (
+            <tr className="profile-row">
+                <td>
+                    <label className="profile-label">Numer karty:</label>
+                </td>
+                <td className="profile-value" style={valueStyle}>
+                    **** **** **** {user.credit_card_number.slice(-4)}
+                </td>
+            </tr>
+        )}
+        </tbody>
+    </table>
+
+    <div className="flex-column" style={{ gap: '1em' }}>
+        {editMode ? (
+            <>
+                {this.state.showGeneralError && <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginTop: '-1.5em', marginBottom: '-0.5em', display: 'block' }}>Nie można zapisać: popraw błędy w polach.</span>}
+                <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
+                    <button type="button" className="boring" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, padding: '0.9em', borderRadius: '8px' }}>Odrzuć zmiany</button>
+                    <button onClick={this.handleGeneralSubmit} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zapisz zmiany</button>
                 </div>
-                <hr style={{ border: 'none', borderTop: '1px solid #f0f0f0', margin: '0 0 1.5em 0' }} />
-
-                <table className="profile-data-container">
-                    {(['name', 'surname', 'email'] as const).map(field => (
-                        <tr key={field} className="profile-row">
-                            <td>
-                                <label className="profile-label">
-                                    {field === 'name' ? 'Imię' : field === 'surname' ? 'Nazwisko' : 'E-mail'}:
-                                </label>
-                            </td>
-
-                            {editMode ? (
-                                <td style={{ flex: '0 1 300px', width: '100%'}}>
-                                    <CustomTooltip title={formErrors[field] || ""}>
-                                        <input
-                                            name={field}
-                                            type={field === 'email' ? 'email' : 'text'}
-                                            value={formData[field]}
-                                            style={{ ...inputStyle, width: '100%' }}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                this.setState(p => ({
-                                                    formData: { ...p.formData, [field]: val },
-                                                    formErrors: { ...p.formErrors, [field]: this.validateField(field, val) || undefined }
-                                                }));
-                                            }}
-                                        />
-                                    </CustomTooltip>
-                                </td>
-                            ) : (
-                                <td className="profile-value" style={valueStyle}>{user[field]}</td>
-                            )}
-                        </tr>
-                    ))}
-
-                    {isClient && user.credit_card_number && (
-                        <tr className="profile-row">
-                            <td>
-                                <label className="profile-label">Numer karty:</label>
-                            </td>
-                            <td className="profile-value" style={valueStyle}>
-                                **** **** **** {user.credit_card_number.slice(-4)}
-                            </td>
-                        </tr>
-                    )}
-                </table>
-
-                <div className="flex-column" style={{ gap: '1em' }}>
-                    {editMode ? (
-                        <>
-                            {this.state.showGeneralError && <span style={{ color: '#d32f2f', fontSize: '0.85rem', textAlign: 'center', fontWeight: 'bold', marginTop: '-1.5em', marginBottom: '-0.5em', display: 'block' }}>Nie można zapisać: popraw błędy w polach.</span>}
-                            <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
-                                <button type="button" className="boring" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, padding: '0.9em', borderRadius: '8px' }}>Odrzuć zmiany</button>
-                                <button onClick={this.handleGeneralSubmit} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zapisz zmiany</button>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
-                                <button type="button" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Edytuj profil</button>
-                                <button type="button" onClick={() => this.setState({ isPasswordOpen: true })} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zmień hasło</button>
-                            </div>
-                            {isClient && user.credit_card_number && (
-                                <button type="button" className="full-width-mobile" onClick={() => this.setState({ isCardOpen: true })} style={{ width: '100%', backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '0.2em' }}>Zmień dane karty</button>
-                            )}
-                        </>
-                    )}
+            </>
+        ) : (
+            <>
+                <div className="flex-row responsive-buttons" style={{ gap: '1.2em' }}>
+                    <button type="button" onClick={() => this.changeGeneralInfo()} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Edytuj profil</button>
+                    <button type="button" onClick={() => this.setState({ isPasswordOpen: true })} style={{ flex: 1, backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Zmień hasło</button>
                 </div>
-                {this.changePassword()}
-                {this.changeCardInfo()}
-            </div>
+                {isClient && user.credit_card_number && (
+                    <button type="button" className="full-width-mobile" onClick={() => this.setState({ isCardOpen: true })} style={{ width: '100%', backgroundColor: mainColor, color: 'white', padding: '0.9em', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '0.2em' }}>Zmień dane karty</button>
+                )}
+            </>
+        )}
+    </div>
+    {this.changePassword()}
+    {this.changeCardInfo()}
+</div>
         );
     }
 }

@@ -25,7 +25,7 @@ function Register() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(null);
@@ -47,7 +47,7 @@ function Register() {
         }
 
         if (!validators.password(password).ok) {
-            setError("Hasło nie spełnia wymagań bezpieczeństwa.");
+            setError("Hasło nie spełnia wymagań bezpieczeństwa (min. 12 znaków, duża/mała litera, cyfra, znak specjalny).");
             return;
         }
 
@@ -61,6 +61,11 @@ function Register() {
             return;
         }
 
+        // Konwersja exp z formatu YYYY-MM na MM/YY
+        const [year, month] = exp.split('-');
+        const formattedExp = `${month}/${year.slice(-2)}`;
+
+
         if (!validators.cvv(cvv).ok) {
             setError("Nieprawidłowy CVV.");
             return;
@@ -73,27 +78,30 @@ function Register() {
 
         // ===== REQUEST =====
         try {
-            registerRequest(
+            
+            await registerRequest(
                 firstName,
                 lastName,
                 email,
                 password,
                 {
                     number: cardNumber,
-                    exp_date: exp,
+                    exp_date: formattedExp,
                     cvv: cvv
                 });
+                
+                // Logika sukcesu musi być TUTAJ - po udanym zapytaniu
+                setSuccess("Konto zostało utworzone. Możesz się zalogować.");
+                setTimeout(() => navigate("/Login"), 1500);
+            }
+            catch(er: any){
+                setError((er as Error).message ?? "Błąd rejestracji.");
+            }
         }
-        catch(er){
-            setError((er as Error).message ?? "Błąd rejestracji.");
-        }
-    }
 
-    setSuccess("Konto zostało utworzone. Możesz się zalogować.");
-    setTimeout(() => navigate("/login"), 1500);
 
-    return (
-        <div className="center-screen">
+        return (
+            <div className="center-screen">
             <form
                 className="login-panel"
                 style={{width: "22em"}}
@@ -193,6 +201,9 @@ function Register() {
                     </div>
                 </div>
 
+                {error && <p style={{color: "red", marginTop: 10}}>{error}</p>}
+                {success && <p style={{color: "green", marginTop: 10}}>{success}</p>}
+
                 <div className="checkbox-container">
                     <input
                         type="checkbox"
@@ -206,9 +217,6 @@ function Register() {
                 </div>
 
                 <button type="submit">Zarejestruj się</button>
-
-                {error && <p style={{color: "red", marginTop: 10}}>{error}</p>}
-                {success && <p style={{color: "green", marginTop: 10}}>{success}</p>}
 
                 <p className="muted">
                     Masz już konto? <a href="/login">Zaloguj się</a>

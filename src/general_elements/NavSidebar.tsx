@@ -68,7 +68,7 @@ function NavSidebar(): JSX.Element {
      */
     const handleLogout = () => {
         auth?.logout();
-        navigate("/login");
+        navigate("/Login");
         window.location.reload();
     };
 

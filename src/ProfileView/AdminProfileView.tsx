@@ -4,12 +4,14 @@
  * */
 
 import React, { useContext, useState, useEffect } from 'react'; import { AuthContext } from "../server/UserAuth.tsx";
-import ProfileInfoPanel from '../general_elements/ProfileInfoPanel';
+import ProfileInfoPanel from './ProfileInfoPanel.tsx';
 import accountCircleIcon from '/assets/account_circle.svg';
 
-import { fetchUserInfoRequest } from '../server/server_requests.ts';
+import {fetchAdminCatalogRequest, fetchUserInfoRequest} from '../server/server_requests.ts';
 import type { User } from '../server/server_types.ts'
 import NavSidebar from "../general_elements/NavSidebar.tsx";
+import {Alert} from "../custom_components/Popup.tsx";
+import type {RequestError} from "../server/requests/connection.ts";
 
 /**
  * Komponent widoku profilu administratora.
@@ -18,38 +20,27 @@ import NavSidebar from "../general_elements/NavSidebar.tsx";
  */
 export default function AdminProfileView() {
     const session = useContext(AuthContext);
-    const [adminData, setAdminData] = useState<User | null>(session?.session?.user || null);
-    const [isLoading, setIsLoading] = useState(!adminData);
+    const [adminData, setAdminData] = useState<User | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     useEffect(() => {
         const getAdminData = async () => {
             if (!adminData) {
                 try {
-                    setIsLoading(true);
                     const data = await fetchUserInfoRequest();
-                    if (data) {
-                        setAdminData(data);
-                    } else {
-                        setAdminData({
-                            name: "Admin",
-                            surname: "Systemu",
-                            email: "admin@library.com"
-                        });
+                    setAdminData(data);
+                } catch (error: RequestError | any) {
+                    console.error("Błąd pobierania danych admina:", error);
+                    if(error.couse === 'Odmowa dostępu'){
+                        window.location.href = '/access-denied';
+                        return;
                     }
-                } catch (error) {
-                    console.error("Błąd pobierania danych admina, ustawiam dane testowe:", error);
-                    setAdminData({
-                        name: "Admin",
-                        surname: "Systemu",
-                        email: "admin@library.com"
-                    });
-                } finally {
-                    setIsLoading(false);
+                    setErrorMessage(error.message);
                 }
             }
         };
-        getAdminData();
-    }, []);
+        void getAdminData();
+    }, [adminData]);
 
     if (!adminData) return <div>Ładowanie danych administratora...</div>;
     return (
@@ -84,6 +75,10 @@ export default function AdminProfileView() {
 
             <ProfileInfoPanel info={adminData} />
         </main>
+            <Alert message={errorMessage}
+                   title="Błąd Serwera"
+                   isOpen={errorMessage !== ''}
+                   setIsOpen={(v: boolean) => setErrorMessage('')}/>
         </>
     );
 }

@@ -13,8 +13,9 @@ export default defineConfig([
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-unused-imports': 'off',
         'react-refresh/only-export-components': 'off',
-        '@typescript-eslint/no-explicit-any': 'off'
-
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-unused-expressions': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off'
     },
     extends: [
       js.configs.recommended,

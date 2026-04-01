@@ -13,21 +13,20 @@ const AboutUs = lazy(() => import("./AboutUs"));
 import { Error404, AccessDeniedError } from "./Errors";
 
 // auth (not logged)
-const Login = lazy(() => import("./login/Login"));
-const PasswordReset = lazy(() => import("./login/PasswordReset"));
-const Register = lazy(() => import("./login/Register"));
+const Login = lazy(() => import("./Login/Login"));
+const Register = lazy(() => import("./Login/Register"));
 
 // shared (user + admin)
-const CatalogView = lazy(() => import("./general_elements/CatalogView"));
+const CatalogView = lazy(() => import("./CatalogView/CatalogView.tsx"));
 
 // user only
-const UserProfileView = lazy(() => import("./elements_user/UserProfileView"));
+const UserProfileView = lazy(() => import("./ProfileView/UserProfileView.tsx"));
 
 // admin only
-const AdminProfileView = lazy(() => import("./elements_admin/AdminProfileView"));
-const RentLogView = lazy(() => import("./elements_admin/RentLogView"));
-const AddBookView = lazy(() => import("./elements_admin/AddBookView"));
-const RentedBooksListView = lazy(() => import("./elements_admin/RentedBooksListView"));
+const AdminProfileView = lazy(() => import("./ProfileView/AdminProfileView.tsx"));
+const UsersListView = lazy(() => import("./UserListView/UsersListView.tsx"));
+const AddBookView = lazy(() => import("./AddBookView/AddBookView.tsx"));
+const RentLogView = lazy(() => import("./RentLogView/RentLogView.tsx"));
 
 export default function App() {
   const auth = useContext(AuthContext);
@@ -48,15 +47,6 @@ export default function App() {
               element={
                 <ProtectedRoute mode={null}>
                   <Login />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/password-reset"
-              element={
-                <ProtectedRoute mode={null}>
-                  <PasswordReset />
                 </ProtectedRoute>
               }
             />
@@ -111,7 +101,7 @@ export default function App() {
               path="/users-view"
               element={
                 <ProtectedRoute mode="admin">
-                  <RentLogView />
+                  <UsersListView />
                 </ProtectedRoute>
               }
             />
@@ -129,7 +119,7 @@ export default function App() {
               path="/rented-books"
               element={
                 <ProtectedRoute mode="admin">
-                  <RentedBooksListView />
+                  <RentLogView />
                 </ProtectedRoute>
               }
             />
