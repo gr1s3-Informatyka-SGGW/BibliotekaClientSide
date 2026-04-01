@@ -1,74 +1,62 @@
-[//]: # (todo: redo this)
-# React + TypeScript + Vite
+# Biblioteka Online – Client Side
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interaktywna aplikacja webowa do zarządzania biblioteką, umożliwiająca użytkownikom przeglądanie zasobów i wypożyczanie książek, a administratorom pełną kontrolę nad księgozbiorem.
 
-Currently, two official plugins are available:
+## Główne Funkcjonalności
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Autoryzacja i Zarządzanie Kontem
+Kompletny system obsługi użytkownika zawarty w folderze `src/login`:
+* **Zaawansowana Rejestracja:** Formularz z pełną walidacją danych osobowych oraz integracją danych karty płatniczej.
+* **Bezpieczne Logowanie:** Obsługa sesji poprzez `AuthContext` z automatycznym przekierowaniem na odpowiedni panel (Admin/User) w zależności od uprawnień.
+* **Odzyskiwanie Hasła:** System resetowania hasła z funkcjonalnością wysyłki hasła tymczasowego na adres e-mail.
+* **Walidacja:** Zintegrowany system walidacji pól (e-mail, siła hasła, format karty) zapewniający poprawność wprowadzanych danych.
+* **Obsługa Błędów:** Dedykowany moduł obsługi błędów (404 Not Found, 401 Access Denied) zintegrowany z systemem routingu.
+* **Edycja Profilu:** Możliwość samodzielnej aktualizacji danych osobowych, zmiany hasła oraz zarządzania zapisanymi danymi karty płatniczej przez użytkownika.
 
-## React Compiler
+### Moduł Użytkownika (Reader)
+* **Katalog i Wyszukiwanie:** Zaawansowany system wyszukiwania pełnotekstowego (tytuł, autor, ISBN) połączony z dynamicznym filtrowaniem (gatunek, wydawca, język, zakres dat wydania) oraz sortowaniem wyników.
+* **Zarządzanie Wypożyczeniami:** Pełna obsługa cyklu wypożyczeń – od rezerwacji pozycji, przez odbiór, aż po zwrot książki do biblioteki.
+* **Profil:** Dedykowany widok (UserProfileView) agregujący dane o aktualnych wypożyczeniach i rezerwacjach.
+* **Skaner kodów:** Wykorzystanie komponentu ScanButton do fizycznej interakcji z egzemplarzami (zwroty/odbioru) – funkcjonalność z automatyczną blokadą na urządzeniach desktopowych.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Moduł Administratora
+* **Zarządzanie zasobami (CRUD):** Pełny system dodawania i edycji książek (AddBookView) z dynamicznym wybieraniem autorów, wydawców i tagów.
+* **System Egzemplarzy i Kodów QR:** Możliwość generowania i pobierania unikalnych kodów QR dla każdego egzemplarza książki (InstanceQR), co umożliwia łatwą identyfikację przy zwrotach.
+* **Zarządzanie Użytkownikami:** Zaawansowana lista użytkowników (UsersListView) z funkcją blokowania/odblokowywania kont, usuwania profilów oraz dodawania nowych bibliotekarzy.
+* **Log wypożyczeń i Kontrola Kar:** Przegląd wszystkich aktywnych wypożyczeń (RentedBooksListView) z automatycznym obliczaniem kar za przetrzymanie książek oraz monitoringiem terminów zwrotu.
+* **Stan Techniczny:** Możliwość oznaczania konkretnych egzemplarzy jako zniszczone lub naprawione bezpośrednio z poziomu katalogu administratora.
 
-## Expanding the ESLint configuration
+## Stack Technologiczny
+* **Framework:** React
+* **Język:** TypeScript
+* **Narzędzie budowania:** Vite
+* **Stylizacja:** Responsive Web Design (RWD) z wykorzystaniem CSS Variables, obsługa widoków mobilnych (hamburger menu, responsywne tabele).
+* **Dokumentacja:** JSDoc / TypeDoc
+* **Zarządzanie stanem:** React Context API (AuthContext)
+* **Generowanie QR:** Wykorzystanie biblioteki qrcode do dynamicznego tworzenia kodów dla egzemplarzy.
+* **Komunikacja z API:** Wykorzystanie biblioteki Axios do obsługi żądań HTTP.
+* **Routing:** react-router-dom (z obsługą tras chronionych i automatycznych przekierowań).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Struktura Projektu (Kluczowe foldery)
+* `src/elements_user` – Komponenty widoku użytkownika. Logika klienta: UserBookComponent (karta książki z akcjami), ProfileBookList (zarządzanie wypożyczeniami), ScanButton (integracja ze skanerem).
+* `src/elements_admin` – Moduły zarządzania: AddBookView (formularz dodawania), UsersListView (baza czytelników), InstanceQR (generator kodów), RentedBooksListView (kontrola wypożyczeń).
+* `public/custom_components` – Fundament UI: generyczne komponenty sterowane stanem i interfejsami (Popupy, dynamiczne selektory, system Tooltipów).
+* `src/login` – Komponenty autoryzacji: `Login`, `Register`, `PasswordReset`.
+* `src/general_elements` – Kluczowe komponenty nawigacyjne i wyszukiwawcze: CatalogView (główny kontroler widoku), SearchPanel (agregator filtrów), NavSidebar (dynamiczne menu zależne od roli).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Jak uruchomić projekt?
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Wymagania
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+* **Node.js:** wersja 16.x lub wyższa
+* **npm:** wersja 8.x lub wyższa
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Instalacja i uruchomienie
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Sklonuj repozytorium na swój dysk.
+2. Zainstaluj biblioteki: `npm install`
+4. Wejść na stronę `http://localhost:[port podany przez vite]`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Możliwe jest włączenie testów przygotowanych z użyciem biblioteki Vitest: `npm run test`.
+## Licencja
+Projekt udostępniony na licencji MIT. Więcej informacji w pliku `LICENSE`.
