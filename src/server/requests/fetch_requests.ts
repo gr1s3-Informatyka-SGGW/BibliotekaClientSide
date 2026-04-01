@@ -257,9 +257,9 @@ export async function fetchUserCatalogRequest(
         headers: authHeaders(),
         body: JSON.stringify(body),
     };
-    console.log('Request to:', requestUrl, 'Options:', requestOptions);
-    const r = await fetch(requestUrl, requestOptions);
-    console.log('Response from:', requestUrl, 'Status:', r.status);
+    console.log('Request to:', requestUrl, 'Options:', requestOptions)
+    const r = await fetch(requestUrl, requestOptions)
+    console.log('Response from:', requestUrl, 'Status:', r.status)
 
     if (!r.ok) {
         if(r.status === 403)
@@ -267,8 +267,8 @@ export async function fetchUserCatalogRequest(
         throw new RequestError(`Błąd pobierania katalogu: ${r.status} - ${r.statusText}`);
     }
 
-    const data = await r.json();
-    console.log('Response data:', data);
+    const data = await r.json()
+    console.log('Response data:', data)
 
     // Map API snake_case response to frontend structure
     return {
@@ -307,11 +307,11 @@ export async function fetchUserBookRequest(book_id: number): Promise<BookUser> {
     const requestUrl = `${API_URL}/api/books/${book_id}`;
     const requestOptions = {
         method: "GET",
-        headers: authHeaders(),
-    };
-    console.log('Request to:', requestUrl, 'Options:', requestOptions);
-    const r = await fetch(requestUrl, requestOptions);
-    console.log('Response from:', requestUrl, 'Status:', r.status);
+        headers: authHeaders()
+    }
+    console.log('Request to:', requestUrl, 'Options:', requestOptions)
+    const r = await fetch(requestUrl, requestOptions)
+    console.log('Response from:', requestUrl, 'Status:', r.status)
 
     if (!r.ok) {
         if (r.status === 400) {
@@ -551,7 +551,7 @@ export async function fetchAdminBookRequest(
  * @throws {InvalidRequestDataError} Gdy podano niepoprawny numer strony lub błędne dane wyszukiwania
  * @throws {RequestError} Gdy wystąpił błąd serwera podczas pobierania użytkowników
  */
-// todo priority: backend nie odróżnia wypożyczeń od rezerwacji. Wszystko zwraca jako wyporzyczenia
+// todo priority: backend nie odróżnia wypożyczeń od rezerwacji. Wszystko zwraca jako wypożyczenia
 // todo?: paginacja również wydaje się nie działać
 export async function fetchUserListRequest(
     search_bar?: string,
