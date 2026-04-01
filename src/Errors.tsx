@@ -1,6 +1,7 @@
-import { Component, type JSX } from 'react';
+import React, {Component, type JSX, useContext} from 'react';
 import errorIcon from '/assets/error.svg';
 import "./Errors.css"
+import {AuthContext} from "./server/UserAuth.tsx";
 
 /**
  * Bazowy komponent do wyświetlania stron błędów.
@@ -25,7 +26,7 @@ export default class ErrorComponent extends Component {
      * @param {string} props.message - Wiadomość błędu.
      */
     constructor({ code, message }: { code: number, message: string }) {
-        super({});
+        super({code, message});
         this.code = code;
         this.message = message;
     }
@@ -63,7 +64,14 @@ export class Error404 extends ErrorComponent {
  * @extends {ErrorComponent}
  */
 export class AccessDeniedError extends ErrorComponent {
+    static contextType = AuthContext;
+    declare context: React.ContextType<typeof AuthContext>
     constructor() {
-        super({ code: 401, message: "Nie masz uprawnień, aby zobaczyć tę stronę. Spróbuj się zalogować albo skontaktuj się z administratorem, jeśli uważasz, że to pomyłka." });
+        super({ code: 403, message: "Nie masz uprawnień, aby zobaczyć tę stronę. Spróbuj się zalogować albo skontaktuj się z administratorem, jeśli uważasz, że to pomyłka." });
+
+    }
+    render(){
+        this.context?.logout();
+        return super.render();
     }
 }

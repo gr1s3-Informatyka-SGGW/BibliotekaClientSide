@@ -27,12 +27,10 @@ import { Pagination } from '../general_elements/Pagination.tsx';
 import React, { useState, useEffect, type JSX } from "react";
 import UserComponent from './UserComponent.tsx';
 import { useSearchParams } from "react-router-dom";
-import iconGroup from "../assets/group.svg";
-import iconAdd from "../assets/add.svg";
-import iconError from "../assets/error.svg";
+import iconGroup from "../../public/assets/group.svg";
+import iconAdd from "../../public/assets/add.svg";
+import iconError from "../../public/assets/error.svg";
 import { validators, type ValidationResult } from "../server/validators.ts";
-import BookDetailsPopup from "./BookDetailsPopup.tsx";
-
 /**
  * Główny komponent widoku listy użytkowników.
  * Zarządza stanem aplikacji w kontekście wyszukiwania, sortowania i filtrowania użytkowników,
@@ -108,7 +106,7 @@ export default function UsersListView(): JSX.Element {
                 const filter: UserListSearchFilter = { status: statusFilter };
 
                 const result = await fetchUserListRequest(search?.search, sorting, filter, currentPage);
-
+                console.log(result);
                 setUsers(result.result);
                 setTotalPages(result.totalPages);
             } catch (e) {
@@ -118,8 +116,6 @@ export default function UsersListView(): JSX.Element {
                 setUsers([]);
             }
 
-
-            await new Promise(resolve => setTimeout(resolve, 100));
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
@@ -154,11 +150,6 @@ export default function UsersListView(): JSX.Element {
     const onRemoveUserPressed = (user: UserInfo) => {
         setPopupData({ user });
         setShownPopup("deleteConfirm");
-    };
-
-    const onBookDetailsPressed = (book: Book) => {
-        setPopupData({ book });
-        setShownPopup("bookDetails");
     };
 
     // Wykonanie requestów
@@ -198,7 +189,7 @@ export default function UsersListView(): JSX.Element {
         try {
             await removeUserRequest(popupData.user.email);
             setPopupData({ title: "Usunięto użytkownika", message: `Użytkownik ${popupData.user.name} ${popupData.user.surname} został usunięty.` });
-            setShownPopup("success");
+            setShownPopup("success");``
             setResetToken(prev => prev + 1);
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e ?? "Wystąpił nieznany błąd");
@@ -232,166 +223,141 @@ export default function UsersListView(): JSX.Element {
     })();
 
     return (
-        <>
-            {/* Block User Confirm */}
-            <Popup isOpen={shownPopup === "blockConfirm"} setIsOpen={(v:boolean) => !v && hidePopups()} title="Zablokuj użytkownika" onClose={hidePopups}>
-                <p>Czy na pewno chcesz zablokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
-                <div className="flex flex-row *:flex-1 mt-6 gap-2">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={executeBlockUser} className="bg-amber-600 hover:bg-amber-500">Zablokuj</button>
-                </div>
-            </Popup>
+<>
+    <NavSidebar />
+    {/* === GŁÓWNY LAYOUT === */}
+    <main id='UserListView'>
+        <h1 style={{ textAlign: "center", marginBottom: "1em" }}>
+            <img src={iconGroup} alt="" style={{ verticalAlign: 'middle', marginRight: '0.5em' }} />
+            Lista użytkowników
+        </h1>
+        <div>
 
-            {/* Unblock User Confirm */}
-            <Popup isOpen={shownPopup === "unblockConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Odblokuj użytkownika" onClose={hidePopups}>
-                <p>Czy na pewno chcesz odblokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
-                <div className="flex flex-row *:flex-1 mt-6 gap-2">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={executeUnblockUser}>Odblokuj</button>
-                </div>
-            </Popup>
+            {/* Panel Wyszukiwania */}
+            <SearchPanel placeholder="Szukaj użytkownika po nazwisku"
+                         onSearch={(data: SearchPanelReturn) => setSearch(data)}
+                         defaultValue={search?.search ?? ""}>
+                <FilterResetButton activeCount={statusFilter.length} onReset={handleResetFilters} />
 
-            {/* Delete User Confirm */}
-            <Popup isOpen={shownPopup === "deleteConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Usuń użytkownika" onClose={hidePopups}>
-                <p>Czy na pewno chcesz trwale usunąć użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
-                <p><strong>Tej operacji nie można cofnąć.</strong></p>
-                <div className="flex flex-row *:flex-1 mt-6 gap-2">
-                    <button onClick={hidePopups} className="boring">Anuluj</button>
-                    <button onClick={executeRemoveUser} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
-                </div>
-            </Popup>
-
-            {/* Generic Success */}
-            <Popup isOpen={shownPopup === "success"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Sukces"} onClose={hidePopups}>
-                <p>{popupData.message}</p>
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-
-            {/* Generic Error - Dynamic Title/Content */}
-            <Popup isOpen={shownPopup === "error"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Błąd"} icon={iconError} onClose={hidePopups}>
-                <p className="text-justify italic"><strong>{popupData.message}</strong></p>
-                <div className="flex flex-row *:flex-1 mt-6">
-                    <button onClick={hidePopups} className="boring">Zamknij</button>
-                </div>
-            </Popup>
-
-            {/* Add Librarian */}
-            <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups}/>
-
-            {/* Book Details Popup */}
-            <BookDetailsPopup isOpen={shownPopup === "bookDetails"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups} book={popupData.book} />
-
-            <NavSidebar />
-            {/* === GŁÓWNY LAYOUT === */}
-            <main>
-            <h1 style={{ textAlign: "center", marginBottom: "1em" }}>
-                <img src={iconGroup} alt="" style={{ verticalAlign: 'middle', marginRight: '0.5em' }} />
-                Lista użytkowników
-            </h1>
-
-
-            <div>
-
-                {/* Panel Wyszukiwania */}
-                <SearchPanel
-                    placeholder="Szukaj użytkownika po nazwisku, wypożyczeniu..."
-                    onSearch={(data: SearchPanelReturn) => setSearch(data)}
-                    defaultValue={search?.search ?? ""}
+                {/* Sortowanie */}
+                <CustomSelect filterKey="sort"
+                              label="Sortuj"
+                              initialValues={(() => sorting ? [`${sorting.key}-${sorting.direction}`] : ['name_ASC'])()}
+                              onChange={(v: string[]) => {
+                                // value w CustomSelect ma format [index]_[ASC|DESC]
+                                const val = v[0].split('-');
+                                setSorting({ key: val[0], direction: val[1] == "ASC" ? "ASC" : "DESC" });
+                              }}>
+                    <CustomOption value="name-ASC">Imie (A-Z)</CustomOption>
+                    <CustomOption value="name-DESC">Imie (Z-A)</CustomOption>
+                    <CustomOption value="surname-ASC">Nazwisko (A-Z)</CustomOption>
+                    <CustomOption value="surname-DESC">Nazwisko (Z-A)</CustomOption>
+                    <CustomOption value='email-ASC'>E-mail (A-Z)</CustomOption>
+                    <CustomOption value='email-DESC'>E-mail (Z-A)</CustomOption>
+                </CustomSelect>
+                {/* Status Filter */}
+                <CustomSelect
+                    filterKey="status"
+                    label="Status"
+                    key={`status-${resetToken}`}
+                    initialValues={statusFilter}
+                    onChange={(v: string[]) => setStatusFilter(v as ('user' | 'admin' | 'blocked')[])}
                 >
-                    <FilterResetButton activeCount={statusFilter.length} onReset={handleResetFilters} />
+                    <CustomOption value="user">Dostępny</CustomOption>
+                    <CustomOption value="blocked">Zablokowany</CustomOption>
+                </CustomSelect>
+            </SearchPanel>
 
-                    {/* Sortowanie */}
-                    <CustomSelect
-                        filterKey="sort"
-                        label="Sortuj"
-                        initialValues={(() => {
-                            const { key, direction } = sorting;
-                            if (key === "surname" && direction === "ASC") return ["Nazwisko (A-Z)"];
-                            if (key === "surname" && direction === "DESC") return ["Nazwisko (Z-A)"];
-                            if (key === "rent_count" && direction === "ASC") return ["Liczba wypożyczeń (rosnąco)"];
-                            if (key === "rent_count" && direction === "DESC") return ["Liczba wypożyczeń (malejąco)"];
-                            if (key === "overdue_count" && direction === "ASC") return ["Liczba zaległości (rosnąco)"];
-                            if (key === "overdue_count" && direction === "DESC") return ["Liczba zaległości (malejąco)"];
-                            return ["Nazwisko (A-Z)"];
-                        })()}
-                        onChange={(v: string[]) => {
-                            const val = v[0];
-                            if (val.includes("Nazwisko (A-Z)")) setSorting({ key: "surname", direction: "ASC" });
-                            else if (val.includes("Nazwisko (Z-A)")) setSorting({ key: "surname", direction: "DESC" });
-                            else if (val.includes("Liczba wypożyczeń (rosnąco)")) setSorting({ key: "rent_count", direction: "ASC" });
-                            else if (val.includes("Liczba wypożyczeń (malejąco)")) setSorting({ key: "rent_count", direction: "DESC" });
-                            else if (val.includes("Liczba zaległości (rosnąco)")) setSorting({ key: "overdue_count", direction: "ASC" });
-                            else if (val.includes("Liczba zaległości (malejąco)")) setSorting({ key: "overdue_count", direction: "DESC" });
-                        }}
-                    >
-                        <CustomOption value="Nazwisko (A-Z)">Nazwisko (A-Z)</CustomOption>
-                        <CustomOption value="Nazwisko (Z-A)">Nazwisko (Z-A)</CustomOption>
-                        <CustomOption value="Liczba wypożyczeń (rosnąco)">Liczba wypożyczeń (rosnąco)</CustomOption>
-                        <CustomOption value="Liczba wypożyczeń (malejąco)">Liczba wypożyczeń (malejąco)</CustomOption>
-                        <CustomOption value="Liczba zaległości (rosnąco)">Liczba zaległości (rosnąco)</CustomOption>
-                        <CustomOption value="Liczba zaległości (malejąco)">Liczba zaległości (malejąco)</CustomOption>
-                    </CustomSelect>
-
-                    {/* Status Filter */}
-                    <CustomSelect
-                        filterKey="status"
-                        label="Status"
-                        allow_multiple
-                        key={`status-${resetToken}`}
-                        initialValues={statusFilter}
-                        onChange={(v: string[]) => setStatusFilter(v as ('user' | 'admin' | 'blocked')[])}
-                    >
-                        <CustomOption value="user">Użytkownik</CustomOption>
-                        <CustomOption value="admin">Bibliotekarz</CustomOption>
-                        <CustomOption value="blocked">Zablokowany</CustomOption>
-                    </CustomSelect>
-                </SearchPanel>
-
-                {/* Zarządzaj Bibliotekarzami Panel */}
-                <div className="panel librarian add">
-                    <h3 className="header">Zarządzaj bibliotekarzami</h3>
-                    <button onClick={() => setShownPopup("addLibrarian")} >
-                        <img src={iconAdd} alt="" style={{ marginRight: '0.5em' }} /> Dodaj nowego bibliotekarza
-                    </button>
-                </div>
-
-                {/* Lista Użytkowników */}
-                <div className="users-list">
-                    {users.map((user, idx) => (
-                        <UserComponent
-                            key={idx}
-                            userInfo={user}
-                            onBlockUser={onBlockUserPressed}
-                            onUnblockUser={onUnblockUserPressed}
-                            onRemoveUser={onRemoveUserPressed}
-                            onBookClick={onBookDetailsPressed}
-                        />
-                    ))}
-
-                    {users.length === 0 && (
-                        <div className="text-center">
-                            <h3 className="mt-8 mb-3">{notFoundText}</h3>
-                            <a onClick={handleResetFilters}>Pokaż wszystkich użytkowników</a>
-                        </div>
-                    )}
-                </div>
-
-                {/* Paginacja */}
-                {users.length > 0 && (
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={(p) => setCurrentPage(p)}
-                    />
-                )}
-
+            {/* Zarządzaj Bibliotekarzami Panel */}
+            <div className="panel librarian add">
+                <h3 className="header">Zarządzaj bibliotekarzami</h3>
+                <button onClick={() => setShownPopup("addLibrarian")} >
+                    <img src={iconAdd} alt="" style={{ marginRight: '0.5em' }} /> Dodaj nowego bibliotekarza
+                </button>
             </div>
-            </main>
-        </>
+
+            {/* Lista Użytkowników */}
+            <div className="users-list">
+                {users.map((user, idx) => (
+                    <UserComponent
+                        key={idx}
+                        userInfo={user}
+
+                        onBlockUser={onBlockUserPressed}
+                        onUnblockUser={onUnblockUserPressed}
+                        onRemoveUser={onRemoveUserPressed}
+                    />
+                ))}
+
+                {users.length === 0 && (
+                    <div className="text-center">
+                        <h3 className="mt-8 mb-3">{notFoundText}</h3>
+                        <a onClick={handleResetFilters}>Pokaż wszystkich użytkowników</a>
+                    </div>
+                )}
+            </div>
+
+            {/* Paginacja */}
+            {users.length > 0 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(p) => setCurrentPage(p)}
+                />
+            )}
+
+        </div>
+    </main>
+    {/* Block User Confirm */}
+    <Popup isOpen={shownPopup === "blockConfirm"} setIsOpen={(v:boolean) => !v && hidePopups()} title="Zablokuj użytkownika" onClose={hidePopups}>
+        <p>Czy na pewno chcesz zablokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
+        <div className="flex flex-row *:flex-1 mt-6 gap-2">
+            <button onClick={hidePopups} className="boring">Anuluj</button>
+            <button onClick={executeBlockUser} className="bg-amber-600 hover:bg-amber-500">Zablokuj</button>
+        </div>
+    </Popup>
+
+    {/* Unblock User Confirm */}
+    <Popup isOpen={shownPopup === "unblockConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Odblokuj użytkownika" onClose={hidePopups}>
+        <p>Czy na pewno chcesz odblokować użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
+        <div className="flex flex-row *:flex-1 mt-6 gap-2">
+            <button onClick={hidePopups} className="boring">Anuluj</button>
+            <button onClick={executeUnblockUser}>Odblokuj</button>
+        </div>
+    </Popup>
+
+    {/* Delete User Confirm */}
+    <Popup isOpen={shownPopup === "deleteConfirm"} setIsOpen={(v: boolean) => !v && hidePopups()} title="Usuń użytkownika" onClose={hidePopups}>
+        <p>Czy na pewno chcesz trwale usunąć użytkownika <strong>{popupData.user?.name} {popupData.user?.surname}</strong>?</p>
+        <p><strong>Tej operacji nie można cofnąć.</strong></p>
+        <div className="flex flex-row *:flex-1 mt-6 gap-2">
+            <button onClick={hidePopups} className="boring">Anuluj</button>
+            <button onClick={executeRemoveUser} className="bg-red-700 hover:bg-red-600">Usuń trwale</button>
+        </div>
+    </Popup>
+
+    {/* Generic Success */}
+    <Popup isOpen={shownPopup === "success"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Sukces"} onClose={hidePopups}>
+        <p>{popupData.message}</p>
+        <div className="flex flex-row *:flex-1 mt-6">
+            <button onClick={hidePopups} className="boring">Zamknij</button>
+        </div>
+    </Popup>
+
+    {/* Generic Error - Dynamic Title/Content */}
+    <Popup isOpen={shownPopup === "error"} setIsOpen={(v: boolean) => !v && hidePopups()} title={popupData.title || "Błąd"} icon={iconError} onClose={hidePopups}>
+        <p className="text-justify italic"><strong>{popupData.message}</strong></p>
+        <div className="flex flex-row *:flex-1 mt-6">
+            <button onClick={hidePopups} className="boring">Zamknij</button>
+        </div>
+    </Popup>
+
+    {/* Add Librarian */}
+    <AddAdminForm isOpen={shownPopup === "addLibrarian"} setIsOpen={(v: boolean) => !v && hidePopups()} onClose={hidePopups}/>
+</>
     );
 }
+
 /**
  * @interface AddAdminPopupProps
  * @property {boolean} isOpen - wartość hook'a obsługującego zamykanie i otwieranie okna

@@ -8,7 +8,7 @@ import { useNavigate} from "react-router-dom";
 import { validators } from "../server/validators.ts";
 import { AuthContext } from "../server/UserAuth.tsx";
 import {type Session} from '../server/server_types.ts'
-import { RequestError, loginRequest } from "../server/server_requests.ts";
+import { loginRequest } from "../server/server_requests.ts";
 
 function Login() {
   const auth = useContext(AuthContext);
@@ -61,21 +61,24 @@ function Login() {
 
         <input
           type="email"
+          name='login'
           placeholder="E-mail"
+          autoComplete='on'
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
           type="password"
+          name='password'
           placeholder="Hasło"
+          autoComplete='on'
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        {error && <p style={{ color: "red", marginTop: 10 }}>{error}</p>}
 
         <button type="submit">Zaloguj się</button>
-
-        {error && <p style={{ color: "red", marginTop: 10 }}>{error}</p>}
 
         <p className="muted">
           Nie masz konta? <a href="/register">Zarejestruj się</a>

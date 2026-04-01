@@ -23,6 +23,7 @@
     z-index: 1001; 
     width: fit-content;
     min-width: 300px;
+    max-width: 95%;
     margin: auto;
 }
 
@@ -53,6 +54,7 @@
 .alert-message {
     margin-bottom: 15px;
     font-size: 1em;
+    max-width: 50vh;
 }
 
 .alert-actions {

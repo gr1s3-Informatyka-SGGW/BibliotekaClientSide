@@ -2,24 +2,25 @@
  * @file Implementuje komponent generujący i wyświetlający komunikat z kodem QR danego egzemplarza
  * @author Dawid Filipek
  * */
-import React, {type Dispatch, useEffect, useRef, useState} from "react";
+import React, {type Dispatch, useEffect, useRef} from "react";
 import QRCode from "qrcode";
 import Popup from "../custom_components/Popup.tsx";
 import "./InstanceQR.css";
+
 /**
  * Właściwości komponentu InstanceQR.
  * @interface InstanceQRProps
  * @prop {number[] | number} instance_id - Pojedynczy identyfikator lub tablica ID egzemplarzy do wygenerowania kodów.
- * @prop {number} book_id - id książki, do której należy egzemplarz/egzemplarze.
+ * @prop {string} book_title - tytuł książki, do której należy egzemplarz/egzemplarze.
  * @prop isOpen - hook kontrolujący widoczność komponentu
  * @prop setIsOpen - setter dla isOpen
  * @prop {function} [onClose] - Opcjonalna funkcja wywoływana przy zamykaniu komponentu.
  */
 interface InstanceQRProps {
     instance_id: number[] | number;
-    book_id: number;
+    book_title: string;
     isOpen: boolean
-    setIsOpen: Dispatch<React.SetStateAction<boolean>>
+    setIsOpen: Dispatch<React.SetStateAction<boolean>> | ((isOpen: boolean) => void);
     onClose?: () => void;
 }
 
@@ -29,7 +30,7 @@ interface InstanceQRProps {
  * @component
  * @param {InstanceQRProps} props - Właściwości komponentu.
  */
-export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, onClose }: InstanceQRProps) {
+export default function InstanceQR({ instance_id, book_title, isOpen, setIsOpen, onClose }: InstanceQRProps) {
     const ids = Array.isArray(instance_id) ? instance_id : [instance_id];
     const isSingle = ids.length === 1;
 
@@ -55,10 +56,10 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
         ids.forEach((id, index) => {
             const canvas = canvasRefs.current[index];
             if (canvas) {
-                QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_id}), {})
+                QRCode.toCanvas(canvas, JSON.stringify({instance: id, book: book_title}), {})
             }
         });
-    }, [ids, isSingle]);
+    }, [book_title, ids, isSingle]);
 
     /**
      * Generuje plik obrazu (PNG) zawierający kod QR oraz tekstową etykietę egzemplarza,
@@ -76,16 +77,17 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
         if (!ctx) return;
 
         const fontSize = 20;
-        const padding = 50;
+        const padding = 80;
         ctx.font = `bold ${fontSize}px Arial`;
 
-        const label = `Egzemplarz #${id}`;
-        const textMetrics = ctx.measureText(label);
-        const textWidth = textMetrics.width + 40;
+        const labelBook = `Książka: ${book_title}`;
+        const labelInstance = `Egzemplarz #${id}`;
+        const textMetricsBook = ctx.measureText(labelBook);
+        const textMetricsInstance = ctx.measureText(labelInstance);
+        const textWidth = Math.max(textMetricsBook.width, textMetricsInstance.width) + 40;
 
         // Ustawienie wymiarów nowego płótna (QR + miejsce na tekst)
-        const finalWidth = Math.max(originalCanvas.width, textWidth);
-        tempCanvas.width = finalWidth;
+        tempCanvas.width = Math.max(originalCanvas.width, textWidth);
         tempCanvas.height = originalCanvas.height + padding;
 
         // Rysowanie tła
@@ -96,7 +98,8 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
         ctx.fillStyle = "#801d41";
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = "center";
-        ctx.fillText(label, tempCanvas.width / 2, 30);
+        ctx.fillText(labelBook, tempCanvas.width / 2, 25);
+        ctx.fillText(labelInstance, tempCanvas.width / 2, 55);
 
         // Kopiowanie kodu QR na nowe płótno
         const qrXOffset = (tempCanvas.width - originalCanvas.width) / 2;
@@ -129,11 +132,18 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
                             <div className="qr-item-row">
                                 <div className="qr-code-box">
                                     <canvas ref={(el) => { if (el) canvasRefs.current[index] = el; }} />
-                                    {isSingle && <p className="qr-id-text">Egzemplarz nr: {id}</p>}
+                                    {isSingle && (
+                                        <>
+                                            <p className="qr-id-text">Książka: {book_title}</p>
+                                            <p className="qr-id-text">Egzemplarz nr: {id}</p>
+                                        </>
+                                    )}
                                 </div>
                                 {!isSingle && (
                                     <div className="qr-item-actions">
-                                        <button className="btn-pill-bordowy" onClick={() => downloadQR(id, index)}>Zapisz</button>
+                                        <button className="btn-pill-bordowy" onClick={() => downloadQR(id, index)}>
+                                            Zapisz
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -145,7 +155,9 @@ export default function InstanceQR({ instance_id, book_id, isOpen, setIsOpen, on
                     <button className="btn-pill-outline" onClick={handleClose}>Zamknij</button>
                     {isSingle ? (
                         <>
-                            <button className="btn-pill-bordowy" onClick={() => downloadQR(ids[0], 0)}>Zapisz do pliku</button>
+                            <button className="btn-pill-bordowy" onClick={() => downloadQR(ids[0], 0)}>
+                                Zapisz do pliku
+                            </button>
                         </>
                     ) : (
                         <>

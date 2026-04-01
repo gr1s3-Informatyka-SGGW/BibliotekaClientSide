@@ -1,24 +1,24 @@
-.panel input,
-.panel select {
+#UserListView .panel input,
+#UserListView .panel select {
   box-sizing: border-box;
   width: 100%;
 }
 
-.users-list {
+#UserListView .users-list {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
 }
 
-.users-list .panel {
+#UserListView .users-list .panel {
   margin: 0;
 }
 
-h4 {
+#UserListView h4 {
   margin: 0.5em 0;
 }
 
-.user-header-row {
+#UserListView .user-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -26,14 +26,14 @@ h4 {
   margin-bottom: 0.5em;
 }
 
-.user-panel-header {
+#UserListView .user-panel-header {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
   gap: 0.5em;
 }
 
-.name-display {
+#UserListView .name-display {
   margin: 0;
   font-weight: bold;
   font-size: 125%;
@@ -41,7 +41,7 @@ h4 {
   padding: 0;
 }
 
-.email-display {
+#UserListView .email-display {
   font-size: 0.9em;
   color: #666;
   display: flex;
@@ -49,104 +49,104 @@ h4 {
   gap: 0.3em;
 }
 
-.email-icon {
+#UserListView .email-icon {
   filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(200deg) brightness(80%) contrast(90%);
   height: 1.1em;
   width: 1.1em;
 }
 
-.loan-reservation-wrapper {
+#UserListView .loan-reservation-wrapper {
   width: 100%;
   overflow-x: auto;
   padding-bottom: 0.5em;
 }
 
-.loans-table {
+#UserListView .loans-table {
   width: 100%;
   min-width: 600px;
   border-collapse: collapse;
   font-size: 0.9em;
 }
 
-.loans-table th,
-.loans-table td {
+#UserListView .loans-table th,
+#UserListView .loans-table td {
   border: 1px solid #FFE8EF;
   padding: 0.5em;
   text-align: left;
   vertical-align: middle;
 }
 
-.loans-table th {
+#UserListView .loans-table th {
   background-color: #FFE8EF;
   color: #891E49;
 }
 
-.user-actions {
+#UserListView .user-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5em;
 }
 
-.user-actions button {
+#UserListView .user-actions button {
   background-color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.user-actions button img {
+#UserListView .user-actions button img {
   width: 1.3em;
   vertical-align: middle;
   margin-right: 0.4em;
 }
 
-.action-block {
+#UserListView .action-block {
   color: #ff9900;
   border: 1px solid #ff9900;
 }
 
-.action-block:hover {
+#UserListView .action-block:hover {
   background-color: #ffe8cc;
 }
 
-.action-block img {
+#UserListView .action-block img {
   filter: invert(61%) sepia(90%) saturate(1751%) hue-rotate(359deg) brightness(101%) contrast(100%);
 }
 
-.action-delete {
+#UserListView .action-delete {
   color: #dc3545;
   border: 1px solid #dc3545;
 }
 
-.action-delete:hover {
+#UserListView .action-delete:hover {
   background-color: #f8d7da;
 }
 
-.action-delete img {
+#UserListView .action-delete img {
   filter: invert(27%) sepia(74%) saturate(3015%) hue-rotate(345deg) brightness(89%) contrast(90%);
 }
 
-.date-cell,
-.status-cell {
+#UserListView .date-cell,
+#UserListView .status-cell {
   display: flex;
   align-items: center;
   gap: 0.3em;
 }
 
-.date-icon-small {
+#UserListView .date-icon-small {
   height: 1.1em;
   width: 1.1em;
   filter: invert(18%) sepia(87%) saturate(2250%) hue-rotate(320deg) brightness(65%) contrast(100%);
 }
 
-.status-icon-small {
+#UserListView .status-icon-small {
   height: 1.1em;
   width: 1.1em;
   filter: invert(100%) sepia(0%) saturate(7499%) hue-rotate(198deg) brightness(108%) contrast(100%);
   margin-right: 0.1em;
 }
 
-.status-badge {
+#UserListView .status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -160,73 +160,73 @@ h4 {
   white-space: nowrap;
 }
 
-.status-active {
+#UserListView .status-active {
   background-color: #28a745;
 }
 
-.status-overdue {
+#UserListView .status-overdue {
   background-color: #dc3545;
 }
 
-.status-reserved {
+#UserListView .status-reserved {
   background-color: #BF8049;
 }
 
-.status-neutral {
+#UserListView .status-neutral {
   background-color: #888;
 }
 
-.cost-unpaid {
+#UserListView .cost-unpaid {
   color: #dc3545;
   font-weight: bold;
 }
 
-.librarian {
+#UserListView .librarian {
   background-color: #fee6f0;
 }
 
-.empty-table-placeholder {
+#UserListView .empty-table-placeholder {
   min-width: 600px;
 }
 
 @media (max-width: 700px) {
-  .user-header-row {
+  #UserListView .user-header-row {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .user-actions {
+  #UserListView .user-actions {
     width: 100%;
     margin-top: 0.5em;
   }
 
-  .user-actions button {
+  #UserListView .user-actions button {
     flex: 1;
   }
 }
 
-.panel.add-librarian {
+#UserListView .panel.add-librarian {
   border: 1px solid #891e4977;
   background-color: #fee6f0;
 }
 
-.panel.librarian {
+#UserListView .panel.librarian {
   border: 1px solid #891e4977;
   border-left: 5px solid #891e49;
   background-color: #fee6f0;
 }
 
-.panel.blocked {
+#UserListView .panel.blocked {
   border: 1px solid #ff990077;
   border-left: 5px solid #ff9900;
   background-color: #fff8ef;
 }
 
-table {
+#UserListView table {
   background-color: white;
 }
 
-.panel.librarian.add {
+#UserListView .panel.librarian.add {
   margin: 0.5em 0;
   display: flex;
   flex-direction: row;
@@ -234,36 +234,35 @@ table {
   align-items: center;
 }
 
-.panel.librarian.add>h3 {
+#UserListView .panel.librarian.add>h3 {
   flex: 1;
   margin: 0;
   padding: 0;
 }
 
-.panel.librarian.add>button {
+#UserListView .panel.librarian.add>button {
   flex: 1;
   white-space: nowrap;
   max-width: 22em;
 }
 
 @media(max-width: 36em) {
-  .panel.librarian.add {
+  #UserListView .panel.librarian.add {
     flex-direction: column;
     align-items: normal;
   }
 
-  .panel.librarian.add>button {
+  #UserListView .panel.librarian.add > button {
     max-width: inherit;
   }
 }
 
 
-
-form {
+#UserListView form {
   box-shadow: none !important;
   padding: 0 !important;
 }
 
-body * {
+#UserListView body * {
   font-family: "Lato", sans-serif;
 }

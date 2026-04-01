@@ -21,9 +21,9 @@ export interface Session{
  * @prop {string[]} authors
  * @prop {number} publish_year
  * @prop {string} isbn_number
- * @prop {number} length
- * @prop {string} language
- * @prop {string} publisher
+ * @prop {number} [length]
+ * @prop {string} [language]
+ * @prop {string} [publisher]
  * @prop {string[]} keywords
  * @prop {string[]} genre
  * */
@@ -32,15 +32,15 @@ export interface Book{
     title: string;
     authors: string[];
 
-    publish_year: number;
-    isbn_number: string;
+    publish_year?: number;
+    isbn_number?: string;
 
-    length: number;
-    language: string;
-    publisher: string;
+    length?: number;
+    language?: string;
+    publisher?: string;
 
-    keywords: string[];
-    genre: string[];
+    keywords?: string[];
+    genre?: string[];
 }
 
 /**
@@ -74,21 +74,25 @@ export interface BookUser extends Book{
 /**
  * @type Rent zawiera dane na temat wypożyczenia książki
  * @prop {Book} book - informacje o wypożyczonej książce
+ * @prop {number} instance_id - numer wyporzyczonego egzemplarza
  * @prop {Date} borrow_date
  * @prop {Date} return_date
  * */
 export interface Rent{
     book: Book;
+    instance_id?: number;
     borrow_date: Date;
     return_date: Date;
 }
 /**
  * @type Reservation zawiera dane na temat rezerwacji książki
  * @prop {Book} book - informacje o wypożyczonej książce
+ * @prop {number} [instance_id] - id książki, która została zarezerwowana (przypisane przez serwer)
  * @prop {Date} reserve_to - data, do której obowiązuje rezerwacja
  * */
 export interface Reservation{
     book: Book
+    instance_id?: number;
     reserve_to: Date
 }
 /**
@@ -96,7 +100,7 @@ export interface Reservation{
  * @prop {string} name
  * @prop {string} surname
  * @prop {string} email
- * @prop {string|undefined} credit_card_number - Używany tylko przy pobieraniu danych na rzecz strony /profile dla użytkownika, są to cztery ostatnie cyfry karty płatniczej
+ * @prop {string} [credit_card_number] - Używany tylko przy pobieraniu danych na rzecz strony /profile dla użytkownika, są to cztery ostatnie cyfry karty płatniczej
  * */
 export interface User{
     name: string;
@@ -155,11 +159,11 @@ export interface BookSearchFilter extends IFilter{
 }
 /**
  * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
- * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
+ * @prop {'active'|'returned'|undefined} states - status wypożyczenia
  * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
  * */
 export interface RentLogSearchFilter extends IFilter{
-    states?: 'active'|'returned'|'un-payed'
+    states?: 'active'| 'archive'
     isOverdue?: boolean
 }
 /**
@@ -184,11 +188,11 @@ export interface PagedResponse<T > {
 
 /**
  * @type RentLogSearchFilter - typ używany do określania filtrów na nałożonych na wynik wyszukiwania na stronie /rented-books
- * @prop {'active'|'returned'|'un-payed'|undefined} states - status wypożyczenia
- * @prop {boolean|undefined} isOverdue - czy została naliczona kara w ramach tego wyporzyczenia
+ * @prop {'active'|'archive'} [states] - status wypożyczenia
+ * @prop {boolean} [isOverdue] - czy została naliczona kara w ramach tego wyporzyczenia
  * */
 export interface RentLogSearchFilter extends IFilter{
-    states?: 'active'|'returned'|'un-payed'
+    states?: 'active'|'archive'
     isOverdue?: boolean
 }
 
@@ -214,15 +218,19 @@ export interface UserInfo{
 
 /**
  * @interface RentFullInfo - szczegółowe informacje o archiwalnym wypożyczeniu na rzecz widoku /rented-books
+ * @prop {number} instance_id - id wyporzyczonego egzemplarza
  * @prop {Book} book - wypożyczona książka
  * @prop {User} user - użytkownik, który wypożyczył książkę
+ * @prop {number} fine - naliczona opłata za nieterminowe zwrócenie ksiązki
  * @prop {Date} borrow_date - data wypożyczenia
  * @prop {Date|null} return_date - data w której użytkownik dokonał zwrotu. null, gdy jeszcze nie dokonano zwrotu.
  * @prop {Date} return_to_date - data, do której musi zostać dokonany zwrot, aby nie zostały naliczone opłaty
  * */
 export interface RentFullInfo{
+    instance_id: number;
     book: Book
     user:User
+    fine: number
     borrow_date: Date
     return_to_date: Date
     return_date: Date| null

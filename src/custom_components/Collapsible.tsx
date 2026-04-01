@@ -4,7 +4,6 @@
  * */
 import './Collapsible.css'
 import React, {type ReactNode, useState} from "react";
-// todo: można by naprawić problem z animacją zwijania dla admina w katalogu
 /**
  * Komponent Collapsible
  * * Chowa swoją zawartość, pozostawiając jedynie pasek z nagłówkiem. 
@@ -23,7 +22,7 @@ function Collapsible({children, header}: {children:ReactNode, header: string}): 
      * Stan określający, czy sekcja jest zwinięta (true) czy rozwinięta (false).
      * @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]}
      */
-    let [isCollapsed, setIsCollapsed]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true)
+    const [isCollapsed, setIsCollapsed]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true)
 
     /**
      * @event toggleCollapse Funkcja przełączająca stan zwinięcia/rozwinięcia komponentu.

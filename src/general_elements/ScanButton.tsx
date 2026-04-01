@@ -56,7 +56,9 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
   constructor(props: ScanButtonProps) {
     super(props);
     this.state = {
-      isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+      // todo: !MOCK scan
+      isMobile: true,
+      // isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
       error: '',
       open: false
     };
@@ -65,7 +67,7 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
 
   componentDidMount() {
     this.setState({
-      isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+      isMobile: true // /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
     });
   }
 
@@ -88,7 +90,7 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
     const video = this.videoRef.current;
     const canvas = this.canvasRef.current;
     const scanArea = this.scanAreaRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext("2d", {willReadFrequently: true});
 
     if (!video || !canvas || !scanArea || !ctx) return;
 
@@ -150,8 +152,12 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
     const sw = Math.floor(area.width * scaleX);
     const sh = Math.floor(area.height * scaleY);
 
-    const imageData = ctx.getImageData(sx, sy, sw, sh);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    const imageData = ctx.getImageData(sx, sy, sw, sh, {});
+
+
+    // todo: !MOCK scan
+    const code = { data: '{"instance": 5, "book": "Testowanie Softu"}'}
+    // const code = jsQR(imageData.data, imageData.width, imageData.height);
 
     if (code) {
       this.scanningRef = false;
@@ -193,7 +199,7 @@ class ScanButton extends React.Component<ScanButtonProps, ScanButtonState> {
           >
             <div style={{position: "relative"}}>
               <video ref={this.videoRef} playsInline style={{width: "100%"}}/>
-              <canvas ref={this.canvasRef} style={{display: "none"}}/>
+              <canvas ref={this.canvasRef} style={{display: "none"}} />
               <div
                   ref={this.scanAreaRef}
                   className='scan-area'>

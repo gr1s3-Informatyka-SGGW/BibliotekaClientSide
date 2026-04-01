@@ -47,6 +47,9 @@
     background-color: rgba(255, 255, 255, 0.5);
 }
 
+.type-return .date-container {
+    background-color: #fee6f0;
+}
 .date-label {
     font-size: 0.8em;
     color: #891E49;

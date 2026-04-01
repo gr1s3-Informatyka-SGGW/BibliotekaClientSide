@@ -1,6 +1,5 @@
 /**
- * @file UserAuth.tsx
- * @description Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
+ * @file Kontekst uwierzytelniania użytkownika: logowanie, wylogowanie,
  * zarządzanie sesją oraz ochrona tras. Implementacja wykorzystuje React Context.
  * @author Szymon Doba
  */
@@ -64,10 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (session) localStorage.setItem("session", JSON.stringify(session));
   }, [session]);
 
-  // umożliwia testy w konsoli
-  // @ts-ignore
-  window.auth = { login, logout };
-
   return (
     <AuthContext.Provider value={{ session, login, logout }}>
       {children}
@@ -91,7 +86,7 @@ export function ProtectedRoute({mode, children, reroute_path,}: {mode: "admin" |
     return <Navigate to="/login" />;
   }
 
-  //zalogowany użytkownik próbuje wejść w trasę publiczną (login, register)
+  //zalogowany użytkownik próbuje wejść w trasę publiczną (Login, register)
   if (access && mode === null) {
     return <Navigate to="/catalog" />;
   }

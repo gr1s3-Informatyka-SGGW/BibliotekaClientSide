@@ -92,7 +92,7 @@ function Register() {
                 
                 // Logika sukcesu musi być TUTAJ - po udanym zapytaniu
                 setSuccess("Konto zostało utworzone. Możesz się zalogować.");
-                setTimeout(() => navigate("/login"), 1500);
+                setTimeout(() => navigate("/Login"), 1500);
             }
             catch(er: any){
                 setError((er as Error).message ?? "Błąd rejestracji.");
@@ -201,6 +201,9 @@ function Register() {
                     </div>
                 </div>
 
+                {error && <p style={{color: "red", marginTop: 10}}>{error}</p>}
+                {success && <p style={{color: "green", marginTop: 10}}>{success}</p>}
+
                 <div className="checkbox-container">
                     <input
                         type="checkbox"
@@ -214,9 +217,6 @@ function Register() {
                 </div>
 
                 <button type="submit">Zarejestruj się</button>
-
-                {error && <p style={{color: "red", marginTop: 10}}>{error}</p>}
-                {success && <p style={{color: "green", marginTop: 10}}>{success}</p>}
 
                 <p className="muted">
                     Masz już konto? <a href="/login">Zaloguj się</a>
